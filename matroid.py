@@ -1,8 +1,10 @@
 
 import numpy as np
 
-SET_N = 4  # number of elements in the base set
+SET_N = 6 # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
+DEBUG = False
+EPSILON = 1e-14
 
 def dimensions() -> int:
     """Return the number of variables / possible f() values"""
@@ -100,7 +102,7 @@ def get_axioms():
     """Return linear expressions (matrix of coefficients) for all axioms"""
     return modularities() + monotonicity()
 
-def solve(debug=True):
+def solve():
     axioms = get_axioms()
     num_axioms = len(axioms)
     variables = dimensions()
@@ -132,14 +134,15 @@ def solve(debug=True):
         x = np.linalg.solve(a=mat, b=result)
         # Check the solution against all axioms
         r = np.dot(axioms, x)
-        if np.min(r) < -1e-8:
+        if np.min(r) < -EPSILON:
             violates += 1
-            if debug:
+            if DEBUG:
+                print("VIOLATION")
                 for i_, e_ in enumerate(axioms):
                     print(f"#{i_} {display_expression(e_)}", end="")
                     if i_ in index:
                         print(" (selected)", end="")
-                    if r[i_] < -1e-8:
+                    if r[i_] < -EPSILON:
                         print(f" Violated, result = {r[i_]}")
                     else:
                         print("")  # new line
@@ -147,6 +150,16 @@ def solve(debug=True):
                 print(f"solution: {display_vector(x)}")
             continue
         success += 1
+        if DEBUG:
+            print("SUCCESS")
+            for i_, e_ in enumerate(axioms):
+                print(f"#{i_} {display_expression(e_)}", end="")
+                if i_ in index:
+                    print(" (selected)", end="")
+                print(f" Result = {r[i_]}")
+            print(f"selected: {index}")
+            print(f"solution: {display_vector(x)}")
+
 
 def display_vector(v) -> str:
     """Create human-readable string from a vector"""
