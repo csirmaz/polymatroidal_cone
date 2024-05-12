@@ -162,12 +162,12 @@ def solve():
 
 
 def display_vector(v) -> str:
-    """Create human-readable string from a vector"""
+    """Create human-readable string from a vector of coefficients"""
     smap = set_create_index_map()
     rev_map = {v: k for k, v in smap.items()}
     r = []
     for e, v in enumerate(v):
-        if abs(v) < 1e-8: continue
+        if abs(v) < EPSILON: continue  # do not list 0s
         s = rev_map[e]
         f = f"f({set_bitmap_to_set(s)})={v}"
         r.append(f)
