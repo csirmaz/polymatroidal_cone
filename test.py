@@ -49,27 +49,12 @@ def test_set_map():
     assert map[M.set_to_bitmap({1,2,3})] == 6
     assert map[M.set_to_bitmap({0,1,2,3})] == 6
 
-def explain_modularities(tight):
+def explain_axioms(tight):
     M.SET_N = 4
     M.TIGHT = tight
-    smap = M.set_create_index_map()
-    rev_map = {v: k for k, v in smap.items()}
-    mods = M.modularities()
+    mods = M.get_axioms()
     for exp in mods:
-        big = []
-        small = []
-        print(exp, end="  \t")
-        for e, v in enumerate(exp):
-            if v == 0: continue
-            s = rev_map[e]
-            f = f"f({M.set_bitmap_to_set(s)})"
-            if v == 1:
-                big.append(f)
-            elif v == -1:
-                small.append(f)
-            else:
-                raise ValueError("Wrong v")
-        print(f"{' + '.join(big)} >= {' + '.join(small)}")
+        print(M.display_expression(exp))
 
 
 test_dimensions()
@@ -77,5 +62,5 @@ test_set_to_bitmap()
 test_set_to_set()
 test_set_len()
 test_set_map()
-# explain_modularities(False)
-explain_modularities(True)
+# explain_axioms(False)
+explain_axioms(True)
