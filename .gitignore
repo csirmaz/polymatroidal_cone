@@ -1,3 +1,6 @@
 *~
 *.bak
 .idea
+__pycache__
+a.out
+
