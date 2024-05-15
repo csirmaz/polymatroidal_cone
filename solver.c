@@ -163,7 +163,7 @@ void print_chosen_axioms(void) {
 }
 
 // Display elapsed time
-void FUNCPARAMS elapsed_time(int counter) {
+void FUNCPARAMS elapsed_time(unsigned long counter) {
     gettimeofday(&current_time, NULL);
     double elapsed = (current_time.tv_sec - start_time.tv_sec) + (current_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
     printf("# %d steps in %lf s, %lf ms/step\n", counter, elapsed, elapsed*1000./(double)counter);
@@ -237,7 +237,7 @@ int main(void) {
         printf("OK - Unit tests\n");
     #else
     
-    int tries = 0;
+    unsigned long tries = 0; // How many steps
     int free_var; // the index of the free variable in the solution
     T_FACTOR solution[VARS]; // the solution
     int freedoms; // how many freedoms the chosen system has
@@ -252,6 +252,9 @@ int main(void) {
     int variables_solved_init[VARS];
     LOOP(i) variables_solved_init[i] = 0;
     
+    unsigned long freedom_stats[VARS]; // Collect statistics on the number of freedoms encountered
+    LOOP(i) freedom_stats[i] = 0;
+    
     while(1) { // One experiment
     
         // Choose axioms
@@ -261,7 +264,7 @@ int main(void) {
             memcpy(&chosen_axioms[i], &axioms[chosen_ix[i]], sizeof(T_FACTOR)*VARS);
         }
         #ifdef DEBUG
-            printf("---------- Try #%d --------------\n", tries);
+            printf("---------- Try #%lu --------------\n", tries);
             print_chosen_ix();
         #endif
 
@@ -424,7 +427,19 @@ int main(void) {
         #endif
 
         tries++;
-        if(tries % 10000 == 0) elapsed_time(tries);
+        if(inside) {
+            freedom_stats[0]++;
+        } else {
+            freedom_stats[freedoms]++;
+        }
+        
+        if(tries % 10000 == 0) {
+            elapsed_time(tries);
+            // Print freedom stats
+            printf("# Freedom stats ");
+            LOOP(i) printf("%lu,", freedom_stats[i]);
+            printf("\n");
+        }
         
         #ifdef SOLVER_TEST
             if(tries > 5) break;    
