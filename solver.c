@@ -166,7 +166,7 @@ void print_chosen_axioms(void) {
 void FUNCPARAMS elapsed_time(unsigned long counter) {
     gettimeofday(&current_time, NULL);
     double elapsed = (current_time.tv_sec - start_time.tv_sec) + (current_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
-    printf("# %d steps in %lf s, %lf ms/step\n", counter, elapsed, elapsed*1000./(double)counter);
+    printf("# %lu steps in %lf s, %lf ms/step\n", counter, elapsed, elapsed*1000./(double)counter);
 }
 
 // Assertion
