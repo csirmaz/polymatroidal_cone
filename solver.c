@@ -21,16 +21,20 @@
 // Whether to check for and report all-0 solutions
 // #define CHECK_FOR_ZERO
 
-#ifdef TEST1
-    #include "tests/test1.c"
+#ifdef TEST0
+    #include "tests/test0.c"
 #else
-    #ifdef TEST2
-        #include "tests/test2.c"
+    #ifdef TEST1
+        #include "tests/test1.c"
     #else
-        #ifdef TEST3
-            #include "tests/test3.c"
+        #ifdef TEST2
+            #include "tests/test2.c"
         #else
-            #include "axioms.c"
+            #ifdef TEST3
+                #include "tests/test3.c"
+            #else
+                #include "axioms.c"
+            #endif
         #endif
     #endif
 #endif
@@ -109,19 +113,37 @@ int FUNCPARAMS rnd_axiom_num(int limit) {
     }
 }
 
-// Initialize and shuffle chosen_ix to get VARS-1 random axioms
+// Bubble sort the first segment of chosen_ix
+void FUNCPARAMS sort_chosen_ix(void) {
+    int tmp;
+    while(1) {
+        tmp = -1;
+        for(int i=0; i<VARS-2; i++) {
+            if(chosen_ix[i] > chosen_ix[i+1]) {
+                tmp = chosen_ix[i];
+                chosen_ix[i] = chosen_ix[i+1];
+                chosen_ix[i+1] = tmp;
+            }
+        }
+        if(tmp == -1) break;
+    }
+}
+
+// Initialize, shuffle and sort chosen_ix to get VARS-1 random axioms
 void FUNCPARAMS shuffle_chosen_ix(void) {
     
     ROW_LOOP(i) { chosen_ix[i] = i; }
     
     CHOSEN_LOOP(i) {
-        int r = rnd_axiom_num(AXIOMS-i) + i;
+        int r = rnd_axiom_num(AXIOMS - i) + i;
         if(r != i) {
             int tmp = chosen_ix[i];
             chosen_ix[i] = chosen_ix[r];
             chosen_ix[r] = tmp;
         }
     }
+    
+    sort_chosen_ix();
 }
 
 // Print chosen_ix
@@ -186,9 +208,12 @@ void unit_test(void) {
     // Test shuffle_chosen_ix
     for(int j=0; j<100; j++) {
         shuffle_chosen_ix();
-        for(int i=1; i<VARS-1; i++) {
-            assert(chosen_ix[0] != chosen_ix[i], "chosen_ix1");
-            assert(chosen_ix[i-1] != chosen_ix[VARS-2], "chosen_ix2");
+        CHOSEN_LOOP(i) {
+            CHOSEN_LOOP(j) {
+                if(i < j) { 
+                    assert(chosen_ix[i] < chosen_ix[j], "chosen_ix");
+                }
+            }
         }
     }
     
