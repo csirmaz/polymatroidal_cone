@@ -108,8 +108,15 @@ def print_c_code():
     print(f'#define VARS {len(axioms[0])}')
     out = []
     for i, e in enumerate(axioms):
-        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + display_expression(e) + '*/')
+        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + f'#{i} ' + display_expression(e) + '*/')
     print('T_FACTOR axioms[AXIOMS][VARS] = {')
+    print(',\n'.join(out))
+    print('};')
+    # Also store the readable axioms
+    out = []
+    for i, e in enumerate(axioms):
+        out.append(f'"#{i} {display_expression(e)}"')
+    print('char* human_readable_axioms[AXIOMS] = {')
     print(',\n'.join(out))
     print('};')
 

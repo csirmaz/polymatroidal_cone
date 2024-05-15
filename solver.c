@@ -1,3 +1,6 @@
+
+// Solve random subsets of polymatroidal axioms
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -11,8 +14,12 @@
 // long long int  format: %lld
 // double  format: %lf
 #define ABS(f) fabs(f)
+
 // Any function modifiers, e.g. static inline
 #define FUNCPARAMS 
+
+// Whether to check for and report all-0 solutions
+// #define CHECK_FOR_ZERO
 
 #ifdef TEST1
     #include "tests/test1.c"
@@ -129,7 +136,7 @@ void print_chosen_axioms(void) {
     CHOSEN_LOOP(i) {
         printf("  ");
         print_row(chosen_axioms[i]);
-        printf("\n");
+        printf(" Orig: %s\n", human_readable_axioms[chosen_ix[i]]);
     }
 }
 
@@ -238,7 +245,10 @@ int main(void) {
         inside = 0;
         memcpy(axiom_solved_for, axiom_solved_for_init, sizeof(int)*(VARS-1)); // Initialize to [-1,-1,...]
         memcpy(variables_solved, variables_solved_init, sizeof(int)*VARS); // Initialize to [0,0,...]
-    
+        #ifdef CHECK_FOR_ZERO
+            int all_zero = 1;
+        #endif
+
         // Solve the system
         LOOP(var_ix) {
             #ifdef DEBUG
@@ -341,6 +351,9 @@ int main(void) {
             // Collect the solution
             CHOSEN_LOOP(a) {
                 solution[axiom_solved_for[a]] = -chosen_axioms[a][free_var];
+                #ifdef CHECK_FOR_ZERO
+                    if(!is_zero(chosen_axioms[a][free_var])) { all_zero = 0; }
+                #endif
             }
             solution[free_var] = 1;
             #ifdef DEBUG
@@ -380,7 +393,10 @@ int main(void) {
         CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
         // 2. Number of freedoms
         // 3. Whether the ray is inside (relevant only if freedoms==1)
-        printf("|%d|%d\n", freedoms, inside);
+        printf("f%d,i%d\n", freedoms, inside);
+        #ifdef CHECK_FOR_ZERO
+            if(freedoms == 1) { printf("z%d\n", all_zero); }
+        #endif
 
         tries++;
         if(tries % 10000 == 0) elapsed_time(tries);

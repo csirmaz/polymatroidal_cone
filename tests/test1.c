@@ -6,6 +6,7 @@ T_FACTOR axioms[AXIOMS][VARS] = {
     {1, 8,-1,-1},
     {0,-3, 1,-2}
 };
+char* human_readable_axioms[AXIOMS] = {"#0","#1","#2"};
 
 #define SOLVER_TARGET
 int target_solved=3;
