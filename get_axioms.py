@@ -143,4 +143,6 @@ def display_expression(exp) -> str:
             raise ValueError("Wrong v")
     return f"{' + '.join(big)} >= {' + '.join(small)}"
 
-print_c_code()
+
+if __name__ == "__main__":
+    print_c_code()

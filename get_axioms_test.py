@@ -1,4 +1,4 @@
-import matroid as M
+import get_axioms as M
 
 def test_dimensions():
     M.SET_N = 4
@@ -63,4 +63,6 @@ test_set_to_set()
 test_set_len()
 test_set_map()
 # explain_axioms(False)
-explain_axioms(True)
+# explain_axioms(True)
+
+print("get_axioms tests OK")
