@@ -1,4 +1,4 @@
-#define LABEL "TEST1"
+#define LABEL "TEST3"
 #define AXIOMS 3
 #define VARS 4
 T_FACTOR axioms[AXIOMS][VARS] = {
@@ -10,5 +10,6 @@ T_FACTOR axioms[AXIOMS][VARS] = {
 #define SOLVER_TARGET
 int target_solved=2;
 int target_freedoms=2;
+int target_free_var=0; // unused
 T_FACTOR target_solution[VARS]={0, 0, 0, 0}; // unused
 

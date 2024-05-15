@@ -4,12 +4,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 
 #define EPSILON 1e-10
 #define T_FACTOR double
 // long long int  format: %lld
 // double  format: %lf
 #define ABS(f) fabs(f)
+// Any function modifiers, e.g. static inline
+#define FUNCPARAMS 
 
 #ifdef TEST1
     #include "tests/test1.c"
@@ -41,23 +44,25 @@ int chosen_ix[AXIOMS];
 // The chosen axioms to solve. We solve VARS-1 axioms; the last row is a buffer
 T_FACTOR chosen_axioms[VARS][VARS];
 
+struct timeval start_time, current_time;
+
 // Return if value is zero
-int is_zero(T_FACTOR x) {
+int FUNCPARAMS is_zero(T_FACTOR x) {
     return (ABS(x) < EPSILON);
 }
 
 // Set a row vector to zero
-void zero(T_ROW(r)) {
+void FUNCPARAMS zero(T_ROW(r)) {
     LOOP(i) r[i] = 0;
 }
 
-// Divide a row vector
-void divide(T_ROW(r), T_FACTOR f) {
+// Divide a row vector by a scalar
+void FUNCPARAMS divide(T_ROW(r), T_FACTOR f) {
     LOOP(i) r[i] /= f;
 }
 
 // a -= b*x for row vectors
-void subtract(T_ROW(a), T_ROW(b), T_FACTOR x) {
+void FUNCPARAMS subtract(T_ROW(a), T_ROW(b), T_FACTOR x) {
     LOOP(i) a[i] -= b[i] * x;
 }
 
@@ -72,14 +77,14 @@ void print_row(T_ROW(r)) {
 }
 
 // Dot product of two row vectors
-T_FACTOR dot(T_ROW(a), T_ROW(b)) {
+T_FACTOR FUNCPARAMS dot(T_ROW(a), T_ROW(b)) {
     T_FACTOR r = 0;
     LOOP(i) r += a[i] * b[i];
     return r;
 }
 
 // Check whether a row vector satisfies all axioms
-int check_axioms(T_ROW(r)) {
+int FUNCPARAMS check_axioms(T_ROW(r)) {
     ROW_LOOP(a) {
         if(dot(axioms[a], r) < -EPSILON) {
             return 0; // false
@@ -89,7 +94,7 @@ int check_axioms(T_ROW(r)) {
 }
 
 // Pick a random number for axioms
-int rnd_axiom_num(int limit) {
+int FUNCPARAMS rnd_axiom_num(int limit) {
     int r;
     while(1) {
         r = (rand() & rand_mask);
@@ -98,7 +103,7 @@ int rnd_axiom_num(int limit) {
 }
 
 // Initialize and shuffle chosen_ix to get VARS-1 random axioms
-void shuffle_chosen_ix(void) {
+void FUNCPARAMS shuffle_chosen_ix(void) {
     
     ROW_LOOP(i) { chosen_ix[i] = i; }
     
@@ -128,8 +133,15 @@ void print_chosen_axioms(void) {
     }
 }
 
+// Display elapsed time
+void FUNCPARAMS elapsed_time(int counter) {
+    gettimeofday(&current_time, NULL);
+    double elapsed = (current_time.tv_sec - start_time.tv_sec) + (current_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
+    printf("# %d steps in %lf s, %lf ms/step\n", counter, elapsed, elapsed*1000./(double)counter);
+}
+
 // Assertion
-void assert(int flag, char* message) {
+void FUNCPARAMS assert(int flag, char* message) {
     if(!flag) {
         printf("Assertion failure: %s\n", message);
         exit(1);
@@ -176,6 +188,8 @@ void unit_test(void) {
 }
 
 int main(void) {
+    
+    gettimeofday(&start_time, NULL);
     
     // Calculate a mask for random numbers
     rand_mask = 1;
@@ -351,6 +365,7 @@ int main(void) {
 
             #ifdef SOLVER_TARGET
                 // Check against known results
+                assert(free_var == target_free_var, "target_free_var");
                 LOOP(i) assert(ABS(target_solution[i] - solution[i]) < .01, "target_solution");
                 printf("OK - solution checked against target\n");
             #endif
@@ -368,6 +383,7 @@ int main(void) {
         printf("|%d|%d\n", freedoms, inside);
 
         tries++;
+        if(tries % 10000 == 0) elapsed_time(tries);
         
         #ifdef SOLVER_TEST
             if(tries > 5) break;    
