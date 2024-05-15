@@ -41,19 +41,6 @@ int chosen_ix[AXIOMS];
 // The chosen axioms to solve. We solve VARS-1 axioms; the last row is a buffer
 T_FACTOR chosen_axioms[VARS][VARS];
 
-/*
-// greatest common divisor
-T_FACTOR gcd(T_FACTOR a, T_FACTOR b) {
-    if (b == 0) return a;
-    return gcd(b, a % b);
-}
-
-// least common multiple
-T_FACTOR lcm(T_FACTOR a, T_FACTOR b) {
-    return (a / gcd(a, b)) * b;
-}
-*/
-
 // Return if value is zero
 int is_zero(T_FACTOR x) {
     return (ABS(x) < EPSILON);
@@ -390,16 +377,3 @@ int main(void) {
     // endif unit tests
     #endif
 }
-
-/*
-
-    int x[4]
-    -> x can be treated as a pointer, === &x[0]
-    -> &x[i] to get address of element
-    -> *x === x[0]
-    
-    int *a[10] === 10 int* pointers
-    inf (*a)[10] === pointer to int[10]
-    -> (*a)[i] to get element
-    
-*/
