@@ -441,26 +441,31 @@ int main(void) {
             
             // Collect the solution
             int negatives = 0;
+            int zeros = 0;
             CHOSEN_LOOP(a) {
                 int ix = axiom_solved_for[a];
                 solution[ix] = -chosen_axioms[a][free_var];
                 solution_divisor[ix] = chosen_axioms[a][ix];
-                if(solution[ix] != 0 && (solution[ix] >= 0) != (solution_divisor[ix] >= 0)) negatives++;
+                if(solution[ix] == 0) {
+                    zeros++;
+                }else{
+                    if((solution[ix] >= 0) != (solution_divisor[ix] >= 0)) negatives++;
+                }
             }
 
             #ifdef DEBUG
                 solution[free_var] = 1;
                 solution_divisor[free_var] = 1;
-                printf("Solution: ");
+                printf("Solution:  ");
                 print_row(solution);
-                printf("/");
+                printf("\nSolDivisor: ");
                 print_row(solution_divisor);
-                printf(" negatives: %d\n", negatives);
+                printf("\nSolution negatives: %d zeros: %d\n", negatives, zeros);
             #endif
             
             if(negatives == 0) {
                 solution[free_var] = 1;
-            }else if(negatives == VARS-1) {
+            }else if(negatives + zeros == VARS-1) {
                 solution[free_var] = -1;
             }else{
                 // We have a mixture of signs which will never be "inside"
