@@ -1,7 +1,7 @@
 
 # Create C code defining polymatroidal axioms
 
-SET_N = 6 # number of elements in the base set
+SET_N = 4 # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
 
 def dimensions() -> int:

@@ -17,6 +17,9 @@
 // Any function modifiers, e.g. static inline
 #define FUNCPARAMS 
 
+// Whether to abort as soon as there are too many freedoms
+// #define EARLY_STOP
+
 #ifdef TEST0
     #include "tests/test0.c"
 #else
@@ -296,11 +299,13 @@ int main(void) {
     int variables_solved_init[VARS];
     LOOP(i) variables_solved_init[i] = 0;
     
-    unsigned long freedom_stats[VARS]; // Collect statistics on the number of freedoms encountered
-    LOOP(i) freedom_stats[i] = 0;
-    
     while(1) { // One experiment
     
+        tries++;
+        if(tries % 10000 == 0) {
+            elapsed_time(tries);
+        }
+
         // Choose axioms
         shuffle_chosen_ix();
         // Copy axioms
@@ -346,6 +351,9 @@ int main(void) {
                 #ifdef DEBUG
                     printf("No non-0 coefficients, now %d freedoms\n", freedoms);
                 #endif
+                #ifdef EARLY_STOP
+                    if(freedoms > 1) break;
+                #endif
                 continue;
             }
             
@@ -365,7 +373,11 @@ int main(void) {
             axiom_solved_for[max_ix] = var_ix;
             variables_solved[var_ix] = 1;
             solved++;
-        }
+        } // end LOOP(var_ix)
+        
+        #ifdef EARLY_STOP
+            if(freedoms > 1) continue;
+        #endif
 
         #ifdef DEBUG
             printf("Result: solved=%d freedoms=%d\nFinal:\n", solved, freedoms);
@@ -463,31 +475,31 @@ int main(void) {
 
             // Check the solution against all axioms
             inside = check_axioms(solution);
+            
+            
+            // Only output the good rays
+            if(inside) {
+                sort_chosen_ix();
+                printf("Tries: %lu Chosen: ", tries);
+                CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
+                printf(" Ray: ");
+                print_row(solution);
+                printf("\n");                
+                CHOSEN_LOOP(a) {
+                    printf("  ");
+                    print_row(axioms[chosen_ix[a]]);
+                    printf(" %s\n", human_readable_axioms[chosen_ix[a]]);
+                }
+            }
+
+            #ifdef DEBUG
+                printf("Solution: ");
+                print_row(solution);
+                printf("\n");
+            #endif
 
         } // end if freedoms==1
-
-        // Output
-        // 1. The chosen axioms
-        CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
-        // 2. Number of freedoms
-        // 3. Whether the ray is inside (relevant only if freedoms==1)
-        printf("f%d,i%d\n", freedoms, inside);
-
-        tries++;
-        if(inside) {
-            freedom_stats[0]++;
-        } else {
-            freedom_stats[freedoms]++;
-        }
-        
-        if(tries % 10000 == 0) {
-            elapsed_time(tries);
-            // Print freedom stats
-            printf("# Freedom stats ");
-            LOOP(i) printf("%lu,", freedom_stats[i]);
-            printf("\n");
-        }
-        
+                
         #ifdef SOLVER_TEST
             if(tries > 5) break;    
         #endif

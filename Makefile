@@ -14,7 +14,7 @@ test:
 
 int_run:
 	python get_axioms.py > axioms.c
-	gcc -O3 -lm int_solver.c -o int_solver
+	gcc -O3 -lm -D EARLY_STOP int_solver.c -o int_solver
 	./int_solver
 
 int_test:
