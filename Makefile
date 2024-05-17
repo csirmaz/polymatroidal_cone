@@ -17,6 +17,11 @@ int_run:
 	gcc -O3 -lm -D EARLY_STOP int_solver.c -o int_solver
 	./int_solver
 
+collect_unique:
+	python get_axioms.py > axioms.c
+	gcc -O3 -lm -D EARLY_STOP int_solver.c -o int_solver
+	./int_solver | python collect_stats.py
+
 int_test:
 	python get_axioms_test.py
 	gcc -Wall -lm -D UNIT_TEST -D TEST0 -D DEBUG int_solver.c && ./a.out
