@@ -47,6 +47,8 @@
 // Loop through the chosen axioms
 #define CHOSEN_LOOP(i) for(int i=0; i<VARS-1; i++)
 
+#define SIMPLIFY_ABOVE 1024*1024
+
 int rand_mask;
 
 // The index of chosen axioms
@@ -59,9 +61,16 @@ struct timeval start_time, current_time;
 
 // greatest common divisor
 T_FACTOR FUNCPARAMS gcd(T_FACTOR a, T_FACTOR b) {
-    if (b == 0) return a;
-    if (a == 0) return b; // just shortcut
-    return gcd(b, a % b);
+    T_FACTOR tmp;
+    a = ABS(a);
+    b = ABS(b);
+    while(1) {
+        if (b == 0) return a;
+        if (a == 0) return b;
+        tmp = b;
+        b = a % b;
+        a = tmp;
+    }
 }
 
 // least common multiple
@@ -77,13 +86,13 @@ void FUNCPARAMS zero(T_ROW(r)) {
 // Simplify a row
 void FUNCPARAMS simplify(T_ROW(r)) {
     T_FACTOR c = gcd(r[0], r[1]);
-    if(c == 1 || c == -1) return;
+    if(c == 1) return;
     for(int i=2; i<VARS; i++) {
         c = gcd(c, r[i]);
-        if(c == 1 || c == -1) return;
+        if(c == 1) return;
     }
     if(c == 0) return;
-    for(int i=0; i<VARS; i++) r[i] /= c;
+    LOOP(i) r[i] /= c;
 }
 
 // Return the lcm for a row
@@ -112,8 +121,13 @@ void FUNCPARAMS subtract(T_ROW(a), T_ROW(b), int var_ix) {
     T_FACTOR bf = a[var_ix] / c;
     // print_row(a); printf(" af=%lld\n", af);
     // print_row(b); printf(" bf=%lld\n", bf);
-    LOOP(i) a[i] = a[i]*af - b[i]*bf;
+    int to_simplify = 0;
+    LOOP(i) {
+        a[i] = a[i]*af - b[i]*bf;
+        if(a[i] != 0 && (a[i] > SIMPLIFY_ABOVE || a[i] < -SIMPLIFY_ABOVE)) { to_simplify = 1; }
+    }
     // print_row(a);
+    if(to_simplify) simplify(a);
 }
 
 // Dot product of two row vectors
@@ -289,7 +303,6 @@ int main(void) {
     T_FACTOR solution_divisor[VARS];
     int freedoms; // how many freedoms the chosen system has
     int solved;  // how many of the chosen axioms are solved
-    int inside;  // whether the ray found is inside the cone
 
     int axiom_solved_for[VARS-1]; // stores which axiom is stored for which variable
     int axiom_solved_for_init[VARS-1];
@@ -319,7 +332,6 @@ int main(void) {
 
         freedoms = 0;
         solved = 0;
-        inside = 0;
         memcpy(axiom_solved_for, axiom_solved_for_init, sizeof(int)*(VARS-1)); // Initialize to [-1,-1,...]
         memcpy(variables_solved, variables_solved_init, sizeof(int)*VARS); // Initialize to [0,0,...]
 
@@ -362,7 +374,6 @@ int main(void) {
             CHOSEN_LOOP(a) {
                 if(a != max_ix && chosen_axioms[a][var_ix] != 0) {
                     subtract(chosen_axioms[a], chosen_axioms[max_ix], var_ix);
-                    // simplify(chosen_axioms[a]);
                 }
             }
             #ifdef DEBUG
@@ -429,23 +440,40 @@ int main(void) {
             #endif
             
             // Collect the solution
+            int negatives = 0;
             CHOSEN_LOOP(a) {
-                solution[axiom_solved_for[a]] = -chosen_axioms[a][free_var];
-                solution_divisor[axiom_solved_for[a]] = chosen_axioms[a][axiom_solved_for[a]];
+                int ix = axiom_solved_for[a];
+                solution[ix] = -chosen_axioms[a][free_var];
+                solution_divisor[ix] = chosen_axioms[a][ix];
+                if(solution[ix] != 0 && (solution[ix] >= 0) != (solution_divisor[ix] >= 0)) negatives++;
             }
-            solution[free_var] = 1;
-            solution_divisor[free_var] = 1;
+
             #ifdef DEBUG
+                solution[free_var] = 1;
+                solution_divisor[free_var] = 1;
                 printf("Solution: ");
                 print_row(solution);
                 printf("/");
                 print_row(solution_divisor);
-                printf("\n");
+                printf(" negatives: %d\n", negatives);
             #endif
             
+            if(negatives == 0) {
+                solution[free_var] = 1;
+            }else if(negatives == VARS-1) {
+                solution[free_var] = -1;
+            }else{
+                // We have a mixture of signs which will never be "inside"
+                continue;
+            }
+            solution_divisor[free_var] = 1;
+            
             T_FACTOR c = lcm_row(solution_divisor);
+            if(c < 0) c = -c;
+            if(negatives > 0) c = -c;  // flip the solution to an all positive
             LOOP(i) { solution[i] *= c / solution_divisor[i]; }
             simplify(solution);
+            
             #ifdef DEBUG
                 printf("Solution (merged): ");
                 print_row(solution);
@@ -474,29 +502,25 @@ int main(void) {
             #endif
 
             // Check the solution against all axioms
-            inside = check_axioms(solution);
-            
-            
-            // Only output the good rays
-            if(inside) {
-                sort_chosen_ix();
-                printf("Tries: %lu Chosen: ", tries);
-                CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
-                printf(" Ray: ");
-                print_row(solution);
-                printf("\n");                
-                CHOSEN_LOOP(a) {
-                    printf("  ");
-                    print_row(axioms[chosen_ix[a]]);
-                    printf(" %s\n", human_readable_axioms[chosen_ix[a]]);
-                }
+            if(!check_axioms(solution)) {
+                // We're not inside the cone
+                continue;
             }
 
-            #ifdef DEBUG
-                printf("Solution: ");
-                print_row(solution);
-                printf("\n");
-            #endif
+            // Only output the good rays
+            sort_chosen_ix();
+            printf("Tries: %lu Chosen: ", tries);
+            CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
+            printf(" Ray: ");
+            print_row(solution);
+            printf("\n");                
+            /*
+            CHOSEN_LOOP(a) {
+                printf("  ");
+                print_row(axioms[chosen_ix[a]]);
+                printf(" %s\n", human_readable_axioms[chosen_ix[a]]);
+            }
+            */
 
         } // end if freedoms==1
                 

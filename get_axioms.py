@@ -119,6 +119,13 @@ def print_c_code():
     print('char* human_readable_axioms[AXIOMS] = {')
     print(',\n'.join(out))
     print('};')
+    # And which variable is which set
+    print('/* VARIABLES / SETS');
+    smap = set_create_index_map()
+    rev_map = {v: k for k, v in smap.items()}
+    for v in range(len(axioms[0])):
+        print(f" Variable #{v} is for set {set_bitmap_to_set(rev_map[v])}")
+    print('*/')
 
 def display_vector(v) -> str:
     """Create human-readable string from a vector of coefficients"""
