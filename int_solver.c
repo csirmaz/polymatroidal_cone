@@ -139,12 +139,14 @@ T_FACTOR FUNCPARAMS dot(T_ROW(a), T_ROW(b)) {
 
 // Check whether a row vector satisfies all axioms
 int FUNCPARAMS check_axioms(T_ROW(r)) {
+    int d;
+    int zeros = 0;
     ROW_LOOP(a) {
-        if(dot(axioms[a], r) < 0) {
-            return 0; // false
-        }
+        d = dot(axioms[a], r);
+        if(d < 0) return -1; // Does not satisfy the axioms
+        if(d == 0) zeros++;
     }
-    return 1; // all true
+    return zeros; // all true; return the number of axioms where we get zeros
 }
 
 // Pick a random number for axioms
@@ -458,7 +460,7 @@ int main(void) {
                 solution_divisor[free_var] = 1;
                 printf("Solution:  ");
                 print_row(solution);
-                printf("\nSolDivisor: ");
+                printf("\nSolDivisor:");
                 print_row(solution_divisor);
                 printf("\nSolution negatives: %d zeros: %d\n", negatives, zeros);
             #endif
@@ -507,7 +509,8 @@ int main(void) {
             #endif
 
             // Check the solution against all axioms
-            if(!check_axioms(solution)) {
+            int zero_axioms = check_axioms(solution);
+            if(zero_axioms == -1) {
                 // We're not inside the cone
                 continue;
             }
@@ -518,7 +521,7 @@ int main(void) {
             CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
             printf(" Ray: ");
             print_row(solution);
-            printf("\n");                
+            printf(" ZeroAxioms: %d\n", zero_axioms);                
             /*
             CHOSEN_LOOP(a) {
                 printf("  ");
