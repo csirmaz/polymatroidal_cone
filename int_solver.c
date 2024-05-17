@@ -51,9 +51,9 @@
 #define SIMPLIFY_ABOVE 1024*1024
 
 // Whether to remember and skip regions for frequent rays
-#define SKIP_FREQUENT
+// #define SKIP_FREQUENT
 // Skip frequent rays if they give 0 for more than this many axioms
-#define SKIP_FREQUENT_ABOVE AXIOMS*.8
+#define SKIP_FREQUENT_ABOVE 223
 // Skip at most this many frequent rays
 #define SKIP_FREQUENT_MAX 200
 
@@ -167,7 +167,7 @@ int FUNCPARAMS check_axioms(T_ROW(r)) {
             if(skip_axiom_set_num >= SKIP_FREQUENT_MAX) {
                 printf("~ Could save this ray to skip as frequent, but SKIP_FREQUENT_MAX is exceeded\n");
             } else {
-                printf("~ Saving this ray as the #%d frequent one\n", skip_axiom_set_num);
+                printf("~ Saving this ray as the #%d frequent one (%d zeros, limit: %d)\n", skip_axiom_set_num, zeros, SKIP_FREQUENT_ABOVE);
                 ROW_LOOP(a) { skip_axiom_sets[skip_axiom_set_num][a] = (dot(axioms[a], r) == 0); }
                 skip_axiom_set_num++;
             }
