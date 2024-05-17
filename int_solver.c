@@ -47,7 +47,15 @@
 // Loop through the chosen axioms
 #define CHOSEN_LOOP(i) for(int i=0; i<VARS-1; i++)
 
+// Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024
+
+// Whether to remember and skip regions for frequent rays
+#define SKIP_FREQUENT
+// Skip frequent rays if they give 0 for more than this many axioms
+#define SKIP_FREQUENT_ABOVE AXIOMS*.8
+// Skip at most this many frequent rays
+#define SKIP_FREQUENT_MAX 200
 
 int rand_mask;
 
@@ -57,7 +65,14 @@ int chosen_ix[AXIOMS];
 // The chosen axioms to solve. We solve VARS-1 axioms; the last row is a buffer
 T_FACTOR chosen_axioms[VARS][VARS];
 
-struct timeval start_time, current_time;
+#ifdef SKIP_FREQUENT
+    // Stores axioms that yield 0 for a frequent ray. 1 if yes, 0 if no
+    int skip_axiom_sets[SKIP_FREQUENT_MAX][AXIOMS];
+    // Stores how many frequent rays have been saved
+    int skip_axiom_set_num = 0;
+#endif
+
+struct timeval prev_time, current_time;
 
 // greatest common divisor
 T_FACTOR FUNCPARAMS gcd(T_FACTOR a, T_FACTOR b) {
@@ -146,6 +161,19 @@ int FUNCPARAMS check_axioms(T_ROW(r)) {
         if(d < 0) return -1; // Does not satisfy the axioms
         if(d == 0) zeros++;
     }
+    
+    #ifdef SKIP_FREQUENT
+        if(zeros > SKIP_FREQUENT_ABOVE) {
+            if(skip_axiom_set_num >= SKIP_FREQUENT_MAX) {
+                printf("~ Could save this ray to skip as frequent, but SKIP_FREQUENT_MAX is exceeded\n");
+            } else {
+                printf("~ Saving this ray as the #%d frequent one\n", skip_axiom_set_num);
+                ROW_LOOP(a) { skip_axiom_sets[skip_axiom_set_num][a] = (dot(axioms[a], r) == 0); }
+                skip_axiom_set_num++;
+            }
+        }
+    #endif
+    
     return zeros; // all true; return the number of axioms where we get zeros
 }
 
@@ -209,8 +237,10 @@ void print_chosen_axioms(void) {
 // Display elapsed time
 void FUNCPARAMS elapsed_time(unsigned long counter) {
     gettimeofday(&current_time, NULL);
-    double elapsed = (current_time.tv_sec - start_time.tv_sec) + (current_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
-    printf("# %lu steps in %lf s, %lf ms/step\n", counter, elapsed, elapsed*1000./(double)counter);
+    double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
+    gettimeofday(&prev_time, NULL);
+    printf("# %lu tries in %lf s, %lf ms/try\n", counter, elapsed, elapsed*1000./(double)counter);
+    fflush(stdout);
 }
 
 // Assertion
@@ -283,7 +313,7 @@ void unit_test(void) {
 
 int main(void) {
     
-    gettimeofday(&start_time, NULL);
+    gettimeofday(&prev_time, NULL);
     
     // Calculate a mask for random numbers
     rand_mask = 1;
@@ -317,12 +347,28 @@ int main(void) {
     while(1) { // One experiment
     
         tries++;
-        if(tries % 10000 == 0) {
-            elapsed_time(tries);
+        #define REPORT_EVERY 100000
+        if(tries % REPORT_EVERY == 0) {
+            elapsed_time(REPORT_EVERY);
         }
 
         // Choose axioms
         shuffle_chosen_ix();
+        
+        #ifdef SKIP_FREQUENT
+            // Check if we are in a frequent-ray axiom set
+            int in_a_set = 0;
+            for(int s=0; s<skip_axiom_set_num; s++) {
+                int in_this_set = 1;
+                CHOSEN_LOOP(i) if(!skip_axiom_sets[s][chosen_ix[i]]) { in_this_set = 0; break; }
+                if(in_this_set) {
+                    in_a_set = 1;
+                    break;
+                }
+            }
+            if(in_a_set) continue;
+        #endif
+        
         // Copy axioms
         CHOSEN_LOOP(i) {
             memcpy(&chosen_axioms[i], &axioms[chosen_ix[i]], sizeof(T_FACTOR)*VARS);
@@ -521,7 +567,7 @@ int main(void) {
             CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
             printf(" Ray: ");
             print_row(solution);
-            printf(" ZeroAxioms: %d\n", zero_axioms);                
+            printf(" ZeroAxioms: %d\n", zero_axioms);          
             /*
             CHOSEN_LOOP(a) {
                 printf("  ");
@@ -529,6 +575,7 @@ int main(void) {
                 printf(" %s\n", human_readable_axioms[chosen_ix[a]]);
             }
             */
+            fflush(stdout);
 
         } // end if freedoms==1
                 
