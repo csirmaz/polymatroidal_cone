@@ -178,7 +178,7 @@ int FUNCPARAMS check_axioms(T_ROW(r)) {
 }
 
 // Pick a random number for axioms
-int FUNCPARAMS rnd_axiom_num(int limit) {
+int FUNCPARAMS rnd_num(int limit) {
     int r;
     while(1) {
         r = (rand() & rand_mask);
@@ -208,7 +208,7 @@ void FUNCPARAMS shuffle_chosen_ix(void) {
     ROW_LOOP(i) { chosen_ix[i] = i; }
     
     CHOSEN_LOOP(i) {
-        int r = rnd_axiom_num(AXIOMS - i) + i;
+        int r = rnd_num(AXIOMS - i) + i;
         if(r != i) {
             int tmp = chosen_ix[i];
             chosen_ix[i] = chosen_ix[r];
@@ -217,6 +217,20 @@ void FUNCPARAMS shuffle_chosen_ix(void) {
     }
 
 }
+
+#ifdef TRY_RAND_RAYS
+// Choose a random ray
+void FUNCPARAMS choose_rand_ray(T_ROW(r)) {
+    while(1) {
+        int nonzero = 0;
+        LOOP(i) {
+            r[i] = (T_FACTOR)rnd_num(TRY_RAND_RAYS);
+            if(r[i] != 0) nonzero = 1;
+        }
+        if(nonzero) break;
+    }
+}
+#endif
 
 // Print chosen_ix
 void print_chosen_ix(void) {
@@ -317,7 +331,12 @@ int main(void) {
     
     // Calculate a mask for random numbers
     rand_mask = 1;
-    while(rand_mask < AXIOMS) rand_mask <<= 1;
+    #ifdef TRY_RAND_RAYS
+        printf("Trying random rays\n");
+        while(rand_mask < TRY_RAND_RAYS) rand_mask <<= 1;
+    #else
+        while(rand_mask < AXIOMS) rand_mask <<= 1;
+    #endif
     rand_mask--;
     
     printf("# %s\n", LABEL);
@@ -351,6 +370,15 @@ int main(void) {
         if(tries % REPORT_EVERY == 0) {
             elapsed_time(REPORT_EVERY);
         }
+        
+        #ifdef TRY_RAND_RAYS
+            choose_rand_ray(solution);
+            #ifdef DEBUG
+                printf("Rand ray: ");
+                print_row(solution);
+                printf("\n");
+            #endif
+        #else
 
         // Choose axioms
         shuffle_chosen_ix();
@@ -432,7 +460,7 @@ int main(void) {
             axiom_solved_for[max_ix] = var_ix;
             variables_solved[var_ix] = 1;
             solved++;
-        } // end LOOP(var_ix)
+        } // end LOOP(var_ix) (solving the system)
         
         #ifdef EARLY_STOP
             if(freedoms > 1) continue;
@@ -474,114 +502,119 @@ int main(void) {
         #endif
 
         // Extract the solution if freedoms==1
-        if(freedoms == 1) {
-            free_var = -1;
-            // I expect this to be the last one in most cases
-            if(variables_solved[VARS-1] == 0) {
-                free_var = VARS-1;
-            } else {
-                LOOP(i) { if(variables_solved[i] == 0) { free_var = i; break; }}
-                assert(free_var > -1, "free var not found");
-            }
-            #ifdef DEBUG
-                printf("Free variable: %d\n", free_var);
-            #endif
-            
-            // Collect the solution
-            int negatives = 0;
-            int zeros = 0;
-            CHOSEN_LOOP(a) {
-                int ix = axiom_solved_for[a];
-                solution[ix] = -chosen_axioms[a][free_var];
-                solution_divisor[ix] = chosen_axioms[a][ix];
-                if(solution[ix] == 0) {
-                    zeros++;
-                }else{
-                    if((solution[ix] >= 0) != (solution_divisor[ix] >= 0)) negatives++;
-                }
-            }
-
-            #ifdef DEBUG
-                solution[free_var] = 1;
-                solution_divisor[free_var] = 1;
-                printf("Solution:  ");
-                print_row(solution);
-                printf("\nSolDivisor:");
-                print_row(solution_divisor);
-                printf("\nSolution negatives: %d zeros: %d\n", negatives, zeros);
-            #endif
-            
-            if(negatives == 0) {
-                solution[free_var] = 1;
-            }else if(negatives + zeros == VARS-1) {
-                solution[free_var] = -1;
-            }else{
-                // We have a mixture of signs which will never be "inside"
-                continue;
-            }
-            solution_divisor[free_var] = 1;
-            
-            T_FACTOR c = lcm_row(solution_divisor);
-            if(c < 0) c = -c;
-            if(negatives > 0) c = -c;  // flip the solution to an all positive
-            LOOP(i) { solution[i] *= c / solution_divisor[i]; }
-            simplify(solution);
-            
-            #ifdef DEBUG
-                printf("Solution (merged): ");
-                print_row(solution);
-                printf("\n");
-            #endif
-            
-            #ifdef SOLVER_TEST
-                // Check the solution against the (original) chosen axioms
-                CHOSEN_LOOP(a) {
-                    T_FACTOR r = dot(axioms[chosen_ix[a]], solution);
-                    #ifdef DEBUG
-                        printf("Axiom #%d %d ", a, chosen_ix[a]);
-                        print_row(axioms[chosen_ix[a]]);
-                        printf(" gives for this solution %lf\n", r);
-                    #endif
-                    assert(r == 0, "Solution vs chosen axiom");
-                }
-                printf("OK - solution checked against chosen axioms\n");
-            #endif
-
-            #ifdef SOLVER_TARGET
-                // Check against known results
-                assert(free_var == target_free_var, "target_free_var");
-                LOOP(i) assert(ABS(target_solution[i] - ((float)solution[i])/((float)solution[free_var])) < .01, "target_solution");
-                printf("OK - solution checked against target\n");
-            #endif
-
-            // Check the solution against all axioms
-            int zero_axioms = check_axioms(solution);
-            if(zero_axioms == -1) {
-                // We're not inside the cone
-                continue;
-            }
-
-            // Only output the good rays
-            sort_chosen_ix();
-            printf("Tries: %lu Chosen: ", tries);
-            CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
-            printf(" Ray: ");
-            print_row(solution);
-            printf(" ZeroAxioms: %d\n", zero_axioms);          
-            /*
-            CHOSEN_LOOP(a) {
-                printf("  ");
-                print_row(axioms[chosen_ix[a]]);
-                printf(" %s\n", human_readable_axioms[chosen_ix[a]]);
-            }
-            */
-            fflush(stdout);
-
-        } // end if freedoms==1
-                
         #ifdef SOLVER_TEST
             if(tries > 5) break;    
         #endif
+        if(freedoms != 1) continue;            
+            
+        free_var = -1;
+        // I expect this to be the last one in most cases
+        if(variables_solved[VARS-1] == 0) {
+            free_var = VARS-1;
+        } else {
+            LOOP(i) { if(variables_solved[i] == 0) { free_var = i; break; }}
+            assert(free_var > -1, "free var not found");
+        }
+        #ifdef DEBUG
+            printf("Free variable: %d\n", free_var);
+        #endif
+
+        // Collect the solution
+        int negatives = 0;
+        int zeros = 0;
+        CHOSEN_LOOP(a) {
+            int ix = axiom_solved_for[a];
+            solution[ix] = -chosen_axioms[a][free_var];
+            solution_divisor[ix] = chosen_axioms[a][ix];
+            if(solution[ix] == 0) {
+                zeros++;
+            }else{
+                if((solution[ix] >= 0) != (solution_divisor[ix] >= 0)) negatives++;
+            }
+        }
+
+        #ifdef DEBUG
+            solution[free_var] = 1;
+            solution_divisor[free_var] = 1;
+            printf("Solution:  ");
+            print_row(solution);
+            printf("\nSolDivisor:");
+            print_row(solution_divisor);
+            printf("\nSolution negatives: %d zeros: %d\n", negatives, zeros);
+        #endif
+
+        if(negatives == 0) {
+            solution[free_var] = 1;
+        }else if(negatives + zeros == VARS-1) {
+            solution[free_var] = -1;
+        }else{
+            // We have a mixture of signs which will never be "inside"
+            continue;
+        }
+        solution_divisor[free_var] = 1;
+
+        T_FACTOR c = lcm_row(solution_divisor);
+        if(c < 0) c = -c;
+        if(negatives > 0) c = -c;  // flip the solution to an all positive
+        LOOP(i) { solution[i] *= c / solution_divisor[i]; }
+        simplify(solution);
+
+        #ifdef DEBUG
+            printf("Solution (merged): ");
+            print_row(solution);
+            printf("\n");
+        #endif
+
+        #ifdef SOLVER_TEST
+            // Check the solution against the (original) chosen axioms
+            CHOSEN_LOOP(a) {
+                T_FACTOR r = dot(axioms[chosen_ix[a]], solution);
+                #ifdef DEBUG
+                    printf("Axiom #%d %d ", a, chosen_ix[a]);
+                    print_row(axioms[chosen_ix[a]]);
+                    printf(" gives for this solution %lf\n", r);
+                #endif
+                assert(r == 0, "Solution vs chosen axiom");
+            }
+            printf("OK - solution checked against chosen axioms\n");
+        #endif
+
+        #ifdef SOLVER_TARGET
+            // Check against known results
+            assert(free_var == target_free_var, "target_free_var");
+            LOOP(i) assert(ABS(target_solution[i] - ((float)solution[i])/((float)solution[free_var])) < .01, "target_solution");
+            printf("OK - solution checked against target\n");
+        #endif
+
+        #endif // end of not TRY_RAND_RAYS
+
+        // Check the solution against all axioms
+        int zero_axioms = check_axioms(solution);
+        #ifdef DEBUG
+            printf("Check: %d\n", zero_axioms);
+        #endif
+        if(zero_axioms == -1) {
+            // We're not inside the cone
+            continue;
+        }
+
+        // Only output the good rays
+        sort_chosen_ix();
+        printf("Tries: %lu Chosen: ", tries);
+        CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
+        printf(" Ray: ");
+        print_row(solution);
+        printf(" ZeroAxioms: %d\n", zero_axioms);          
+        /*
+        CHOSEN_LOOP(a) {
+            printf("  ");
+            print_row(axioms[chosen_ix[a]]);
+            printf(" %s\n", human_readable_axioms[chosen_ix[a]]);
+        }
+        */
+        fflush(stdout);
+
+                
     } // end while
 
     // endif unit tests
