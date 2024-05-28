@@ -106,6 +106,7 @@ def print_c_code():
     axioms = get_axioms()
     print(f'#define AXIOMS {len(axioms)}')
     print(f'#define VARS {len(axioms[0])}')
+    print(f'#define CHECK_VARS_FROM {int(len(axioms[0])/2)}')
     out = []
     for i, e in enumerate(axioms):
         out.append('{'+','.join([str(x) for x in e]) + '} /* ' + f'#{i} ' + display_expression(e) + '*/')

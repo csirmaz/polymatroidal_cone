@@ -53,9 +53,9 @@
 // Whether to remember and skip regions for frequent rays
 // #define SKIP_FREQUENT
 // Skip frequent rays if they give 0 for more than this many axioms
-#define SKIP_FREQUENT_ABOVE 223
+#define SKIP_FREQUENT_ABOVE 224
 // Skip at most this many frequent rays
-#define SKIP_FREQUENT_MAX 200
+#define SKIP_FREQUENT_MAX 2
 
 int rand_mask;
 
@@ -204,9 +204,7 @@ void FUNCPARAMS sort_chosen_ix(void) {
 
 // Initialize, shuffle and sort chosen_ix to get VARS-1 random axioms
 void FUNCPARAMS shuffle_chosen_ix(void) {
-    
-    ROW_LOOP(i) { chosen_ix[i] = i; }
-    
+    // Do a full shuffle
     CHOSEN_LOOP(i) {
         int r = rnd_num(AXIOMS - i) + i;
         if(r != i) {
@@ -215,22 +213,7 @@ void FUNCPARAMS shuffle_chosen_ix(void) {
             chosen_ix[r] = tmp;
         }
     }
-
 }
-
-#ifdef TRY_RAND_RAYS
-// Choose a random ray
-void FUNCPARAMS choose_rand_ray(T_ROW(r)) {
-    while(1) {
-        int nonzero = 0;
-        LOOP(i) {
-            r[i] = (T_FACTOR)rnd_num(TRY_RAND_RAYS);
-            if(r[i] != 0) nonzero = 1;
-        }
-        if(nonzero) break;
-    }
-}
-#endif
 
 // Print chosen_ix
 void print_chosen_ix(void) {
@@ -328,15 +311,12 @@ void unit_test(void) {
 int main(void) {
     
     gettimeofday(&prev_time, NULL);
+
+    ROW_LOOP(i) { chosen_ix[i] = i; }
     
     // Calculate a mask for random numbers
     rand_mask = 1;
-    #ifdef TRY_RAND_RAYS
-        printf("Trying random rays\n");
-        while(rand_mask < TRY_RAND_RAYS) rand_mask <<= 1;
-    #else
-        while(rand_mask < AXIOMS) rand_mask <<= 1;
-    #endif
+    while(rand_mask < AXIOMS) rand_mask <<= 1;
     rand_mask--;
     
     printf("# %s\n", LABEL);
@@ -371,15 +351,6 @@ int main(void) {
             elapsed_time(REPORT_EVERY);
         }
         
-        #ifdef TRY_RAND_RAYS
-            choose_rand_ray(solution);
-            #ifdef DEBUG
-                printf("Rand ray: ");
-                print_row(solution);
-                printf("\n");
-            #endif
-        #else
-
         // Choose axioms
         shuffle_chosen_ix();
         
@@ -396,6 +367,17 @@ int main(void) {
             }
             if(in_a_set) continue;
         #endif
+        
+        // Check for columns of 0 (Full check faster overall than checking upper half)
+        int has_zero_col = 0;
+        LOOP(i) {
+            int has_nonzero_val = 0;
+            CHOSEN_LOOP(a) {
+                if(axioms[chosen_ix[a]][i] != 0) { has_nonzero_val = 1; break; }
+            }
+            if(!has_nonzero_val) { has_zero_col = 1; break; }
+        }
+        if(has_zero_col) { continue; }
         
         // Copy axioms
         CHOSEN_LOOP(i) {
@@ -586,8 +568,6 @@ int main(void) {
             printf("OK - solution checked against target\n");
         #endif
 
-        #endif // end of not TRY_RAND_RAYS
-
         // Check the solution against all axioms
         int zero_axioms = check_axioms(solution);
         #ifdef DEBUG
@@ -604,7 +584,8 @@ int main(void) {
         CHOSEN_LOOP(a) printf("%d,", chosen_ix[a]);
         printf(" Ray: ");
         print_row(solution);
-        printf(" ZeroAxioms: %d\n", zero_axioms);          
+        printf(" ZeroAxioms: %d\n", zero_axioms);
+        
         /*
         CHOSEN_LOOP(a) {
             printf("  ");
