@@ -1,5 +1,6 @@
 *~
 *.bak
+*.kdev4
 .idea
 __pycache__
 a.out

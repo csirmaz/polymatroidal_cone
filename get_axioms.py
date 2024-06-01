@@ -1,8 +1,10 @@
 
 # Create C code defining polymatroidal axioms
+# Sort axioms into groups according to symmetries
 
 SET_N = 6 # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
+
 
 def dimensions() -> int:
     """Return the number of variables / possible f() values"""
@@ -12,13 +14,15 @@ def dimensions() -> int:
         d -= SET_N  # for f(M-i)
     return d
 
+
 def set_to_bitmap(s: set) -> int:
-    """Given a set, return a bitmap representing the set"""
+    """Given a set containing numbers, return a bitmap representing the set"""
     d = 0
     for e in range(SET_N):  # 0 <= e < SET_N
         if e in s:
             d += 2**e
     return d
+
 
 def set_bitmap_to_set(s: int) -> set:
     """Given a set as a bitmap, return an actual set"""
@@ -31,6 +35,7 @@ def set_bitmap_to_set(s: int) -> set:
         d += 1
     return r
 
+
 def set_len(s: int) -> int:
     """Given a set represented as a bitmap, return the number of elements"""
     d = 0
@@ -40,11 +45,16 @@ def set_len(s: int) -> int:
         s >>= 1
     return d
 
-def set_create_index_map():
+
+SET_MAP = None
+def set_create_index_map(force=False):
     """Return a map (dict) mapping sets as bitmaps to an index"""
+    global SET_MAP
+    if (SET_MAP is not None) and (not force):
+        return SET_MAP
     map = {}
     next_index = 0
-    maximal = None
+    maximal = None  # later, the index of "maximal" sets in tight polymatroids
     for s in range(2**SET_N):  # 0 <= s < 2**SET_N
         if s == 0:
             continue  # the empty set is not mapped to anything
@@ -59,7 +69,102 @@ def set_create_index_map():
         map[s] = next_index
         next_index += 1
     assert next_index == dimensions()
+    SET_MAP = map
     return map
+
+
+def set_create_rev_map():
+    """Create the reverse map mapping an index to a bitmap"""
+    smap = set_create_index_map()
+    return {v: k for k, v in smap.items()}
+
+
+def permutations():
+    """Generate all permutations of 0,1,...,SET_N"""
+    permutations = []
+    order = [-1 for i in range(SET_N)]
+    order_ix = 0
+    while True:
+        # print(f'P {order} ix={order_ix}')
+
+        first = -1
+        for i in range(SET_N):
+            found = False
+            for ix in range(order_ix):
+                if order[ix] == i:
+                    found = True
+                    break
+            if order[order_ix] >= i:
+                found = True
+            if found:
+                continue
+            first = i
+            break
+
+        if first == -1:
+            # print('backstep')
+            order[order_ix] = -1
+            order_ix -= 1
+            if order_ix < 0:
+                break
+            continue
+
+        order[order_ix] = first
+        
+        order_ix += 1
+        if order_ix >= SET_N:
+            # print(f'P* {order}')
+            permutations.append(list(order))
+            order_ix -= 1
+            
+    f = 1
+    for i in range(SET_N):
+            f *= i + 1
+    assert len(permutations) == f
+    return permutations
+
+
+def set_apply_permutation(s, permutation):
+    """Apply a permutation to a set"""
+    out = set([permutation[e] for e in s])
+    assert len(out) == len(s)
+    return out
+
+
+def set_bitmap_apply_permutation(s, permutation):
+    """Apply a permutation to a set as a bitmap"""
+    return set_to_bitmap(set_apply_permutation(set_bitmap_to_set(s), permutation))
+
+
+def set_index_apply_permutation(i, permutation):
+    """Apply a permutation to a set as an index"""
+    smap = set_create_index_map()
+    rmap = set_create_rev_map()
+    return smap[set_bitmap_apply_permutation(rmap[i], permutation)]
+
+
+def expression_apply_permutation(vec, permutation):
+    out = [None for i in vec]
+    for ix, v in enumerate(vec):
+        new_ix = set_index_apply_permutation(ix, permutation)
+        if out[new_ix] is not None:
+            raise ValueError("index clash")
+        out[new_ix] = v
+    return out
+
+
+def same_expression(vec1, vec2):
+    if len(vec1) != len(vec2):
+        raise ValueError("length error")
+    for i, v1 in enumerate(vec1):
+        if vec2[i] != v1:
+            return False
+    return True
+
+
+def expression2str(vec):
+    return ",".join([str(i) for i in vec])
+
 
 def modularities():
     """Create linear expressions (matrix of coefficients) for the (sub)modularity axioms"""
@@ -81,6 +186,7 @@ def modularities():
     assert len(expressions) == SET_N*(SET_N-1)*(2**(SET_N-3))
     return expressions
 
+
 def monotonicity():
     """Create linear expressions (matrix of coefficients) for the monotonicity axioms"""
     # f(M) >= F(M-i)
@@ -96,42 +202,98 @@ def monotonicity():
     assert len(expressions) == SET_N
     return expressions
 
+
 def get_axioms():
     """Return linear expressions (matrix of coefficients) for all axioms"""
     return modularities() + monotonicity()
 
+
+def get_axiom_groups(axioms):
+    """Try to rotate each axiom by each permutation and record which other axiom we get. Return a list of sets of equivalent axioms by index"""
+    groups = {i: set() for i in range(len(axioms))} # Maps an axiom (by index) to what other axioms we get by rotating
+    rev_axiom_map = {expression2str(axiom): i for i, axiom in enumerate(axioms)} # Map axiom to axiom index
+    
+    for permutation in permutations():
+        # print(f'P={permutation}')
+        for ix, axiom in enumerate(axioms):
+            # print(f'#{ix} {display_expression(axiom)}')
+            new_axiom = expression_apply_permutation(vec=axiom, permutation=permutation)
+            # print(f'N {display_expression(new_axiom)}')
+            new_ix = rev_axiom_map[expression2str(new_axiom)]
+            groups[ix].add(new_ix)
+
+    # Cross-check the groups
+    for ix, group in groups.items():
+        assert ix in group
+        for gix in group:
+            assert ix in groups[gix]
+    
+    # Get unique groups
+    unique_groups = []
+    seen = set()
+    for ix, group in groups.items():
+        if ix in seen:
+            continue
+        unique_groups.append(group)
+        seen.add(ix)
+        for gix in group:
+            seen.add(gix)
+    
+    return unique_groups
+
+
+def axiom_to_group(axioms, unique_groups):
+    """Construct a map from axiom index to group index"""
+    map = {}
+    for axiom_ix in range(len(axioms)):
+        for group_ix, group in enumerate(unique_groups):
+            if axiom_ix in group:
+                map[axiom_ix] = group_ix
+    return map
+    
+
 def print_c_code():
     """Print C code defining the axioms and other constants"""
-    print(f'#define LABEL "SET_N={SET_N} TIGHT={TIGHT}"')
+    
     axioms = get_axioms()
+    groups = get_axiom_groups(axioms)
+    group_map = axiom_to_group(axioms, groups)
+    
+    print(f'#define LABEL "SET_N={SET_N} TIGHT={TIGHT}"')
     print(f'#define AXIOMS {len(axioms)}')
     print(f'#define VARS {len(axioms[0])}')
-    print(f'#define CHECK_VARS_FROM {int(len(axioms[0])/2)}')
     out = []
     for i, e in enumerate(axioms):
-        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + f'#{i} ' + display_expression(e) + '*/')
-    print('T_FACTOR axioms[AXIOMS][VARS] = {')
+        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + f'Axiom{i} Group{group_map[i]} ' + display_expression(e) + '*/')
+    print('T_ELEM axioms[AXIOMS][VARS] = {')
     print(',\n'.join(out))
     print('};')
+    
     # Also store the readable axioms
     out = []
     for i, e in enumerate(axioms):
-        out.append(f'"#{i} {display_expression(e)}"')
+        out.append(f'"Axiom{i} Group{group_map[i]} {display_expression(e)}"')
     print('char* human_readable_axioms[AXIOMS] = {')
     print(',\n'.join(out))
     print('};')
+    
     # And which variable is which set
     print('/* VARIABLES / SETS');
-    smap = set_create_index_map()
-    rev_map = {v: k for k, v in smap.items()}
+    rev_map = set_create_rev_map()
     for v in range(len(axioms[0])):
-        print(f" Variable #{v} is for set {set_bitmap_to_set(rev_map[v])}")
+        print(f" Variable{v} is for set {set_bitmap_to_set(rev_map[v])}")
     print('*/')
+    
+    # Display information about axiom groups
+    print('/* AXIOM GROUPS');
+    for i, group in enumerate(groups):
+        print(f" Group{i} size={len(group)} {group}")
+    print('*/')
+
 
 def display_vector(v) -> str:
     """Create human-readable string from a vector of coefficients"""
-    smap = set_create_index_map()
-    rev_map = {v: k for k, v in smap.items()}
+    rev_map = set_create_rev_map()
     r = []
     for e, v in enumerate(v):
         if abs(v) < EPSILON: continue  # do not list 0s
@@ -140,10 +302,10 @@ def display_vector(v) -> str:
         r.append(f)
     return ", ".join(r)
 
+
 def display_expression(exp) -> str:
     """Create human-readable string from an expression"""
-    smap = set_create_index_map()
-    rev_map = {v: k for k, v in smap.items()}
+    rev_map = set_create_rev_map()
     big = []
     small = []
     for e, v in enumerate(exp):
