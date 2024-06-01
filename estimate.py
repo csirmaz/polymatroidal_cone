@@ -67,14 +67,24 @@ def ways(n, k):
 
 def expected_number_of_boxes_filled(n, k):
     """...when throwing N balls into K boxes"""
+    if k == 0:
+        return 0
     prev = 0
-    for filled in range(k):
-        cases = math.comb(k, filled) * ways(n, filled)
+    prev_filled = 0
+    step = math.ceil(k / 100)
+    for filled in range(1, k, step):
+        # Need n balls into filled boxes but such that each box has at least one ball
+        if n-filled<0: continue
+        cases = math.comb(k, filled) * ways(n-filled, filled)
+        # print(f"k={k} n={n} filled={filled} comb={math.comb(k, filled)} ways={ways(n-filled, filled)} log_cases={math.log10(cases)}")
         if prev > cases:
             return filled
         prev = cases
+        prev_filled = filled
+    return prev_filled
 
 # Now figure out how many boxes (rare rays) we had if after throwing N=finds_below balls we found rays_below ones
-for try_k in range(0, 1000, 100):
+# finds_below = 1000
+for try_k in range(0, 10000, 100):
     rays = expected_number_of_boxes_filled(n=finds_below, k=try_k)
     print(f"Trying {finds_below} times, if we had {try_k} rare rays ({try_k+rays_above} total), we would have found {rays}")

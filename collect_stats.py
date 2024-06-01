@@ -29,7 +29,7 @@ for line in sys.stdin:
             raise ValueError("zero axioms mismatch")
     finds += 1
 
-    if time.time() - latest >= 60:
+    if time.time() - latest >= 600:
         latest = time.time()
         print(f"Tries: {tries} Unique rays: {len(rays)} All finds: {finds} ({finds/int(tries)*100}%)")
         print(f"Distribution: {sorted([x['count'] for x in rays.values()])}")
