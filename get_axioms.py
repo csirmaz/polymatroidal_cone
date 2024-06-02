@@ -5,12 +5,9 @@
 # - C code on STDOUT
 # - JSON of the axioms and set rotations in JSON_OUT_FILE
 
-import json
-
 SET_N = 6 # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
 MAKE_GROUPS = False # Whether to create groups of equivalent axioms when permuting the base set
-JSON_OUT_FILE = "axiom_data.json"
 
 def dimensions() -> int:
     """Return the number of variables / possible f() values"""
@@ -271,15 +268,6 @@ def axiom_to_group(axioms, unique_groups):
     return map
 
 
-def get_set_rotations():
-    """Record what set maps to what when permuting the base set"""
-    rmap = set_create_rev_map()
-    set_maps = []
-    for permutation in permutations():
-        set_maps.append([set_index_apply_permutation(i, permutation) for i in range(len(rmap))])
-    return set_maps
-    
-
 def print_c_code():
     """Print C code defining the axioms and other constants, and dump json data"""
     
@@ -322,12 +310,6 @@ def print_c_code():
             print(f" Group{i} size={len(group)} {group}")
         print('*/')
         
-    # Record set rotations (what goes to what)
-    json.dump({
-        'axioms': axioms,
-        'permute_map': get_set_rotations()
-    }, open(JSON_OUT_FILE, 'w'))
-
 
 def display_vector(v) -> str:
     """Create human-readable string from a vector of coefficients"""

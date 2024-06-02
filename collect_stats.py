@@ -1,13 +1,19 @@
 
-# Keep track of the unique rays found from the output of `make int_run`
+# Keep track of the unique rays from rays received on STDIN in a stream
+# TODO: Read rays from previous runs stored in files
+# TODO: Apply rotations to the rays found (see GA.permutations(), GA.expression_apply_permutation())
+# TODO: check rays against axioms (see GA.get_axioms())
 
 import sys
 import time
 import re
 
+import get_axioms as GA
+
 rays = {}
 finds = 0
 
+# Regex to process STDIN stream
 re_line = re.compile(r'Tries: ([0-9]+) Chosen: [0-9,]+ Ray: \[([0-9,]+)\] ZeroAxioms: ([0-9]+)')
 
 latest = time.time()
