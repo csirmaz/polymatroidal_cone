@@ -12,5 +12,5 @@
 
 #define T_VEC(a) T_ELEM a[VECLEN]
 
-#define VECLOOP(i) for(int i=0; i<VECLEN; i++)
+#define VEC_LOOP(i) for(int i=0; i<VECLEN; i++)
 

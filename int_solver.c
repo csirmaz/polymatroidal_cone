@@ -9,7 +9,7 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define T_FACTOR long long int
+#define T_ELEM long long int
 // long long int  format: %lld
 // double  format: %lf
 #define ABS(f) llabs(f)
@@ -38,7 +38,7 @@
     #endif
 #endif
 
-#define T_ROW(a) T_FACTOR a[VARS]
+#define T_ROW(a) T_ELEM a[VARS]
 
 // Loop through variables / elements in a row vector
 #define LOOP(i) for(int i=0; i<VARS; i++)
@@ -63,7 +63,7 @@ int rand_mask;
 int chosen_ix[AXIOMS];
 
 // The chosen axioms to solve. We solve VARS-1 axioms; the last row is a buffer
-T_FACTOR chosen_axioms[VARS][VARS];
+T_ELEM chosen_axioms[VARS][VARS];
 
 #ifdef SKIP_FREQUENT
     // Stores axioms that yield 0 for a frequent ray. 1 if yes, 0 if no
@@ -75,8 +75,8 @@ T_FACTOR chosen_axioms[VARS][VARS];
 struct timeval prev_time, current_time;
 
 // greatest common divisor
-T_FACTOR FUNCPARAMS gcd(T_FACTOR a, T_FACTOR b) {
-    T_FACTOR tmp;
+T_ELEM FUNCPARAMS gcd(T_ELEM a, T_ELEM b) {
+    T_ELEM tmp;
     a = ABS(a);
     b = ABS(b);
     while(1) {
@@ -89,7 +89,7 @@ T_FACTOR FUNCPARAMS gcd(T_FACTOR a, T_FACTOR b) {
 }
 
 // least common multiple
-T_FACTOR FUNCPARAMS lcm(T_FACTOR a, T_FACTOR b) {
+T_ELEM FUNCPARAMS lcm(T_ELEM a, T_ELEM b) {
     return (a / gcd(a, b)) * b;
 }
 
@@ -100,7 +100,7 @@ void FUNCPARAMS zero(T_ROW(r)) {
 
 // Simplify a row
 void FUNCPARAMS simplify(T_ROW(r)) {
-    T_FACTOR c = gcd(r[0], r[1]);
+    T_ELEM c = gcd(r[0], r[1]);
     if(c == 1) return;
     for(int i=2; i<VARS; i++) {
         c = gcd(c, r[i]);
@@ -111,8 +111,8 @@ void FUNCPARAMS simplify(T_ROW(r)) {
 }
 
 // Return the lcm for a row
-T_FACTOR lcm_row(T_ROW(r)) {
-    T_FACTOR c = lcm(r[0], r[1]);
+T_ELEM lcm_row(T_ROW(r)) {
+    T_ELEM c = lcm(r[0], r[1]);
     for(int i=2; i<VARS; i++) {
         c = lcm(c, r[i]);
     }
@@ -131,9 +131,9 @@ void print_row(T_ROW(r)) {
 
 // a = a*x - b*y such that there should be 0 at var_ix
 void FUNCPARAMS subtract(T_ROW(a), T_ROW(b), int var_ix) {
-    T_FACTOR c = gcd(a[var_ix], b[var_ix]);
-    T_FACTOR af = b[var_ix] / c;
-    T_FACTOR bf = a[var_ix] / c;
+    T_ELEM c = gcd(a[var_ix], b[var_ix]);
+    T_ELEM af = b[var_ix] / c;
+    T_ELEM bf = a[var_ix] / c;
     // print_row(a); printf(" af=%lld\n", af);
     // print_row(b); printf(" bf=%lld\n", bf);
     int to_simplify = 0;
@@ -146,8 +146,8 @@ void FUNCPARAMS subtract(T_ROW(a), T_ROW(b), int var_ix) {
 }
 
 // Dot product of two row vectors
-T_FACTOR FUNCPARAMS dot(T_ROW(a), T_ROW(b)) {
-    T_FACTOR r = 0;
+T_ELEM FUNCPARAMS dot(T_ROW(a), T_ROW(b)) {
+    T_ELEM r = 0;
     LOOP(i) r += a[i] * b[i];
     return r;
 }
@@ -330,8 +330,8 @@ int main(void) {
     
     unsigned long tries = 0; // How many steps
     int free_var; // the index of the free variable in the solution
-    T_FACTOR solution[VARS]; // the solution
-    T_FACTOR solution_divisor[VARS];
+    T_ELEM solution[VARS]; // the solution
+    T_ELEM solution_divisor[VARS];
     int freedoms; // how many freedoms the chosen system has
     int solved;  // how many of the chosen axioms are solved
 
@@ -381,7 +381,7 @@ int main(void) {
         
         // Copy axioms
         CHOSEN_LOOP(i) {
-            memcpy(&chosen_axioms[i], &axioms[chosen_ix[i]], sizeof(T_FACTOR)*VARS);
+            memcpy(&chosen_axioms[i], &axioms[chosen_ix[i]], sizeof(T_ELEM)*VARS);
         }
         #ifdef DEBUG
             printf("---------- Try #%lu --------------\n", tries);
@@ -401,11 +401,11 @@ int main(void) {
             #endif
             
             // Get the abs largest coefficient for the v'th variable
-            T_FACTOR max_v = 0;
+            T_ELEM max_v = 0;
             int max_ix = -1;  // index of the largest value
             CHOSEN_LOOP(a) {
                 if(axiom_solved_for[a] != -1) continue; // only look at the unsolved axioms
-                T_FACTOR c = ABS(chosen_axioms[a][var_ix]);
+                T_ELEM c = ABS(chosen_axioms[a][var_ix]);
                 if(max_ix == -1 || max_v < c) {
                     max_v = c;
                     max_ix = a;
@@ -428,7 +428,7 @@ int main(void) {
             }
             
             // Subtract
-            T_FACTOR r = chosen_axioms[max_ix][var_ix];
+            T_ELEM r = chosen_axioms[max_ix][var_ix];
             CHOSEN_LOOP(a) {
                 if(a != max_ix && chosen_axioms[a][var_ix] != 0) {
                     subtract(chosen_axioms[a], chosen_axioms[max_ix], var_ix);
@@ -535,7 +535,7 @@ int main(void) {
         }
         solution_divisor[free_var] = 1;
 
-        T_FACTOR c = lcm_row(solution_divisor);
+        T_ELEM c = lcm_row(solution_divisor);
         if(c < 0) c = -c;
         if(negatives > 0) c = -c;  // flip the solution to an all positive
         LOOP(i) { solution[i] *= c / solution_divisor[i]; }
@@ -550,7 +550,7 @@ int main(void) {
         #ifdef SOLVER_TEST
             // Check the solution against the (original) chosen axioms
             CHOSEN_LOOP(a) {
-                T_FACTOR r = dot(axioms[chosen_ix[a]], solution);
+                T_ELEM r = dot(axioms[chosen_ix[a]], solution);
                 #ifdef DEBUG
                     printf("Axiom #%d %d ", a, chosen_ix[a]);
                     print_row(axioms[chosen_ix[a]]);

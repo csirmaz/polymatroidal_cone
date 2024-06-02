@@ -1,4 +1,9 @@
 
+T_VEC(zero_vector);
+
+void util_init(void) {
+    VEC_LOOP(i) zero_vector[i] = 0;
+}
 
 // greatest common divisor
 T_ELEM gcd(T_ELEM a, T_ELEM b) {
@@ -19,9 +24,15 @@ T_ELEM lcm(T_ELEM a, T_ELEM b) {
     return (a / gcd(a, b)) * b;
 }
 
+// Copy data from one vector to another
+void vec_cpy(T_VEC(dest), T_VEC(src)) {
+    memcpy(dest, src, sizeof(T_ELEM)*VECLEN);
+}
+
+
 // Set a row vector to zero
-void zero(T_VEC(r)) {
-    VECLOOP(i) r[i] = 0;
+void vec_zero(T_VEC(r)) {
+    vec_cpy(r, zero_vector);
 }
 
 // Simplify a row
@@ -33,7 +44,7 @@ void simplify(T_VEC(r)) {
         if(c == 1) return;
     }
     if(c == 0) return;
-    VECLOOP(i) r[i] /= c;
+    VEC_LOOP(i) r[i] /= c;
 }
 
 // Return the lcm for a vector
@@ -48,7 +59,7 @@ T_ELEM lcm_vec(T_VEC(r)) {
 // Print a vector
 void print_row(T_VEC(r)) {
     printf("[");
-    VECLOOP(i) {
+    VEC_LOOP(i) {
         if(i>0) printf(",");
         printf("%lld", r[i]);
     }
@@ -58,14 +69,14 @@ void print_row(T_VEC(r)) {
 // Dot product of two row vectors
 T_ELEM dot(T_VEC(a), T_VEC(b)) {
     T_ELEM r = 0;
-    VECLOOP(i) r += a[i] * b[i];
+    VEC_LOOP(i) r += a[i] * b[i];
     return r;
 }
 
 // Dot product of two row vectors - optimized for mostly 0 b vector
 T_ELEM dot_opt(T_VEC(a), T_VEC(b)) {
     T_ELEM r = 0;
-    VECLOOP(i) if(b[i] != 0) r += a[i] * b[i];
+    VEC_LOOP(i) if(b[i] != 0) r += a[i] * b[i];
     return r;
 }
 
@@ -77,7 +88,7 @@ void solve_one(T_VEC(a), T_VEC(b), int var_ix) {
     // print_row(a); printf(" af=%lld\n", af);
     // print_row(b); printf(" bf=%lld\n", bf);
     int to_simplify = 0;
-    VECLOOP(i) {
+    VEC_LOOP(i) {
         a[i] = a[i]*af - b[i]*bf;
         if(a[i] != 0 && (a[i] > SIMPLIFY_ABOVE || a[i] < -SIMPLIFY_ABOVE)) { to_simplify = 1; }
     }

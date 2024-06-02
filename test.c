@@ -12,6 +12,8 @@
 
 int main(void) {
     
+    util_init();
+    
     // Test gcd()
     assert(gcd(2,3) == 1, "gcd1");
     assert(gcd(3,7) == 1, "gcd2");
@@ -25,8 +27,8 @@ int main(void) {
     // Test dot()
     T_VEC(a);
     T_VEC(b);
-    zero(a);
-    zero(b);
+    vec_zero(a);
+    vec_zero(b);
     assert(dot(a,b) == 0, "dot1");
     assert(dot_opt(a,b) == 0, "dot1");
     a[0] = 1;
@@ -41,8 +43,8 @@ int main(void) {
     assert(dot_opt(a,b) == 3, "dot4");
     
     // Test solve_one()
-    zero(a);
-    zero(b);
+    vec_zero(a);
+    vec_zero(b);
     a[0] = 2; a[1] = 5;
     b[0] = 3; b[1] = 7;
     solve_one(a, b, 0); // [6,15]-[6,14]=[0,1]
@@ -56,5 +58,5 @@ int main(void) {
     assert(a[1] == 0, "subtract2");
     assert(b[0] == 3, "subtract3");
 
-    
+
 }

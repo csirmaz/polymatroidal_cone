@@ -29,3 +29,7 @@ rand_axiom_test:
 slicer_test:
 	gcc -lm test.c && ./a.out
 	rm a.out
+
+slicer_run:
+	gcc -lm -O3 slicer.c -o slicer
+	./slicer
