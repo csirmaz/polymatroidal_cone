@@ -1,10 +1,16 @@
 
 # Create C code defining polymatroidal axioms
-# Sort axioms into groups according to symmetries
+# Optionally sort axioms into groups according to symmetries
+# Outputs:
+# - C code on STDOUT
+# - JSON of the axioms and set rotations in JSON_OUT_FILE
+
+import json
 
 SET_N = 6 # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
-
+MAKE_GROUPS = False # Whether to create groups of equivalent axioms when permuting the base set
+JSON_OUT_FILE = "axiom_data.json"
 
 def dimensions() -> int:
     """Return the number of variables / possible f() values"""
@@ -47,12 +53,14 @@ def set_len(s: int) -> int:
 
 
 SET_MAP = None
+REV_MAP = None
 def set_create_index_map(force=False):
     """Return a map (dict) mapping sets as bitmaps to an index"""
-    global SET_MAP
+    global SET_MAP, REV_MAP
     if (SET_MAP is not None) and (not force):
         return SET_MAP
-    map = {}
+    map = {} # bitmap to index
+    rev_map = {} # index to bitmap
     next_index = 0
     maximal = None  # later, the index of "maximal" sets in tight polymatroids
     for s in range(2**SET_N):  # 0 <= s < 2**SET_N
@@ -65,18 +73,26 @@ def set_create_index_map(force=False):
                     maximal = next_index  # next available index
                 else:
                     map[s] = maximal
+                    # This is a many-to-one relationship but we keep the full set
+                    rev_map[maximal] = s
                     continue
         map[s] = next_index
+        rev_map[next_index] = s
         next_index += 1
     assert next_index == dimensions()
+    if TIGHT:
+        assert rev_map[maximal] == 2**SET_N-1
     SET_MAP = map
+    REV_MAP = rev_map
     return map
 
 
 def set_create_rev_map():
     """Create the reverse map mapping an index to a bitmap"""
-    smap = set_create_index_map()
-    return {v: k for k, v in smap.items()}
+    # Note: for tight matroids the index of the maximal set can in theory map to multiple bitmaps but we keep the full set
+    if REV_MAP is None:
+        set_create_index_map()
+    return REV_MAP
 
 
 def permutations():
@@ -144,6 +160,7 @@ def set_index_apply_permutation(i, permutation):
 
 
 def expression_apply_permutation(vec, permutation):
+    """Apply a base set permutation to a vector indexed by subsets"""
     out = [None for i in vec]
     for ix, v in enumerate(vec):
         new_ix = set_index_apply_permutation(ix, permutation)
@@ -154,6 +171,7 @@ def expression_apply_permutation(vec, permutation):
 
 
 def same_expression(vec1, vec2):
+    """Returns whether two vectors are the same"""
     if len(vec1) != len(vec2):
         raise ValueError("length error")
     for i, v1 in enumerate(vec1):
@@ -163,6 +181,7 @@ def same_expression(vec1, vec2):
 
 
 def expression2str(vec):
+    """String representation of a vector"""
     return ",".join([str(i) for i in vec])
 
 
@@ -250,14 +269,26 @@ def axiom_to_group(axioms, unique_groups):
             if axiom_ix in group:
                 map[axiom_ix] = group_ix
     return map
+
+
+def get_set_rotations():
+    """Record what set maps to what when permuting the base set"""
+    rmap = set_create_rev_map()
+    set_maps = []
+    for permutation in permutations():
+        set_maps.append([set_index_apply_permutation(i, permutation) for i in range(len(rmap))])
+    return set_maps
     
 
 def print_c_code():
-    """Print C code defining the axioms and other constants"""
+    """Print C code defining the axioms and other constants, and dump json data"""
     
     axioms = get_axioms()
-    groups = get_axiom_groups(axioms)
-    group_map = axiom_to_group(axioms, groups)
+    if MAKE_GROUPS:
+        groups = get_axiom_groups(axioms)
+        group_map = axiom_to_group(axioms, groups)
+    else:
+        group_map = {i: '?' for i in range(len(axioms))}
     
     print(f'#define LABEL "SET_N={SET_N} TIGHT={TIGHT}"')
     print(f'#define AXIOMS {len(axioms)}')
@@ -285,10 +316,17 @@ def print_c_code():
     print('*/')
     
     # Display information about axiom groups
-    print('/* AXIOM GROUPS');
-    for i, group in enumerate(groups):
-        print(f" Group{i} size={len(group)} {group}")
-    print('*/')
+    if MAKE_GROUPS:
+        print('/* AXIOM GROUPS');
+        for i, group in enumerate(groups):
+            print(f" Group{i} size={len(group)} {group}")
+        print('*/')
+        
+    # Record set rotations (what goes to what)
+    json.dump({
+        'axioms': axioms,
+        'permute_map': get_set_rotations()
+    }, open(JSON_OUT_FILE, 'w'))
 
 
 def display_vector(v) -> str:
