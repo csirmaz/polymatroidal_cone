@@ -9,7 +9,7 @@
 #include <math.h>
 #include <sys/time.h>
 
-// #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
+#define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define DEBUG // debug messages from this file
 // #define SO_DEBUG // debug messages from the solver
 
@@ -168,13 +168,23 @@ void apply_axiom(int axiom_ix) {
             #endif
                 
             // Skip if there are not enough rows
-            if(so_rows < VARS - 1) continue;
+            if(so_rows < VARS - 1) {
+                #ifdef DEBUG
+                    printf("X: Not enough rows\n"); fflush(stdout);
+                #endif
+                continue;
+            }
 
             // Check if there are any 0 columns
             // This makes things slower
             // if(so_has_zero_columns()) continue;
             
-            if(!so_solve()) continue;
+            if(!so_solve()) {
+                #ifdef DEBUG
+                    printf("X: Solver returned false\n"); fflush(stdout);
+                #endif
+                continue;
+            }
             // Solution is in `solution`
             
             #ifdef DEBUG            

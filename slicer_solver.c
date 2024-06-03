@@ -92,7 +92,12 @@ int so_solve(void) {
             #ifdef SO_DEBUG
                 printf("No non-0 coefficients, now %d freedoms\n", freedoms);
             #endif
-            if(freedoms > 1) return 0; // too many freedoms
+            if(freedoms > 1) {
+                #ifdef DEBUG
+                    printf("X: Too many freedoms\n"); fflush(stdout);
+                #endif
+                return 0;
+            }
             continue;
         }
         
@@ -121,7 +126,12 @@ int so_solve(void) {
         printf("]\n");
     #endif
     
-    if(freedoms != 1) return 0; // Wrong number of freedoms
+    if(freedoms != 1) {
+        #ifdef DEBUG
+            printf("X: Wrong number of freedoms\n"); fflush(stdout);
+        #endif
+        return 0;
+    }
     
     // Extract the solution
     int free_var = -1;
@@ -167,6 +177,9 @@ int so_solve(void) {
         solution[free_var] = -1;
     }else{
         // We have a mixture of signs which will never be "inside"
+        #ifdef DEBUG
+            printf("X: Ray not inside (signs)\n"); fflush(stdout);
+        #endif
         return 0;
     }
     solution_divisor[free_var] = 1;
@@ -182,4 +195,5 @@ int so_solve(void) {
         print_vec(solution);
         printf("\n");
     #endif
+    return 1;
 }
