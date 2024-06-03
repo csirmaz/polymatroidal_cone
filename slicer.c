@@ -29,6 +29,7 @@
 
 #include "util.c"
 #include "ray_store.c"
+#include "slicer_solver.c"
 
 // Axioms extended with identities
 T_ELEM ext_axioms[AXIOMS+VARS][VARS];
@@ -40,17 +41,19 @@ void remove_neg_rays() {
             RS_STORE[i].used = U_FREE;
 }
 
-void apply_axiom(T_VEC(axiom)) {
+void apply_axiom(int axiom_ix) {
     // Apply an axiom to the known rays
+    printf("applying_axiom=%d\n", axiom_ix);
     // (1) Check if the ray is on pos, neg side or on the face of the axiom
     struct ray_record* ray;
+    struct ray_record* ray_pos;
     struct ray_record* ray_neg;
     int pos_count = 0, neg_count = 0;
     for(int i=0; i<RS_STORE_USED; i++) {
         if(RS_STORE[i].used == U_FREE) continue;
         ray = &RS_STORE[i];
 
-        T_ELEM d = dot_opt(ray->coords, axiom);
+        T_ELEM d = dot_opt(ray->coords, axioms[axiom_ix]);
         if(d > 0) { // positive side
             pos_count++;
             ray->used = U_POS;
@@ -64,24 +67,49 @@ void apply_axiom(T_VEC(axiom)) {
             ray->used = U_USED;
         }
     } // end loop over stored rays
-    printf("%d positive and %d negative rays (%d)\n", pos_count, neg_count, pos_count*neg_count);
+    printf("positive_rays=%d negative_rays=%d ray_pairs=%d\n", pos_count, neg_count, pos_count*neg_count);
     
     // (2) For each pos-neg ray pair
-    T_BITMAP(bm);
+    T_BITMAP(face_bm);
+    int new_rays = 0;
     for(int ray_i=0; ray_i<RS_STORE_USED; ray_i++) {
         if(RS_STORE[ray_i].used != U_POS) continue;
-        ray = &RS_STORE[ray_i];
+        ray_pos = &RS_STORE[ray_i];
         for(int ray_j=0; ray_j<RS_STORE_USED; ray_j++) {
             if(RS_STORE[ray_j].used != U_NEG) continue;
             ray_neg = &RS_STORE[ray_j];
             
             // Get the axioms/faces both are on
-            for(int i=0; i<NUM_BITMAP; i++) bm[i] = (ray->faces[i] & ray_neg->faces[i]);
+            for(int i=0; i<NUM_BITMAP; i++) face_bm[i] = (ray_pos->faces[i] & ray_neg->faces[i]);
             
             // Check that these axioms + the new one solve to a new ray
             
-        }
-    } // for i ends
+            // LATER Check if there are any 0 columns
+            // TODO create axiom bitmaps if this is frequent enough
+            
+            // Solve
+            T_VEC(solution);
+            
+            // New ray
+            new_rays++;
+            ray = rs_allocate_ray();
+            vec_cpy(ray->coords, solution); // store the coordinates
+            
+            // Store which faces the new ray is on
+            // The new ray is on all faces that ray_post and ray_neg were on
+            rs_bitmap_cpy(ray->faces, face_bm);
+            // The new ray is also on the new face
+            rs_bitmap_set(ray->faces, axiom_ix);
+            // Check the rest of the faces
+            for(int i=0; i<AXIOMS+VARS; i++) {
+                if(!rs_bitmap_read(ray->faces, i))
+                    if(dot_opt(solution, axioms[i]) == 0)
+                        rs_bitmap_set(ray->faces, i);
+            }
+            
+        } // for ray_j ends
+    } // for ray_i ends
+    printf("new_rays=%d total_rays=%u\n", new_rays, RS_STORE_USED);
     
     remove_neg_rays();
 }

@@ -29,7 +29,6 @@ void vec_cpy(T_VEC(dest), T_VEC(src)) {
     memcpy(dest, src, sizeof(T_ELEM)*VECLEN);
 }
 
-
 // Set a row vector to zero
 void vec_zero(T_VEC(r)) {
     vec_cpy(r, zero_vector);

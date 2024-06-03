@@ -10,6 +10,7 @@
 #include "vars.c"
 #include "util.c"
 #include "ray_store.c"
+#include "slicer_solver.c"
 
 int main(void) {
     

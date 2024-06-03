@@ -28,7 +28,7 @@ T_BITMAP(zero_bitmap) = {0,0,0,0,0,0,0,0,0,0};
 
 void rs_assert_bitmap_size(int size) {
     // Check that the bitmap is at least this size
-    printf("bitmap size %ld required size %d\n", sizeof(T_BITMAP_ELEM)*NUM_BITMAP*8, size);
+    printf("bitmap_size=%ld required_bm_size=%d\n", sizeof(T_BITMAP_ELEM)*NUM_BITMAP*8, size);
     assert(sizeof(T_BITMAP_ELEM)*NUM_BITMAP*8 >= size, "bitmap size");
 }
 
@@ -45,7 +45,7 @@ void _rs_extend_store(void) {
     }
     for(int i=0; i<RS_ALLOC_STEP; i++) RS_STORE[i+RS_STORE_SIZE].used = U_FREE;
     RS_STORE_SIZE += RS_ALLOC_STEP;
-    printf("Extended ray store to %u entries\n", RS_STORE_SIZE);
+    printf("Extended ray store to ray_store_size=%u\n", RS_STORE_SIZE);
 }
 
 void rs_bitmap_cpy(T_BITMAP(dest), T_BITMAP(src)) {
