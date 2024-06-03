@@ -16,8 +16,8 @@ struct ray_record {
 };
 
 struct ray_record *RS_STORE;
-unsigned int RS_STORE_SIZE = 0; // total allocated size of the store
-unsigned int RS_STORE_RANGE = 0; // first known unused slot (may have holes below) -- After garbage collection this is also the number of rays in the store
+T_RAYIX RS_STORE_SIZE = 0; // total allocated size of the store
+T_RAYIX RS_STORE_RANGE = 0; // first known unused slot (may have holes below) -- After garbage collection this is also the number of rays in the store
 T_BITMAP(zero_bitmap) = {0,0,0,0,0,0,0,0,0,0}; // see NUM_BITMAP
 
 // Possible values for ray_record.used:
@@ -44,7 +44,7 @@ void _rs_extend_store(void) {
         exit(1);
     }
     RS_STORE_SIZE += RS_ALLOC_STEP;
-    printf("Extended ray store to ray_store_size=%u\n", RS_STORE_SIZE);
+    printf("Extended ray store to ray_store_size=%zu\n", RS_STORE_SIZE);
     fflush(stdout);
 }
 
@@ -103,8 +103,8 @@ struct ray_record* rs_allocate_ray(void) {
 void rs_garbage_collection(void) {
     // Drop rays marked as negative
     // Fill in holes
-    int current = 0;
-    int last = RS_STORE_RANGE - 1;
+    T_RAYIX current = 0;
+    T_RAYIX last = RS_STORE_RANGE - 1;
     while(1) {
         assert(last >= 0, "Uh-oh, no rays left?");
         if(current >= RS_STORE_SIZE) { break; }

@@ -4,6 +4,8 @@
 // double  format: %lf
 #define ABS(f) llabs(f)
 
+#define T_RAYIX size_t
+
 // Length of a vector
 #define VECLEN 4
 #define VARS 4

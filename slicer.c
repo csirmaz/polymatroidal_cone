@@ -13,10 +13,14 @@
 // #define DEBUG // debug messages from this file
 // #define SO_DEBUG // debug messages from the solver
 
+// Type for a value in a matrix/vector
 #define T_ELEM long long int
 // long long int  format: %lld
 // double  format: %lf
 #define ABS(f) llabs(f)
+
+// Type for ray indices
+#define T_RAYIX size_t
 
 #include "axioms.c"
 
@@ -53,9 +57,9 @@ void apply_axiom(int axiom_ix) {
     struct ray_record* ray;
     struct ray_record* ray_pos;
     struct ray_record* ray_neg;
-    int pos_count = 0, neg_count = 0, zero_count = 0;
+    T_RAYIX pos_count = 0, neg_count = 0, zero_count = 0;
 
-    for(int i=0; i<RS_STORE_RANGE; i++) {
+    for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
         // Note: due to the garbage collector, there are no unused rays
         ray = &RS_STORE[i];
 
@@ -75,23 +79,23 @@ void apply_axiom(int axiom_ix) {
         }
     } // end loop over stored rays
 
-    printf("positive_rays=%d negative_rays=%d zero_rays=%d ray_pairs=%d\n", pos_count, neg_count, zero_count, pos_count*neg_count);
+    printf("positive_rays=%zu negative_rays=%zu zero_rays=%zu ray_pairs=%zu\n", pos_count, neg_count, zero_count, pos_count*neg_count);
     #ifdef DEBUG
         fflush(stdout);
     #endif
     
     // (2) For each pos-neg ray pair
     T_BITMAP(face_bm);
-    unsigned int old_number_of_rays = RS_STORE_RANGE;
-    int new_rays = 0;
-    int pairs_checked = 0;
+    T_RAYIX old_number_of_rays = RS_STORE_RANGE;
+    T_RAYIX new_rays = 0;
+    T_RAYIX pairs_checked = 0;
     int bm_counter;
     
-    for(int ray_i=0; ray_i<old_number_of_rays; ray_i++) {
+    for(T_RAYIX ray_i=0; ray_i<old_number_of_rays; ray_i++) {
         if(RS_STORE[ray_i].used != U_POS) continue;
         ray_pos = &RS_STORE[ray_i];
         
-        for(int ray_j=0; ray_j<old_number_of_rays; ray_j++) {
+        for(T_RAYIX ray_j=0; ray_j<old_number_of_rays; ray_j++) {
             if(RS_STORE[ray_j].used != U_NEG) continue;
             ray_neg = &RS_STORE[ray_j];
 
@@ -103,7 +107,7 @@ void apply_axiom(int axiom_ix) {
                 gettimeofday(&current_time, NULL);
                 double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
                 gettimeofday(&prev_time, NULL);
-                printf("%d pairs checked in %lf s, %.6f ms/pair (%.2f%%)\n", 
+                printf("%zu pairs checked in %lf s, %.6f ms/pair (%.2f%%)\n", 
                     pairs_checked, 
                     elapsed, 
                     elapsed*1000./(float)pairs_checked,
@@ -232,7 +236,7 @@ void apply_axiom(int axiom_ix) {
     
     printf("Garbage collection...\n");    
     rs_garbage_collection();
-    printf("new_rays=%d total_rays=%u pairs_checked=%d\n\n", new_rays, RS_STORE_RANGE, pairs_checked);
+    printf("new_rays=%zu total_rays=%zu pairs_checked=%zu\n\n", new_rays, RS_STORE_RANGE, pairs_checked);
     fflush(stdout);
 }
 
