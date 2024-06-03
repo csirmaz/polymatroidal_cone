@@ -428,7 +428,6 @@ int main(void) {
             }
             
             // Subtract
-            T_ELEM r = chosen_axioms[max_ix][var_ix];
             CHOSEN_LOOP(a) {
                 if(a != max_ix && chosen_axioms[a][var_ix] != 0) {
                     subtract(chosen_axioms[a], chosen_axioms[max_ix], var_ix);

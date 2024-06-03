@@ -5,7 +5,10 @@
 #define ABS(f) llabs(f)
 
 // Length of a vector
-#define VECLEN 64
+#define VECLEN 4
+#define VARS 4
+#define AXIOMS 4
+#define ALL_AXIOMS 8
 
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024

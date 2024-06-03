@@ -10,11 +10,15 @@
 #include "vars.c"
 #include "util.c"
 #include "ray_store.c"
+
+#define AXIOMS 4
+#define VARS 4
 #include "slicer_solver.c"
 
 int main(void) {
     
     util_init();
+    so_init();
     
     // Test gcd()
     assert(gcd(2,3) == 1, "gcd1");
@@ -79,4 +83,55 @@ int main(void) {
     assert(bm[0] == 32, "bm11");
     assert(rs_bitmap_read(bm, 32+1) != 0, "bm12");
     assert(rs_bitmap_read(bm, 64+1) == 0, "bm13");
+    
+    // Test ray store & garbage collector
+    rs_allocate_ray(); // [1, x, x, x, x
+    RS_STORE[0].coords[0] = 1;
+    RS_STORE_SIZE = 5;
+    assert(RS_STORE_RANGE == 1, "gc1");
+    rs_garbage_collection();
+    assert(RS_STORE_RANGE == 1, "gc1");
+
+    rs_allocate_ray(); // [1, 2, x, x, x
+    RS_STORE[1].coords[0] = 2;
+    assert(RS_STORE_RANGE == 2, "gc1");
+    rs_garbage_collection();
+    assert(RS_STORE_RANGE == 2, "gc1");
+
+    rs_allocate_ray(); // [1, 2, 3, x, x
+    RS_STORE[2].coords[0] = 3;
+    RS_STORE[1].used = U_NEG; // [1, -, 3, x, x
+    rs_garbage_collection(); // [1, 3, x, x, x
+    assert(RS_STORE_RANGE == 2, "gc1");
+    assert(RS_STORE[0].coords[0] == 1, "gc10");
+    assert(RS_STORE[1].coords[0] == 3, "gc11");
+
+    rs_allocate_ray(); // [1, 3, 4, x, x
+    RS_STORE[2].coords[0] = 4;
+    RS_STORE[2].used = U_NEG; // [1, 3, -, x, x
+    RS_STORE[0].used = U_NEG; // [-, 3, -, x, x
+    rs_garbage_collection(); // [3, x, x, x, x
+    assert(RS_STORE_RANGE == 1, "gc1");
+    assert(RS_STORE[0].coords[0] == 3, "gc10");
+
+    rs_allocate_ray();
+    rs_allocate_ray();
+    rs_allocate_ray();
+    rs_allocate_ray(); // [3, u, u, u, u
+    assert(RS_STORE_RANGE == 5, "gc1");
+    assert(RS_STORE_SIZE == 5, "gc1"); // no extension should happen
+    rs_garbage_collection();
+    assert(RS_STORE_RANGE == 5, "gc1");
+    
+    // Test the solver
+    T_ELEM m1[3][4] = {
+        {1, 1, -3, 4},
+        {-1, 1, 0, 1},
+        {2, -1, 1, 2},
+    };
+    so_init_matrix();
+    so_add_to_matrix(m1[0]);
+    so_add_to_matrix(m1[1]);
+    so_add_to_matrix(m1[2]);
+    so_solve();
 }

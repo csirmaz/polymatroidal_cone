@@ -5,7 +5,7 @@
 # - C code on STDOUT
 # - JSON of the axioms and set rotations in JSON_OUT_FILE
 
-SET_N = 6 # number of elements in the base set
+SET_N = 4 # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
 MAKE_GROUPS = False # Whether to create groups of equivalent axioms when permuting the base set
 
@@ -281,6 +281,7 @@ def print_c_code():
     print(f'#define LABEL "SET_N={SET_N} TIGHT={TIGHT}"')
     print(f'#define AXIOMS {len(axioms)}')
     print(f'#define VARS {len(axioms[0])}')
+    print(f'#define ALL_AXIOMS {len(axioms)+len(axioms[0])}')
     out = []
     for i, e in enumerate(axioms):
         out.append('{'+','.join([str(x) for x in e]) + '} /* ' + f'Axiom{i} Group{group_map[i]} ' + display_expression(e) + '*/')

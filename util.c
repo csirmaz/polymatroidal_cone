@@ -56,7 +56,7 @@ T_ELEM lcm_vec(T_VEC(r)) {
 }
 
 // Print a vector
-void print_row(T_VEC(r)) {
+void print_vec(T_VEC(r)) {
     printf("[");
     VEC_LOOP(i) {
         if(i>0) printf(",");
