@@ -18,6 +18,13 @@ struct ray_record {
 struct ray_record *RS_STORE;
 unsigned int RS_STORE_SIZE = 0; // total allocated size of the store
 unsigned int RS_STORE_USED = 0; // first known unused slot (may have holes below)
+T_BITMAP(zero_bitmap) = {0,0,0,0,0,0,0,0,0,0};
+
+#define U_FREE 0
+#define U_USED 1
+#define U_POS 2
+#define U_NEG 3
+
 
 void rs_assert_bitmap_size(int size) {
     // Check that the bitmap is at least this size
@@ -25,7 +32,7 @@ void rs_assert_bitmap_size(int size) {
     assert(sizeof(T_BITMAP_ELEM)*NUM_BITMAP*8 >= size, "bitmap size");
 }
 
-void rs_extend_store(void) {
+void _rs_extend_store(void) {
     // Extend the store by RS_ALLOC_STEP records
     if(RS_STORE_SIZE == 0) {
         RS_STORE = malloc(sizeof(struct ray_record) * RS_ALLOC_STEP);
@@ -36,22 +43,45 @@ void rs_extend_store(void) {
         printf("Cannot allocate more memory to ray store\n");
         exit(1);
     }
-    for(int i=0; i<RS_ALLOC_STEP; i++) RS_STORE[i+RS_STORE_SIZE].used = 0;
+    for(int i=0; i<RS_ALLOC_STEP; i++) RS_STORE[i+RS_STORE_SIZE].used = U_FREE;
     RS_STORE_SIZE += RS_ALLOC_STEP;
-    printf("Extended ray store to %ud entries\n", RS_STORE_SIZE);
+    printf("Extended ray store to %u entries\n", RS_STORE_SIZE);
 }
 
-struct ray_record* rs_allocate_ray(T_VEC(v)) {
+void rs_bitmap_cpy(T_BITMAP(dest), T_BITMAP(src)) {
+    memcpy(dest, src, sizeof(T_BITMAP_ELEM)*NUM_BITMAP);
+}
+
+void rs_bitmap_zero(T_BITMAP(bm)) {
+    // Set bitmap to zero
+    rs_bitmap_cpy(bm, zero_bitmap);
+}
+
+int rs_bitmap_read(T_BITMAP(bm), int ix) {
+    int bit_ix = ix % (sizeof(T_BITMAP_ELEM)*8);
+    int elem_ix = (ix - bit_ix) / (sizeof(T_BITMAP_ELEM)*8);
+    return bm[elem_ix] & (1 << bit_ix);
+}
+
+void rs_bitmap_set(T_BITMAP(bm), int ix) {
+    int bit_ix = ix % (sizeof(T_BITMAP_ELEM)*8);
+    int elem_ix = (ix - bit_ix) / (sizeof(T_BITMAP_ELEM)*8);
+    // printf("ix=%d bit_ix=%d elem_ix=%d\n", ix, bit_ix, elem_ix);
+    bm[elem_ix] += (1 << bit_ix);
+}
+
+struct ray_record* rs_allocate_ray(void) {
     // Ensure a new ray slot is available and return its address
-    // Use vec_zero() and ... to initialize
+    // Use vec_zero() and rs_zero_bitmap() to initialize
     if(RS_STORE_USED == RS_STORE_SIZE) {
         // running out of store
         // TODO do garbage collection
-        rs_extend_store();
+        _rs_extend_store();
     }
     struct ray_record *new_rec = &RS_STORE[RS_STORE_USED];
     RS_STORE_USED++;
-
-    new_rec->used = 1;
+    new_rec->used = U_USED;
     return new_rec;
 }
+
+
