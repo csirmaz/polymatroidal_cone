@@ -1,4 +1,13 @@
 
+// Solve a collection of linear equations without a constant using integers.
+// Determine the freedom (D-rank), and if it is 1, return a vector (if possible) that satisfies
+// all equations and has all coordinates positive.
+
+/* If SO_EARLYSTOP is defined, this file only sets up a variant of so_solve()
+ * named so_solve_early() that stops if the freedoms exceed 1.
+ */
+#ifndef SO_EARLYSTOP
+
 #define SO_MAX_ROWS ALL_AXIOMS
 T_ELEM so_matrix[SO_MAX_ROWS][VECLEN];
 int so_rows = 0; // How many rows are used in the matrix actually
@@ -20,9 +29,11 @@ int variables_solved_init[VARS];
  *  LOOP {
  *     so_init_matrix();
  *     LOOP so_add_to_matrix(vector);
- *     if(so_solve() == 1) { READ solution; }
+ *     int freedoms = so_solve();
+ *     if(freedoms == 1) { READ solution; }
  *  }
  */
+
 
 void so_print_matrix(void) {
     // Print `so_matrix`
@@ -69,8 +80,19 @@ int so_has_zero_columns(void) {
 int so_solve(void) {
     // Solve the matrix
     // Returns:
-    // 0: not good
-    // 1: good (1 freedom); solution is in `solution`
+    // -1: 1 freedom but there's a mixture of sings for the coordinates
+    // 0: 0 freedoms
+    // 1: good (1 freedom & all positive coordinates); solution is in `solution`
+    // 2 and above: many freedoms
+#else
+int so_solve_early(void) {
+    // Solve the matrix
+    // Returns:
+    // -1: 1 freedom but there's a mixture of sings for the coordinates
+    // 0: 0 or >1 freedoms
+    // 1: good (1 freedom & all positive coordinates); solution is in `solution`
+    
+#endif
     
     int freedoms = 0;
     memcpy(axiom_solved_for, axiom_solved_for_init, sizeof(int)*SO_MAX_ROWS); // Initialize to [-1,-1,...]
@@ -104,12 +126,9 @@ int so_solve(void) {
             #ifdef SO_DEBUG
                 printf("No non-0 coefficients, now %d freedoms\n", freedoms);
             #endif
-            if(freedoms > 1) {
-                #ifdef DEBUG
-                    printf("X: Too many freedoms\n"); fflush(stdout);
-                #endif
-                return 0;
-            }
+            #ifdef SO_EARLYSTOP
+                if(freedoms > 1) { return 0; }
+            #endif
             continue;
         }
         
@@ -142,7 +161,7 @@ int so_solve(void) {
         #ifdef DEBUG
             printf("X: Wrong number of freedoms\n"); fflush(stdout);
         #endif
-        return 0;
+        return freedoms;
     }
     
     // Extract the solution
@@ -193,7 +212,7 @@ int so_solve(void) {
         #ifdef DEBUG
             printf("X: Ray not inside (signs)\n"); fflush(stdout);
         #endif
-        return 0;
+        return -1;
     }
     solution_divisor[free_var] = 1;
 

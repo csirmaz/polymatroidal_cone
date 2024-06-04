@@ -66,23 +66,24 @@ int main(void) {
 
     // Test bitmap
     T_BITMAP(bm);
+    int s = sizeof(T_BITMAP_ELEM)*8;
     rs_bitmap_zero(bm);
     assert(rs_bitmap_read(bm, 0) == 0, "bm1");
     assert(rs_bitmap_read(bm, 5) == 0, "bm2");
-    assert(rs_bitmap_read(bm, 32+1) == 0, "bm3");
-    assert(rs_bitmap_read(bm, 64+2) == 0, "bm4");
+    assert(rs_bitmap_read(bm, s+1) == 0, "bm3");
+    assert(rs_bitmap_read(bm, s*2+2) == 0, "bm4");
     rs_bitmap_set(bm, 5);
     assert(bm[0] == 32, "bm5");
     assert(rs_bitmap_read(bm, 5) != 0, "bm6");
     assert(rs_bitmap_read(bm, 0) == 0, "bm7");
-    rs_bitmap_set(bm, 64+2);
-    assert(rs_bitmap_read(bm, 64+2) != 0, "bm8");
-    assert(rs_bitmap_read(bm, 32+1) == 0, "bm9");
-    rs_bitmap_set(bm, 32+1);
+    rs_bitmap_set(bm, s*2+2);
+    assert(rs_bitmap_read(bm, s*2+2) != 0, "bm8");
+    assert(rs_bitmap_read(bm, s+1) == 0, "bm9");
+    rs_bitmap_set(bm, s+1);
     assert(bm[1] == 2, "bm10");
     assert(bm[0] == 32, "bm11");
-    assert(rs_bitmap_read(bm, 32+1) != 0, "bm12");
-    assert(rs_bitmap_read(bm, 64+1) == 0, "bm13");
+    assert(rs_bitmap_read(bm, s+1) != 0, "bm12");
+    assert(rs_bitmap_read(bm, s*2+1) == 0, "bm13");
     
     // Test ray store & garbage collector
     rs_allocate_ray(); // [1, x, x, x, x

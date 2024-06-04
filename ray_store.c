@@ -2,9 +2,9 @@
 // Module: stores a variable number of rays
 
 // type for bitmaps
-#define T_BITMAP_ELEM int
+#define T_BITMAP_ELEM __int64_t
 // number of variables in a bitmap
-#define NUM_BITMAP 10
+#define NUM_BITMAP 5
 #define T_BITMAP(a) T_BITMAP_ELEM a[NUM_BITMAP]
 // memory allocation step
 #define RS_ALLOC_STEP 100000
@@ -18,7 +18,7 @@ struct ray_record {
 struct ray_record *RS_STORE;
 T_RAYIX RS_STORE_SIZE = 0; // total allocated size of the store
 T_RAYIX RS_STORE_RANGE = 0; // first known unused slot (may have holes below) -- After garbage collection this is also the number of rays in the store
-T_BITMAP(zero_bitmap) = {0,0,0,0,0,0,0,0,0,0}; // see NUM_BITMAP
+T_BITMAP(zero_bitmap) = {0,0,0,0,0}; // see NUM_BITMAP
 
 // Possible values for ray_record.used:
 #define U_USED 1 // or "zero" - on the face
@@ -104,16 +104,14 @@ void rs_garbage_collection(void) {
     // Drop rays marked as negative
     // Fill in holes
     T_RAYIX current = 0;
-    T_RAYIX last = RS_STORE_RANGE - 1;
     while(1) {
-        assert(last >= 0, "Uh-oh, no rays left?");
+        assert(RS_STORE_RANGE > 0, "Uh-oh, no rays left?");
         if(current >= RS_STORE_SIZE) { break; }
-        if(current > last) { break; }
-        if(RS_STORE[last].used == U_NEG) { last--; continue; }
+        if(current >= RS_STORE_RANGE) { break; }
+        if(RS_STORE[RS_STORE_RANGE-1].used == U_NEG) { RS_STORE_RANGE--; continue; }
         if(RS_STORE[current].used != U_NEG) { current++; continue; }
-        memcpy(&RS_STORE[current], &RS_STORE[last], sizeof(struct ray_record));
+        memcpy(&RS_STORE[current], &RS_STORE[RS_STORE_RANGE-1], sizeof(struct ray_record));
         current++;
-        last--;
+        RS_STORE_RANGE--;
     }
-    RS_STORE_RANGE = last+1;
 }

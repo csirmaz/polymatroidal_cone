@@ -99,6 +99,7 @@ void solve_one(T_VEC(a), T_VEC(b), int var_ix) {
 void assert(int flag, char* message) {
     if(!flag) {
         printf("Assertion failure: %s\n", message);
+        fflush(stdout);
         exit(1);
     }
 }
