@@ -48,7 +48,7 @@ struct timeval prev_time, current_time;
 void apply_axiom(int axiom_ix) {
     // Apply an axiom to the known rays
 
-    printf("applying_axiom=%d prev_total_rays=%d\n", axiom_ix, RS_STORE_RANGE);
+    printf("applying_axiom=%d prev_total_rays=%zu\n", axiom_ix, RS_STORE_RANGE);
     #ifdef DEBUG
         print_vec(ext_axioms[axiom_ix]); printf("\n"); fflush(stdout);
     #endif
