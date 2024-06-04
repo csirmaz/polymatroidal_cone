@@ -41,9 +41,13 @@
 
 // Axioms extended with identities
 T_ELEM ext_axioms[ALL_AXIOMS][VARS];
+char axioms_used[ALL_AXIOMS]; // Which axioms have already been used (bool, 0|1)
 
 struct timeval prev_time, current_time;
 
+// TODO no additional axioms
+// TODO 64bit bitmaps
+// TODO collect stats
 
 void apply_axiom(int axiom_ix) {
     // Apply an axiom to the known rays
@@ -117,7 +121,9 @@ void apply_axiom(int axiom_ix) {
             }
             pairs_checked++;
 
-            // Get the axioms/faces both are on
+            // Get the axioms/faces both are on, restricted to the axioms already used
+            // Check that these axioms + the new one solve to a new ray
+
             for(int i=0; i<NUM_BITMAP; i++) face_bm[i] = (ray_pos->faces[i] & ray_neg->faces[i]);
 
             #ifdef DEBUG
@@ -133,37 +139,18 @@ void apply_axiom(int axiom_ix) {
                 rs_print_bitmap(face_bm, ALL_AXIOMS);
                 printf("\n");
             #endif
-            
-            // Check that these axioms + the new one solve to a new ray
-            
+
             #ifdef DEBUG            
                 printf("Building the matrix...\n"); fflush(stdout);
             #endif
                 
-            // Solve the matrix
+
             so_init_matrix();
-            // Add the axioms where face_bm has a bit
-            #ifdef DEBUG
-                printf("Adding axioms: "); fflush(stdout);
-            #endif
-            bm_counter = 0;
-            for(int bm_elem_ix=0; bm_elem_ix<NUM_BITMAP; bm_elem_ix++) {
-                for(int bm_bit_ix=0; bm_bit_ix<sizeof(T_BITMAP_ELEM)*8; bm_bit_ix++) {
-                    // printf("elem=%d bit=%d c=%d\n", bm_elem_ix, bm_bit_ix, bm_counter);
-                    if(rs_bitmap_read2(face_bm, bm_elem_ix, bm_bit_ix)) {
-                        #ifdef DEBUG
-                            printf("%d ", bm_counter);
-                        #endif
-                        so_add_to_matrix(ext_axioms[bm_counter]);
-                    }
-                    bm_counter++;
-                    if(bm_counter >= ALL_AXIOMS) break;
-                }
-                if(bm_counter >= ALL_AXIOMS) break;
+            for(int a=0; a<ALL_AXIOMS; a++) {
+                if(!axioms_used[a]) continue;
+                if(!rs_bitmap_read(face_bm, a)) continue;
+                so_add_to_matrix(ext_axioms[a]);
             }
-            #ifdef DEBUG
-                printf(" finally %d\n", axiom_ix);
-            #endif
             // Add the current face
             so_add_to_matrix(ext_axioms[axiom_ix]);
             
@@ -234,6 +221,7 @@ void apply_axiom(int axiom_ix) {
         } // for ray_j ends
     } // for ray_i ends
     
+    axioms_used[axiom_ix] = 1;
     printf("Garbage collection...\n");    
     rs_garbage_collection();
     printf("new_rays=%zu total_rays=%zu pairs_checked=%zu\n\n", new_rays, RS_STORE_RANGE, pairs_checked);
@@ -249,8 +237,14 @@ int main(void) {
     rs_assert_bitmap_size(ALL_AXIOMS); // total number of faces
     
     // Initialize ext_axioms by adding an identity matrix
-    VEC_LOOP(j) VEC_LOOP(i) ext_axioms[j][i] = (i==j ? 1 : 0);
-    ROW_LOOP(j) VEC_LOOP(i) ext_axioms[VARS+j][i] = axioms[j][i];
+    VEC_LOOP(j) {
+        VEC_LOOP(i) ext_axioms[j][i] = (i==j ? 1 : 0);
+        axioms_used[j] = 1;
+    }
+    ROW_LOOP(j) {
+        VEC_LOOP(i) ext_axioms[VARS+j][i] = axioms[j][i];
+        axioms_used[VARS+j] = 0;
+    }
     
     // Add the rays we know from the identity matrix
     VEC_LOOP(i) {

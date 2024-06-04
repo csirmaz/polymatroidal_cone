@@ -14,7 +14,18 @@ int axiom_solved_for_init[SO_MAX_ROWS];
 int variables_solved[VARS]; // stores which variables have been solved (bool, 1|0)
 int variables_solved_init[VARS];
 
+/*
+ * USAGE
+ *  so_init();
+ *  LOOP {
+ *     so_init_matrix();
+ *     LOOP so_add_to_matrix(vector);
+ *     if(so_solve() == 1) { READ solution; }
+ *  }
+ */
+
 void so_print_matrix(void) {
+    // Print `so_matrix`
     SO_ROWS_LOOP(r) {
         printf("%d ", r);
         print_vec(so_matrix[r]);
@@ -23,6 +34,7 @@ void so_print_matrix(void) {
 }
 
 void so_init(void) {
+    // Call this once at the beginning
     SO_ROWS_FULL_LOOP(i) axiom_solved_for_init[i] = -1;
     VEC_LOOP(i) variables_solved_init[i] = 0;
 }
@@ -58,7 +70,7 @@ int so_solve(void) {
     // Solve the matrix
     // Returns:
     // 0: not good
-    // 1: good; solution is in `solution`
+    // 1: good (1 freedom); solution is in `solution`
     
     int freedoms = 0;
     memcpy(axiom_solved_for, axiom_solved_for_init, sizeof(int)*SO_MAX_ROWS); // Initialize to [-1,-1,...]
@@ -171,6 +183,7 @@ int so_solve(void) {
         printf("\nSolution negatives: %d zeros: %d\n", negatives, zeros);
     #endif
 
+    // The following logic ensures we select a solution where all coordinates are positive (if possible)
     if(negatives == 0) {
         solution[free_var] = 1;
     }else if(negatives + zeros == VARS - 1) {
