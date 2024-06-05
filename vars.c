@@ -7,10 +7,10 @@
 #define T_RAYIX size_t
 
 // Length of a vector
-#define VECLEN 4
-#define VARS 4
-#define AXIOMS 4
-#define ALL_AXIOMS 8
+#define VECLEN 3
+#define VARS 3
+#define AXIOMS 3
+#define ALL_AXIOMS 6
 
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024

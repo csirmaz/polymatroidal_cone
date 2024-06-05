@@ -5,3 +5,4 @@
 __pycache__
 a.out
 .ccls-cache
+*.strp.c

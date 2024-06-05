@@ -2,7 +2,7 @@
 // Module: stores a variable number of rays
 
 // type for bitmaps
-#define T_BITMAP_ELEM __int64_t
+#define T_BITMAP_ELEM uint64_t
 // number of variables in a bitmap
 #define NUM_BITMAP 5
 #define T_BITMAP(a) T_BITMAP_ELEM a[NUM_BITMAP]
@@ -25,6 +25,7 @@ T_BITMAP(zero_bitmap) = {0,0,0,0,0}; // see NUM_BITMAP
 #define U_POS 2
 #define U_NEG 3
 
+#define RS_BITMAP_ONE ((T_BITMAP_ELEM)1)
 
 void rs_assert_bitmap_size(int size) {
     // Check that the bitmap is at least this size
@@ -62,11 +63,11 @@ int rs_bitmap_read(T_BITMAP(bm), int ix) {
     // Read a bit from a bitmap
     int bit_ix = ix % (sizeof(T_BITMAP_ELEM)*8);
     int elem_ix = (ix - bit_ix) / (sizeof(T_BITMAP_ELEM)*8);
-    return bm[elem_ix] & (1 << bit_ix);
+    return (bm[elem_ix] & (RS_BITMAP_ONE << bit_ix)) != 0;
 }
 
 int rs_bitmap_read2(T_BITMAP(bm), int elem_ix, int bit_ix) {
-    return bm[elem_ix] & (1 << bit_ix);
+    return (bm[elem_ix] & (RS_BITMAP_ONE << bit_ix)) != 0;
 }
 
 void rs_bitmap_set(T_BITMAP(bm), int ix) {
@@ -74,11 +75,11 @@ void rs_bitmap_set(T_BITMAP(bm), int ix) {
     int bit_ix = ix % (sizeof(T_BITMAP_ELEM)*8);
     int elem_ix = (ix - bit_ix) / (sizeof(T_BITMAP_ELEM)*8);
     // printf("ix=%d bit_ix=%d elem_ix=%d\n", ix, bit_ix, elem_ix);
-    bm[elem_ix] += (1 << bit_ix);
+    bm[elem_ix] += (RS_BITMAP_ONE << bit_ix);
 }
 
 int rs_bitmap_set2(T_BITMAP(bm), int elem_ix, int bit_ix) {
-    bm[elem_ix] += (1 << bit_ix);
+    bm[elem_ix] += (RS_BITMAP_ONE << bit_ix);
 }
 
 void rs_print_bitmap(T_BITMAP(bm), int max) {

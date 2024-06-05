@@ -91,7 +91,6 @@ int so_solve_early(void) {
     // -1: 1 freedom but there's a mixture of sings for the coordinates
     // 0: 0 or >1 freedoms
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
-    
 #endif
     
     int freedoms = 0;
@@ -99,10 +98,8 @@ int so_solve_early(void) {
     memcpy(variables_solved, variables_solved_init, sizeof(int)*VARS); // Initialize to [0,0,...]
    
     VEC_LOOP(var_ix) {
-        #ifdef SO_DEBUG
-            printf("Solving for variable #%d\nBegins:\n", var_ix);
-            so_print_matrix();
-        #endif
+        printf("Solving for variable #%d\nBegins:\n", var_ix); // SO_DEBUG
+        so_print_matrix(); // SO_DEBUG
         
         // Get the abs largest coefficient for the v'th variable
         T_ELEM max_v = 0;
@@ -115,19 +112,18 @@ int so_solve_early(void) {
                 max_ix = a;
             }
         }
-        #ifdef SO_DEBUG
-            printf("Largest coefficient (abs) %lld at axiom %d\n", max_v, max_ix);
-        #endif
+        printf("Largest coefficient (abs) %lld at axiom %d\n", max_v, max_ix); // SO_DEBUG
 
         if(max_v == 0) {
             // No non-0 coefficients
             // TODO We kind of never want this...?
             freedoms++;
-            #ifdef SO_DEBUG
-                printf("No non-0 coefficients, now %d freedoms\n", freedoms);
-            #endif
+            printf("No non-0 coefficients, now %d freedoms\n", freedoms); // SO_DEBUG
             #ifdef SO_EARLYSTOP
-                if(freedoms > 1) { return 0; }
+                if(freedoms > 1) { 
+                    printf("X: Too many freedoms, %d\n", freedoms); fflush(stdout); // SO_DEBUG
+                    return 0; 
+                }
             #endif
             continue;
         }
@@ -146,21 +142,17 @@ int so_solve_early(void) {
     
     // Note that we do get here if the system is overspecified and in reality has no solution
     // However, we want this system to have 1 degree of freedom anyway
-    #ifdef SO_DEBUG
-        printf("Result: freedoms=%d\nFinal:\n", freedoms);
-        so_print_matrix();
-        printf("Axioms solved for: [");
-        SO_ROWS_LOOP(i) printf("%d,", axiom_solved_for[i]);
-        printf("]\n");
-        printf("Variables solved: [");
-        VEC_LOOP(i) printf("%d,", variables_solved[i]);
-        printf("]\n");
-    #endif
+    printf("Result: freedoms=%d\nFinal:\n", freedoms); // SO_DEBUG
+    so_print_matrix(); // SO_DEBUG
+    printf("Axioms solved for: ["); // SO_DEBUG
+    SO_ROWS_LOOP(i) printf("%d,", axiom_solved_for[i]); // SO_DEBUG
+    printf("]\n"); // SO_DEBUG
+    printf("Variables solved: ["); // SO_DEBUG
+    VEC_LOOP(i) printf("%d,", variables_solved[i]); // SO_DEBUG
+    printf("]\n"); // SO_DEBUG
     
     if(freedoms != 1) {
-        #ifdef DEBUG
-            printf("X: Wrong number of freedoms\n"); fflush(stdout);
-        #endif
+        printf("X: Wrong number of freedoms\n"); fflush(stdout); // SO_DEBUG
         return freedoms;
     }
     
@@ -173,59 +165,43 @@ int so_solve_early(void) {
         VEC_LOOP(i) { if(variables_solved[i] == 0) { free_var = i; break; }}
         assert(free_var > -1, "free var not found");
     }
-    #ifdef SO_DEBUG
-        printf("Free variable: %d\n", free_var);
-    #endif
+    printf("Free variable at: %d\n", free_var); // SO_DEBUG
 
     // Collect the solution
-    int negatives = 0;
-    int zeros = 0;
+    // We want all-positive solutions. Since then the free variable needs to be positive,
+    // there cannot be negative coordinates at all (we cannot flip the signs).
     SO_ROWS_LOOP(a) {
         int ix = axiom_solved_for[a];
         if(ix == -1) continue;
         solution[ix] = -so_matrix[a][free_var];
         solution_divisor[ix] = so_matrix[a][ix];
-        if(solution[ix] == 0) {
-            zeros++;
-        }else{
-            if((solution[ix] >= 0) != (solution_divisor[ix] >= 0)) negatives++;
+        assert(solution_divisor[ix] != 0, "solution div 0");
+    }
+
+    solution[free_var] = 1;
+    solution_divisor[free_var] = 1;
+    
+    printf("Solution:  "); // SO_DEBUG
+    print_vec(solution); // SO_DEBUG
+    printf("\nSolDivisor:"); // SO_DEBUG
+    print_vec(solution_divisor); // SO_DEBUG
+    printf("\n"); // SO_DEBUG
+    
+    VEC_LOOP(i) {
+        if(solution[i] != 0 && ((solution[i] > 0) != (solution_divisor[i] > 0))) {
+            printf("X: negative coordinates\n"); // SO_DEBUG
+            return -1;
         }
     }
 
-    #ifdef SO_DEBUG
-        solution[free_var] = 1;
-        solution_divisor[free_var] = 1;
-        printf("Solution:  ");
-        print_vec(solution);
-        printf("\nSolDivisor:");
-        print_vec(solution_divisor);
-        printf("\nSolution negatives: %d zeros: %d\n", negatives, zeros);
-    #endif
-
-    // The following logic ensures we select a solution where all coordinates are positive (if possible)
-    if(negatives == 0) {
-        solution[free_var] = 1;
-    }else if(negatives + zeros == VARS - 1) {
-        solution[free_var] = -1;
-    }else{
-        // We have a mixture of signs which will never be "inside"
-        #ifdef DEBUG
-            printf("X: Ray not inside (signs)\n"); fflush(stdout);
-        #endif
-        return -1;
-    }
-    solution_divisor[free_var] = 1;
-
     T_ELEM c = lcm_vec(solution_divisor);
     if(c < 0) c = -c;
-    if(negatives > 0) c = -c;  // flip the solution to an all positive
     VEC_LOOP(i) { solution[i] *= c / solution_divisor[i]; }
     simplify(solution);
 
-    #ifdef SO_DEBUG
-        printf("Solution (merged): ");
-        print_vec(solution);
-        printf("\n");
-    #endif
+    printf("Solution (merged): "); // SO_DEBUG
+    print_vec(solution); // SO_DEBUG
+    printf("\n"); // SO_DEBUG
+
     return 1;
 }

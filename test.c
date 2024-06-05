@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
@@ -10,9 +11,6 @@
 #include "vars.c"
 #include "util.c"
 #include "ray_store.c"
-
-#define AXIOMS 4
-#define VARS 4
 #include "slicer_solver.c"
 
 int main(void) {
@@ -85,6 +83,17 @@ int main(void) {
     assert(rs_bitmap_read(bm, s+1) != 0, "bm12");
     assert(rs_bitmap_read(bm, s*2+1) == 0, "bm13");
     
+    rs_bitmap_zero(bm);
+    for(int i=0; i<sizeof(T_BITMAP_ELEM)*8*NUM_BITMAP; i++) {
+        rs_bitmap_set(bm, i);
+        // rs_print_bitmap(bm, sizeof(T_BITMAP_ELEM)*8*NUM_BITMAP);
+        // printf("\n");
+        for(int j=0; j<sizeof(T_BITMAP_ELEM)*8*NUM_BITMAP; j++) {
+            // printf("i=%d j=%d o=%d\n", i, j, rs_bitmap_read(bm, j));
+            assert((rs_bitmap_read(bm, j)!=0) == (j<=i), "bm100");
+        }
+    }
+    
     // Test ray store & garbage collector
     rs_allocate_ray(); // [1, x, x, x, x
     RS_STORE[0].coords[0] = 1;
@@ -125,14 +134,12 @@ int main(void) {
     assert(RS_STORE_RANGE == 5, "gc1");
     
     // Test the solver
-    T_ELEM m1[3][4] = {
-        {1, 1, -3, 4},
-        {-1, 1, 0, 1},
-        {2, -1, 1, 2},
+    T_ELEM m1[2][3] = {
+        {0, 0, 1},
+        {2, 1, 0}
     };
     so_init_matrix();
     so_add_to_matrix(m1[0]);
     so_add_to_matrix(m1[1]);
-    so_add_to_matrix(m1[2]);
     so_solve();
 }

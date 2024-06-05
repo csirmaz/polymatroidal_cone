@@ -26,11 +26,20 @@ rand_axiom_test:
 
 # Slice a cone with axioms until we get the final one
 
+# Adjust the below to enable debugging
+remove_lines = DEBUG SO_DEBUG RS_DEBUG
+# remove_lines = RS_DEBUG
+
 slicer_test:
 	gcc -lm test.c && ./a.out
 	rm a.out
 
 slicer_run:
 	python get_axioms.py > axioms.c
-	gcc -lm -O3 slicer.c -o slicer
+	./strip_debug.pl $(remove_lines) < axioms.c > axioms.strp.c
+	./strip_debug.pl $(remove_lines) < slicer.c > slicer.strp.c
+	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
+	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
+	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
+	gcc -lm -O3 slicer.strp.c -o slicer
 	./slicer
