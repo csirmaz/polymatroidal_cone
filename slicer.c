@@ -10,7 +10,7 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
+// #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 
 // Type for a value in a matrix/vector
 #define T_ELEM long long int
@@ -101,7 +101,7 @@ void apply_axiom(int axiom_ix) {
             printf("Checking pair... ray_i=%zu ray_j=%zu old_number_of_rays=%zu\n", ray_i, ray_j, old_number_of_rays); // DEBUG
             fflush(stdout); // DEBUG
             
-            if((pairs_checked % 500000) == 0) {
+            if((pairs_checked % 1000000) == 0) {
                 gettimeofday(&current_time, NULL);
                 double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
                 gettimeofday(&prev_time, NULL);
@@ -125,11 +125,11 @@ void apply_axiom(int axiom_ix) {
             printf("\nRay neg: %zu ", ray_j); // DEBUG
             print_vec(ray_neg->coords); // DEBUG
             printf("\nRay pos: %zu ", ray_i); // DEBUG
-            rs_print_bitmap(ray_pos->faces, ALL_AXIOMS); // DEBUG
+            bitmap_print(ray_pos->faces, ALL_AXIOMS); // DEBUG
             printf("\nRay neg: %zu ", ray_j); // DEBUG
-            rs_print_bitmap(ray_neg->faces, ALL_AXIOMS); // DEBUG
+            bitmap_print(ray_neg->faces, ALL_AXIOMS); // DEBUG
             printf("\nIntersection "); // DEBUG
-            rs_print_bitmap(face_bm, ALL_AXIOMS); // DEBUG
+            bitmap_print(face_bm, ALL_AXIOMS); // DEBUG
             printf("\n"); // DEBUG
 
             printf("Building the matrix...\n"); fflush(stdout); // DEBUG
@@ -137,7 +137,7 @@ void apply_axiom(int axiom_ix) {
             so_init_matrix();
             for(int a=0; a<ALL_AXIOMS; a++) {
                 if(!axioms_used[a]) continue;
-                if(!rs_bitmap_read(face_bm, a)) continue;
+                if(!bitmap_read(face_bm, a)) continue;
                 so_add_to_matrix(ext_axioms[a]);
             }
             // Add the current face
@@ -171,9 +171,9 @@ void apply_axiom(int axiom_ix) {
             vec_cpy(ray->coords, solution); // store the coordinates
             
             // Store which faces the new ray is on
-            rs_bitmap_zero(ray->faces);
+            bitmap_zero (ray->faces);
             for(int a=0; a<ALL_AXIOMS; a++) {
-                if(a == axiom_ix || (axioms_used[a] && rs_bitmap_read(face_bm, a))) {
+                if(a == axiom_ix || (axioms_used[a] && bitmap_read(face_bm, a))) {
                     // We know the ray is on these faces
                     #ifdef FULL_FACE_CHECK
                         T_ELEM d = dot_opt(solution, ext_axioms[a]);
@@ -183,7 +183,7 @@ void apply_axiom(int axiom_ix) {
                             assert(0, "Full face check, known");
                         }
                     #endif
-                    rs_bitmap_set(ray->faces, a);
+                    bitmap_set(ray->faces, a);
                 }
                 else {
                     T_ELEM d = dot_opt(solution, ext_axioms[a]);
@@ -194,12 +194,13 @@ void apply_axiom(int axiom_ix) {
                             assert(0, "Full face check, inside");
                         }
                     #endif
-                    if(d == 0) rs_bitmap_set(ray->faces, a);
+                    if(d == 0) bitmap_set(ray->faces, a);
                 }
             }
 
             printf("Set up new ray. new_rays=%zu RS_STORE_RANGE=%zu\n", new_rays, RS_STORE_RANGE); fflush(stdout); // DEBUG
-            printf("Bitmap: "); rs_print_bitmap(ray->faces, ALL_AXIOMS); printf("\n"); // DEBUG
+            printf("Bitmap: "); 
+            bitmap_print (ray->faces, ALL_AXIOMS); printf("\n"); // DEBUG
 
         } // for ray_j ends
     } // for ray_i ends
@@ -217,7 +218,7 @@ int main(void) {
     util_init();
     so_init();
     
-    rs_assert_bitmap_size(ALL_AXIOMS); // total number of faces
+    rs_init (ALL_AXIOMS); // total number of faces
     
     // Initialize ext_axioms by adding an identity matrix
     VEC_LOOP(j) {
@@ -243,18 +244,18 @@ int main(void) {
         ray->coords[i] = 1;
         
         // Create the bitmap
-        rs_bitmap_zero(ray->faces);
+        bitmap_zero (ray->faces);
         for(int a=0; a<ALL_AXIOMS; a++) {
             if(dot_opt(ext_axioms[a], ray->coords) == 0) {
                 // printf("Set bitmap %d\n", a); 
-                rs_bitmap_set(ray->faces, a);
+                bitmap_set (ray->faces, a);
             }
         }
 
         printf("Initialized ray %d vector:", i);
         print_vec(ray->coords);
         printf(" bitmap: ");
-        rs_print_bitmap(ray->faces, ALL_AXIOMS);
+        bitmap_print (ray->faces, ALL_AXIOMS);
         printf("\n");
     }
     

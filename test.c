@@ -65,33 +65,32 @@ int main(void) {
     // Test bitmap
     T_BITMAP(bm);
     int s = sizeof(T_BITMAP_ELEM)*8;
-    rs_bitmap_zero(bm);
-    assert(rs_bitmap_read(bm, 0) == 0, "bm1");
-    assert(rs_bitmap_read(bm, 5) == 0, "bm2");
-    assert(rs_bitmap_read(bm, s+1) == 0, "bm3");
-    assert(rs_bitmap_read(bm, s*2+2) == 0, "bm4");
-    rs_bitmap_set(bm, 5);
+    bitmap_zero(bm);
+    assert( bitmap_read(bm, 0) == 0, "bm1");
+    assert( bitmap_read(bm, 5) == 0, "bm2");
+    assert( bitmap_read(bm, s+1) == 0, "bm3");
+    assert( bitmap_read(bm, s*2+2) == 0, "bm4");
+    bitmap_set(bm, 5);
     assert(bm[0] == 32, "bm5");
-    assert(rs_bitmap_read(bm, 5) != 0, "bm6");
-    assert(rs_bitmap_read(bm, 0) == 0, "bm7");
-    rs_bitmap_set(bm, s*2+2);
-    assert(rs_bitmap_read(bm, s*2+2) != 0, "bm8");
-    assert(rs_bitmap_read(bm, s+1) == 0, "bm9");
-    rs_bitmap_set(bm, s+1);
+    assert( bitmap_read(bm, 5) != 0, "bm6");
+    assert( bitmap_read(bm, 0) == 0, "bm7");
+    bitmap_set(bm, s*2+2);
+    assert( bitmap_read(bm, s*2+2) != 0, "bm8");
+    assert( bitmap_read(bm, s+1) == 0, "bm9");
+    bitmap_set(bm, s+1);
     assert(bm[1] == 2, "bm10");
     assert(bm[0] == 32, "bm11");
-    assert(rs_bitmap_read(bm, s+1) != 0, "bm12");
-    assert(rs_bitmap_read(bm, s*2+1) == 0, "bm13");
+    assert( bitmap_read(bm, s+1) != 0, "bm12");
+    assert( bitmap_read(bm, s*2+1) == 0, "bm13");
     
-    rs_bitmap_zero(bm);
-    for(int i=0; i<sizeof(T_BITMAP_ELEM)*8*NUM_BITMAP; i++) {
-        rs_bitmap_set(bm, i);
-        // rs_print_bitmap(bm, sizeof(T_BITMAP_ELEM)*8*NUM_BITMAP);
-        // printf("\n");
-        for(int j=0; j<sizeof(T_BITMAP_ELEM)*8*NUM_BITMAP; j++) {
+    bitmap_zero(bm);
+    for(int i=-1; i<((int)BITMAP_BITS); i++) {
+        if(i>=0) bitmap_set(bm, i);
+        for(int j=0; j<BITMAP_BITS; j++) {
             // printf("i=%d j=%d o=%d\n", i, j, rs_bitmap_read(bm, j));
-            assert((rs_bitmap_read(bm, j)!=0) == (j<=i), "bm100");
+            assert((bitmap_read(bm, j)!=0) == (j<=i), "bm100");
         }
+        assert(bitmap_bitcount(bm) == i+1, "bm count");
     }
     
     // Test ray store & garbage collector

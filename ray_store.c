@@ -1,11 +1,26 @@
 
 // Module: stores a variable number of rays
 
-// type for bitmaps
+// type for bitmaps (one element)
 #define T_BITMAP_ELEM uint64_t
-// number of variables in a bitmap
+// number of variables/elements in a bitmap
 #define NUM_BITMAP 5
 #define T_BITMAP(a) T_BITMAP_ELEM a[NUM_BITMAP]
+
+// How many bits in one element of a bitmap
+#define BITMAP_ELEM_BITS (sizeof(T_BITMAP_ELEM)*8)
+// How many bits in total in a bitmap
+#define BITMAP_BITS (BITMAP_ELEM_BITS*NUM_BITMAP)
+// How many bytes in total in a bitmap
+#define BITMAP_BYTES (sizeof(T_BITMAP_ELEM)*NUM_BITMAP)
+
+#define BITMAP_ONE ((T_BITMAP_ELEM)1u)
+#define BITMAP_ZERO ((T_BITMAP_ELEM)0u)
+
+// log2(T_BITMAP_ELEM_BITS)
+#define BITMAP_ELOG 6
+#define BITMAP_IMASK ((1<<BITMAP_ELOG)-1)
+
 // memory allocation step
 #define RS_ALLOC_STEP 100000
 
@@ -25,12 +40,13 @@ T_BITMAP(zero_bitmap) = {0,0,0,0,0}; // see NUM_BITMAP
 #define U_POS 2
 #define U_NEG 3
 
-#define RS_BITMAP_ONE ((T_BITMAP_ELEM)1)
-
-void rs_assert_bitmap_size(int size) {
+void rs_init(int required_bitmap_size) {
+    // Run this at the very beginning of the code
     // Check that the bitmap is at least this size
-    printf("bitmap_size=%ld required_bm_size=%d\n", sizeof(T_BITMAP_ELEM)*NUM_BITMAP*8, size);
-    assert(sizeof(T_BITMAP_ELEM)*NUM_BITMAP*8 >= size, "bitmap size");
+    printf("bitmap_size=%ld required_bm_size=%d\n", BITMAP_BITS, required_bitmap_size );
+    assert( BITMAP_BITS >= required_bitmap_size, "bitmap size");
+    // Check RS_BITMAP_ELOG
+    assert( BITMAP_ELEM_BITS == (1 << BITMAP_ELOG ), "RS_BITMAP_ELOG");
 }
 
 void _rs_extend_store(void) {
@@ -49,42 +65,65 @@ void _rs_extend_store(void) {
     fflush(stdout);
 }
 
-void rs_bitmap_cpy(T_BITMAP(dest), T_BITMAP(src)) {
+inline void bitmap_cpy(T_BITMAP(dest), T_BITMAP(src)) {
     // Copy one bitmap over another
-    memcpy(dest, src, sizeof(T_BITMAP_ELEM)*NUM_BITMAP);
+    memcpy(dest, src, BITMAP_BYTES );
 }
 
-void rs_bitmap_zero(T_BITMAP(bm)) {
+void bitmap_zero(T_BITMAP(bm)) {
     // Set bitmap to zero
-    rs_bitmap_cpy(bm, zero_bitmap);
+    // TODO Check which one is faster
+    // rs_bitmap_cpy(bm, zero_bitmap);
+    for(int i=0; i<NUM_BITMAP; i++) bm[i] = BITMAP_ZERO;
 }
 
-int rs_bitmap_read(T_BITMAP(bm), int ix) {
-    // Read a bit from a bitmap
-    int bit_ix = ix % (sizeof(T_BITMAP_ELEM)*8);
-    int elem_ix = (ix - bit_ix) / (sizeof(T_BITMAP_ELEM)*8);
-    return (bm[elem_ix] & (RS_BITMAP_ONE << bit_ix)) != 0;
+int bitmap_read(T_BITMAP(bm), int ix) {
+    // Read the ix'th bit from a bitmap
+    int bit_ix = ix & BITMAP_IMASK; // % BITMAP_ELEM_BITS;
+    int elem_ix = ix >> BITMAP_ELOG; // (ix - bit_ix) / BITMAP_ELEM_BITS;
+    // printf("READ ix=%d bit_ix=%d elem_ix=%d\n", ix, bit_ix, elem_ix);
+    return (bm[elem_ix] & ( BITMAP_ONE << bit_ix)) != BITMAP_ZERO;
 }
 
-int rs_bitmap_read2(T_BITMAP(bm), int elem_ix, int bit_ix) {
-    return (bm[elem_ix] & (RS_BITMAP_ONE << bit_ix)) != 0;
+void bitmap_set(T_BITMAP(bm), int ix) {
+    // Set the ix'th bit in a bitmap
+    int bit_ix = ix & BITMAP_IMASK; // % BITMAP_ELEM_BITS;
+    int elem_ix = ix >> BITMAP_ELOG; // (ix - bit_ix) / BITMAP_ELEM_BITS;
+    // printf("SET ix=%d bit_ix=%d elem_ix=%d\n", ix, bit_ix, elem_ix);
+    bm[elem_ix] |= ( BITMAP_ONE << bit_ix);
 }
 
-void rs_bitmap_set(T_BITMAP(bm), int ix) {
-    // Set a bit on the bitmap
-    int bit_ix = ix % (sizeof(T_BITMAP_ELEM)*8);
-    int elem_ix = (ix - bit_ix) / (sizeof(T_BITMAP_ELEM)*8);
-    // printf("ix=%d bit_ix=%d elem_ix=%d\n", ix, bit_ix, elem_ix);
-    bm[elem_ix] += (RS_BITMAP_ONE << bit_ix);
+static inline int bitmap_elem_bitcount(T_BITMAP_ELEM v) {
+    // Return the number of 1s in a bitmap element
+    #if __x86_64__ || __amd64__	/* assembler code on these architectures */
+    register T_BITMAP_ELEM res;
+    __asm__( "popcnt %[w], %[t]"
+         :[t] "=rm" (res)
+         :[w] "rm"  (v)
+    );
+    return (int)res;
+    #else
+    #error Wrong CPU architecture
+    /* Sample implementation for a 64 bit bitmap */
+    v=(v&0x5555555555555555ul)+((v>>1)&0x5555555555555555ul);
+    v=(v&0x3333333333333333ul)+((v>>2)&0x3333333333333333ul);
+    v=(v&0x0F0F0F0F0F0F0F0Ful)+((v>>4)&0x0F0F0F0F0F0F0F0Ful);
+    v=(v&0x00FF00FF00FF00FFul)+((v>>8)&0x00FF00FF00FF00FFul);
+    v=(v&0x0000FFFF0000FFFFul)+((v>>16)&0x0000FFFF0000FFFFul);
+    return (int)((v&0xFFFF)+(v>>32));
+    #endif
 }
 
-int rs_bitmap_set2(T_BITMAP(bm), int elem_ix, int bit_ix) {
-    bm[elem_ix] += (RS_BITMAP_ONE << bit_ix);
+int bitmap_bitcount(T_BITMAP(bm)) {
+    // Return the number of 1s in a bitmap
+    int c = 0;
+    for(int i=0; i<NUM_BITMAP; i++) c+= bitmap_elem_bitcount(bm[i]);
+    return c;
 }
 
-void rs_print_bitmap(T_BITMAP(bm), int max) {
+void bitmap_print(T_BITMAP(bm), int max) {
     printf("<");
-    for(int i=0; i<max; i++) printf("%d", rs_bitmap_read(bm, i) ? 1 : 0);
+    for(int i=0; i<max; i++) printf("%d", bitmap_read (bm, i) ? 1 : 0);
     printf(">");
 }
 
