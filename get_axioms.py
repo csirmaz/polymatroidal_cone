@@ -5,7 +5,7 @@
 # - C code on STDOUT
 # - JSON of the axioms and set rotations in JSON_OUT_FILE
 
-SET_N = 6 # number of elements in the base set
+SET_N = 5 # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
 MAKE_GROUPS = False # Whether to create groups of equivalent axioms when permuting the base set
 
