@@ -12,7 +12,7 @@
 
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 #define ALGEBRAIC_TEST // If defined, use algebraic test
-#define COMBINATORIAL_TEST // If defined, use combinatorial test. If both are enabled, compare
+// #define COMBINATORIAL_TEST // If defined, use combinatorial test. If both are enabled, compare
 
 // Type for a value in a matrix/vector
 #define T_ELEM long long int
@@ -47,7 +47,23 @@ int num_axioms_used = 0;
 
 struct timeval prev_time, current_time;
 
-// TODO no additional axioms
+
+T_RAYIX new_axiom_ray_pairs(int axiom_ix) {
+    // Return how many pos-neg ray pairs we would need to investigate if we added this axiom
+    T_RAYIX pos_count = 0, neg_count = 0;
+
+    for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
+        // Note: due to the garbage collector, there are no unused rays
+        T_ELEM d = dot_opt(RS_STORE[i].coords, axioms[axiom_ix]);
+        if(d > 0) { // positive side
+            pos_count++;
+        }
+        else if(d < 0) { // negative side
+            neg_count++;
+        }
+    }
+    return pos_count*neg_count;
+}
 
 
 void apply_axiom(int axiom_ix) {
@@ -113,15 +129,15 @@ void apply_axiom(int axiom_ix) {
             printf("Checking pair... ray_i=%zu ray_j=%zu old_number_of_rays=%zu\n", ray_i, ray_j, old_number_of_rays); fflush(stdout); // DEBUG
             
             // Timestamp logs
-            if((pairs_checked % 5000) == 0) {
+            if((pairs_checked % 10000) == 0) {
                 gettimeofday(&current_time, NULL);
                 double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
                 if(elapsed > prev_elapsed_time + 10) {
                     prev_elapsed_time = elapsed;
-                    printf("Axiom #%d (%dth %.2f%%) - %zu pairs checked in %lf s, %.6f ms/pair (%.2f%%)\n",
+                    printf("Axiom #%d (%dth %.2f%%) - %zu pairs checked in %.1lf s, %.6f ms/pair (%.2f%%)\n",
                         axiom_ix,
-                        num_axioms_used,
-                        ((float)num_axioms_used)/((float)AXIOMS)*100.,
+                        num_axioms_used-1,
+                        ((float)(num_axioms_used-1))/((float)AXIOMS)*100.,
                         pairs_checked, 
                         elapsed, 
                         elapsed*1000./(float)pairs_checked,
@@ -296,7 +312,7 @@ void apply_axiom(int axiom_ix) {
         }
     }
 
-    printf("new_rays=%zu total_rays=%zu pairs_checked=%zu\n\n", new_rays, RS_STORE_RANGE, pairs_checked);
+    printf("Adding axiom done. new_rays=%zu total_rays=%zu pairs_checked=%zu\n\n", new_rays, RS_STORE_RANGE, pairs_checked);
     fflush(stdout);
 }
 
@@ -403,9 +419,30 @@ int main(void) {
     } // end VAR_LOOP(var_ix)
 
     printf("ADDING MORE AXIOMS\n"); fflush(stdout);
-    AXIOM_LOOP(a)
-        if(axioms_used[a] == 0)
-            apply_axiom(a);
+    
+    while(1) {
+        // Choose the next axiom that has the least ray pairs
+        T_RAYIX min_pairs;
+        int min_pairs_axiom = -1;
+        AXIOM_LOOP(a) {
+            if(axioms_used[a]) continue;
+            T_RAYIX pairs = new_axiom_ray_pairs(a);
+            printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
+            if(min_pairs_axiom == -1 || min_pairs > pairs) {
+                min_pairs_axiom = a;
+                min_pairs = pairs;
+            }
+        }
+        
+        printf("Chose axiom #%d to add next\n", min_pairs_axiom);
+        apply_axiom(min_pairs_axiom);
+        
+        if(num_axioms_used == AXIOMS) break;
+    }
+
+    AXIOM_LOOP(a) assert(axioms_used[a] != 0, "axioms remain");
+    
+    printf("TOTAL RAYS: %zu\n", RS_STORE_RANGE); fflush(stdout);
     
 }
 
