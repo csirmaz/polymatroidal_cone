@@ -11,6 +11,7 @@
 #include <sys/time.h>
 
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
+// #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
 #define ALGEBRAIC_TEST // If defined, use algebraic test
 // #define COMBINATORIAL_TEST // If defined, use combinatorial test. If both are enabled, compare
 
@@ -63,6 +64,27 @@ T_RAYIX new_axiom_ray_pairs(int axiom_ix) {
         }
     }
     return pos_count*neg_count;
+}
+
+
+void dump_data(void) {
+    // Print all relevant data
+    // WARNING Call after garbage collection
+    printf("\nDATA_DUMP_STARTS\n");
+    printf("%s\n", LABEL);
+    printf("vars=%d total_axioms=%d\n", VARS, AXIOMS);
+    printf("AXIOMS_APPLIED\n");
+    printf("num_axioms_used=%d\n", num_axioms_used);
+    AXIOM_LOOP(a) {
+        if(!axioms_used[a]) continue;
+        printf("axiom_applied:%d\n", a);
+        // print_vec(axioms[a]);
+    }
+    printf("RAYS\n");
+    printf("num_rays=%zu\n", RS_STORE_RANGE);
+    rs_dump();
+    printf("DATA_DUMP_ENDS\n\n");
+    fflush(stdout);
 }
 
 
@@ -311,6 +333,10 @@ void apply_axiom(int axiom_ix) {
             bitmap_set(RS_STORE[i].faces, axiom_ix);
         }
     }
+    
+    #ifdef DUMP_DATA
+    dump_data();
+    #endif
 
     printf("Adding axiom done. new_rays=%zu total_rays=%zu pairs_checked=%zu\n\n", new_rays, RS_STORE_RANGE, pairs_checked);
     fflush(stdout);

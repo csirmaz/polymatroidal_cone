@@ -155,3 +155,15 @@ void rs_garbage_collection(void) {
         RS_STORE_RANGE--;
     }
 }
+
+void rs_dump(void) {
+    // Print the rays in the store (coordinates only)
+    T_RAYIX c = 0;
+    for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
+        if(RS_STORE[i].used == U_NEG) continue;
+        printf("ray:%zu ", c);
+        print_vec(RS_STORE[i].coords);
+        printf("\n");
+        c++;
+    }
+}
