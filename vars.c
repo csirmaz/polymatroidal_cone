@@ -10,7 +10,6 @@
 #define VECLEN 3
 #define VARS 3
 #define AXIOMS 3
-#define ALL_AXIOMS 6
 
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024

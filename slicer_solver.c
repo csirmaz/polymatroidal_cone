@@ -8,7 +8,7 @@
  */
 #ifndef SO_EARLYSTOP
 
-#define SO_MAX_ROWS ALL_AXIOMS
+#define SO_MAX_ROWS AXIOMS
 T_ELEM so_matrix[SO_MAX_ROWS][VECLEN];
 int so_rows = 0; // How many rows are used in the matrix actually
 T_VEC(solution);
@@ -187,13 +187,6 @@ int so_solve_early(void) {
     print_vec(solution_divisor); // SO_DEBUG
     printf("\n"); // SO_DEBUG
     
-    VEC_LOOP(i) {
-        if(solution[i] != 0 && ((solution[i] > 0) != (solution_divisor[i] > 0))) {
-            printf("X: negative coordinates\n"); // SO_DEBUG
-            return -1;
-        }
-    }
-
     T_ELEM c = lcm_vec(solution_divisor);
     if(c < 0) c = -c;
     VEC_LOOP(i) { solution[i] *= c / solution_divisor[i]; }

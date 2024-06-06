@@ -1,11 +1,15 @@
 
+// Utilities
+// Utilities for integer vectors
+
 T_VEC(zero_vector);
 
+// Call this at the beginning of the program
 void util_init(void) {
     VEC_LOOP(i) zero_vector[i] = 0;
 }
 
-// greatest common divisor
+// Return the greatest common divisor (always positive)
 T_ELEM gcd(T_ELEM a, T_ELEM b) {
     T_ELEM tmp;
     a = ABS(a);
@@ -19,7 +23,7 @@ T_ELEM gcd(T_ELEM a, T_ELEM b) {
     }
 }
 
-// least common multiple
+// Return the least common multiple
 T_ELEM lcm(T_ELEM a, T_ELEM b) {
     return (a / gcd(a, b)) * b;
 }
@@ -34,7 +38,12 @@ void vec_zero(T_VEC(r)) {
     vec_cpy(r, zero_vector);
 }
 
-// Simplify a row
+// Scale a vector by a scalar
+void vec_scale(T_VEC(v), T_ELEM s) {
+    VEC_LOOP(i) v[i] *= s;
+}
+
+// Simplify a vector
 void simplify(T_VEC(r)) {
     T_ELEM c = gcd(r[0], r[1]);
     if(c == 1) return;
@@ -79,7 +88,7 @@ T_ELEM dot_opt(T_VEC(a), T_VEC(b)) {
     return r;
 }
 
-// a = a*x - b*y such that there should be 0 at var_ix
+// a := a*x - b*y such that a[var_ix]==0
 void solve_one(T_VEC(a), T_VEC(b), int var_ix) {
     T_ELEM c = gcd(a[var_ix], b[var_ix]);
     T_ELEM af = b[var_ix] / c;

@@ -43,7 +43,7 @@
 // Loop through variables / elements in a row vector
 #define LOOP(i) for(int i=0; i<VARS; i++)
 // Loop through all axioms
-#define ROW_LOOP(i) for(int i=0; i<AXIOMS; i++)
+#define AXIOM_LOOP(i) for(int i=0; i<AXIOMS; i++)
 // Loop through the chosen axioms
 #define CHOSEN_LOOP(i) for(int i=0; i<VARS-1; i++)
 
@@ -156,7 +156,7 @@ T_ELEM FUNCPARAMS dot(T_ROW(a), T_ROW(b)) {
 int FUNCPARAMS check_axioms(T_ROW(r)) {
     int d;
     int zeros = 0;
-    ROW_LOOP(a) {
+    AXIOM_LOOP (a) {
         d = dot(axioms[a], r);
         if(d < 0) return -1; // Does not satisfy the axioms
         if(d == 0) zeros++;
@@ -312,7 +312,7 @@ int main(void) {
     
     gettimeofday(&prev_time, NULL);
 
-    ROW_LOOP(i) { chosen_ix[i] = i; }
+    AXIOM_LOOP (i) { chosen_ix[i] = i; }
     
     // Calculate a mask for random numbers
     rand_mask = 1;

@@ -43,7 +43,7 @@
 // Loop through variables / elements in a row vector
 #define LOOP(i) for(int i=0; i<VARS; i++)
 // Loop through all axioms
-#define ROW_LOOP(i) for(int i=0; i<AXIOMS; i++)
+#define AXIOM_LOOP(i) for(int i=0; i<AXIOMS; i++)
 // Loop through the chosen axioms
 #define CHOSEN_LOOP(i) for(int i=0; i<VARS-1; i++)
 

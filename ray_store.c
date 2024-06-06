@@ -4,7 +4,7 @@
 // type for bitmaps (one element)
 #define T_BITMAP_ELEM uint64_t
 // number of variables/elements in a bitmap
-#define NUM_BITMAP 5
+#define NUM_BITMAP 4
 #define T_BITMAP(a) T_BITMAP_ELEM a[NUM_BITMAP]
 
 // How many bits in one element of a bitmap
@@ -33,7 +33,7 @@ struct ray_record {
 struct ray_record *RS_STORE;
 T_RAYIX RS_STORE_SIZE = 0; // total allocated size of the store
 T_RAYIX RS_STORE_RANGE = 0; // first known unused slot (may have holes below) -- After garbage collection this is also the number of rays in the store
-T_BITMAP(zero_bitmap) = {0,0,0,0,0}; // see NUM_BITMAP
+T_BITMAP(zero_bitmap) = {0,0,0,0}; // see NUM_BITMAP
 
 // Possible values for ray_record.used:
 #define U_USED 1 // or "zero" - on the face
