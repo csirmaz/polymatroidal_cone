@@ -28,7 +28,7 @@ rand_axiom_test:
 
 # Adjust the below to enable debugging
 remove_lines = DEBUG SO_DEBUG RS_DEBUG
-# remove_lines = RS_DEBUG
+# remove_lines = RS_DEBUG SO_DEBUG
 
 slicer_test:
 	gcc -lm test.c && ./a.out

@@ -10,9 +10,9 @@
 #include <math.h>
 #include <sys/time.h>
 
-// #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
-
-#define USE_SOLVER // If defined, use algebraic condition instead of Combinatorial
+#define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
+#define ALGEBRAIC_TEST // If defined, use algebraic test
+#define COMBINATORIAL_TEST // If defined, use combinatorial test. If both are enabled, compare
 
 // Type for a value in a matrix/vector
 #define T_ELEM long long int
@@ -53,9 +53,16 @@ struct timeval prev_time, current_time;
 void apply_axiom(int axiom_ix) {
     // Apply the new axiom/face axiom_ix to the known rays
 
-    printf("applying_axiom=%d prev_total_rays=%zu\n", axiom_ix, RS_STORE_RANGE);
+    printf("applying_axiom #%d (%dth %.2f%%) prev_total_rays=%zu\n",
+        axiom_ix, 
+        num_axioms_used,
+        ((float)num_axioms_used)/((float)AXIOMS)*100.,
+        RS_STORE_RANGE
+    );
     print_vec(axioms[axiom_ix]); printf("\n"); fflush(stdout); // DEBUG
+    
     gettimeofday(&prev_time, NULL);
+    double prev_elapsed_time = 0;
 
     axioms_used[axiom_ix] = 1;
     num_axioms_used++;
@@ -91,7 +98,6 @@ void apply_axiom(int axiom_ix) {
     
     // (2) For each pos-neg ray pair
     T_BITMAP(face_bm);
-    T_BITMAP_ELEM bm_elem;
     T_RAYIX old_number_of_rays = RS_STORE_RANGE;
     T_RAYIX new_rays = 0;
     T_RAYIX pairs_checked = 0;
@@ -106,18 +112,23 @@ void apply_axiom(int axiom_ix) {
 
             printf("Checking pair... ray_i=%zu ray_j=%zu old_number_of_rays=%zu\n", ray_i, ray_j, old_number_of_rays); fflush(stdout); // DEBUG
             
-            if((pairs_checked % 1000) == 0) {
+            // Timestamp logs
+            if((pairs_checked % 5000) == 0) {
                 gettimeofday(&current_time, NULL);
                 double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
-                printf("Axiom #%d (%dth) - %zu pairs checked in %lf s, %.6f ms/pair (%.2f%%)\n",
-                    axiom_ix,
-                    num_axioms_used,
-                    pairs_checked, 
-                    elapsed, 
-                    elapsed*1000./(float)pairs_checked,
-                    ((float)pairs_checked)/((float)(pos_count*neg_count))*100.
-                );
-                fflush(stdout);
+                if(elapsed > prev_elapsed_time + 10) {
+                    prev_elapsed_time = elapsed;
+                    printf("Axiom #%d (%dth %.2f%%) - %zu pairs checked in %lf s, %.6f ms/pair (%.2f%%)\n",
+                        axiom_ix,
+                        num_axioms_used,
+                        ((float)num_axioms_used)/((float)AXIOMS)*100.,
+                        pairs_checked, 
+                        elapsed, 
+                        elapsed*1000./(float)pairs_checked,
+                        ((float)pairs_checked)/((float)(pos_count*neg_count))*100.
+                    );
+                    fflush(stdout);
+                }
             }
             pairs_checked++;
 
@@ -144,30 +155,16 @@ void apply_axiom(int axiom_ix) {
                 continue;
             }
             
-            #ifdef USE_SOLVER
-            
-            // Algebraic test
-            // Solve the common axioms + the new one; see if we get a ray
-            so_init_matrix();
-            AXIOM_LOOP(a) {
-                if(bitmap_read(face_bm, a)) so_add_to_matrix(axioms[a]);
-            }
-            so_add_to_matrix(axioms[axiom_ix]);
-            if(so_solve_early() != 1) {
-                printf("X: No good solution\n"); fflush(stdout); // DEBUG
-                continue;
-            }
-            
-            #else
+            #ifdef COMBINATORIAL_TEST    
             
             // Combinatorial test
-            // Next, ensure other rays are not on all the common faces.
+            // Next, ensure other there is no other ray that is on all the common faces.
+            printf("Combinatorial test\n"); // DEBUG
             int good = 0;
             for(T_RAYIX ray_k=0; ray_k<old_number_of_rays; ray_k++) {
                 if(ray_k == ray_i || ray_k == ray_j) continue;
                 for(int i=0; i<NUM_BITMAP; i++) {
-                    bm_elem = face_bm[i] & ~RS_STORE[ray_k].faces[i];
-                    if(bm_elem == 0) { 
+                    if((face_bm[i] & ~RS_STORE[ray_k].faces[i]) != 0) { 
                         good = 1; 
                         break;
                     }
@@ -179,8 +176,35 @@ void apply_axiom(int axiom_ix) {
                     break;
                 }
             }
-            if(!good) continue;
             
+            #endif
+            
+            #ifdef ALGEBRAIC_TEST
+            
+            // Algebraic test
+            // Solve the common axioms + the new one; see if we get a ray
+            printf("Algebraic test\n"); // DEBUG
+            so_init_matrix();
+            AXIOM_LOOP(a) {
+                if(bitmap_read(face_bm, a)) so_add_to_matrix(axioms[a]);
+            }
+            so_add_to_matrix(axioms[axiom_ix]);
+            int f = so_solve_early();
+            if(f != 1) {
+                printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
+                #ifdef COMBINATORIAL_TEST
+                assert(!good, "Algebraic: bad, Combinatorial: good");
+                #endif
+                continue;
+            }
+            #ifdef COMBINATORIAL_TEST
+            assert(good, "Algebraic: good, Combinatorial: bad");
+            #endif
+            
+            #endif
+            
+            #ifdef COMBINATORIAL_TEST
+            if(!good) continue;
             #endif
             
             // --- Create new ray ---
@@ -194,9 +218,10 @@ void apply_axiom(int axiom_ix) {
             ray_neg = &RS_STORE[ray_j];
             
             // Calculate the coordinates
-            #ifdef USE_SOLVER
+            #ifdef ALGEBRAIC_TEST
             vec_cpy(ray->coords, solution);
-            #else
+            #endif
+            #ifdef COMBINATORIAL_TEST
             // new_ray := alpha*ray_pos + beta*ray_neg
             // where alpha, beta > 0
             //   and dot(new_ray, new_axiom) == 0
@@ -208,15 +233,16 @@ void apply_axiom(int axiom_ix) {
             simplify(ray->coords);
             #endif
             
-            printf("Ray new: %zu ", RS_STORE_RANGE-1); // DEBUG
+            printf("Ray new: %zu (initial) ", RS_STORE_RANGE-1); // DEBUG
             print_vec(ray->coords); printf("\n"); // DEBUG
             
             // Store which faces the new ray is on
-            // We only do this for the used axioms/faces
+            // We only do this for the used axioms/faces, plus the new face which is already marked used
             bitmap_zero(ray->faces);
+            int neg_faces = 0, pos_faces = 0;
             AXIOM_LOOP(a) {
                 if(!axioms_used[a]) continue;
-                if(bitmap_read(face_bm, a)) { // Note: a==axiom_ix will never be true as that's not marked as used
+                if(a == axiom_ix || bitmap_read(face_bm, a)) {
                     // We know the ray is on these faces
                     #ifdef FULL_FACE_CHECK
                         T_ELEM d = dot_opt(ray->coords, axioms[a]);
@@ -231,15 +257,26 @@ void apply_axiom(int axiom_ix) {
                 else {
                     T_ELEM d = dot_opt(ray->coords, axioms[a]);
                     printf("Checking against other face %d, dot=%lld\n", a, d); fflush(stdout); // DEBUG
-                    #ifdef FULL_FACE_CHECK
-                        if(d < 0) {
-                            printf("Axiom %d: ", a); print_vec(axioms[a]); printf("\n"); // DEBUG
-                            assert(0, "Full face check, inside");
-                        }
-                    #endif
-                    if(d == 0) bitmap_set(ray->faces, a);
+                    if(d < 0){ 
+                        neg_faces++; 
+                    }else if(d > 0){ 
+                        pos_faces++; 
+                    }else {
+                        bitmap_set(ray->faces, a);
+                    }
                 }
             }
+            #ifdef ALGEBRAIC_TEST
+                // In this case, we don't know the direction of the solution
+                if(neg_faces > 0) {
+                    assert(pos_faces == 0, "Other face check");
+                    vec_scale(ray->coords, -1);
+                } else {
+                    assert(neg_faces == 0, "Other face check (neg)");
+                }
+            #else
+                assert(neg_faces == 0, "Other face check (neg)");
+            #endif
 
             printf("Set up new ray. new_rays=%zu RS_STORE_RANGE=%zu pairs_checked=%zu\n", new_rays, RS_STORE_RANGE, pairs_checked); fflush(stdout); // DEBUG
             printf("Bitmap: "); bitmap_print(ray->faces, AXIOMS); printf("\n"); fflush(stdout); // DEBUG
@@ -310,6 +347,7 @@ int main(void) {
     
     // Calculate the initial rays
     // Take VARS-1 axioms, solve them, and ensure the resulting ray is inside the remaining axiom
+    printf("INITIAL RAYS\n"); fflush(stdout);
     VEC_LOOP(var_ix) {
         
         int miss_axiom = -1;
@@ -364,7 +402,7 @@ int main(void) {
         
     } // end VAR_LOOP(var_ix)
 
-    printf("MORE AXIOMS\n"); fflush(stdout);
+    printf("ADDING MORE AXIOMS\n"); fflush(stdout);
     AXIOM_LOOP(a)
         if(axioms_used[a] == 0)
             apply_axiom(a);
