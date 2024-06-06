@@ -276,7 +276,7 @@ int main(void) {
         }
         
         // If the ray is not inside the remaining axiom, flip it
-        int d = dot_opt(solution, axioms[miss_axiom]);
+        T_ELEM d = dot_opt(solution, axioms[miss_axiom]);
         assert(d != 0, "Init axioms ray indep");
         if(d < 0) vec_scale(solution, -1);
         
@@ -287,7 +287,13 @@ int main(void) {
         // Create the bitmap
         bitmap_zero(ray->faces);
         AXIOM_LOOP (a) {
-            if(dot_opt(axioms[a], ray->coords) == 0) {
+            T_ELEM d = dot_opt(axioms[a], ray->coords);
+            if(a == miss_axiom) {
+                assert(d > 0, "Init ray facecheck");
+            } else if (axioms_used[a]) {
+                assert(d == 0, "Init ray facecheck");
+            }
+            if(d == 0) {
                 // printf("Set bitmap ix %d\n", a); 
                 bitmap_set(ray->faces, a);
             }
@@ -298,7 +304,8 @@ int main(void) {
         printf(" bitmap: "); // DEBUG
         bitmap_print (ray->faces, AXIOMS); // DEBUG
         printf("\n"); // DEBUG
-    }
+        
+    } // end VAR_LOOP(var_ix)
 
     AXIOM_LOOP(a)
         if(axioms_used[a] == 0)
