@@ -1,7 +1,7 @@
 
 // Solve a collection of linear equations without a constant using integers.
 // Determine the freedom (D-rank), and if it is 1, return a vector (if possible) that satisfies
-// all equations and has all coordinates positive.
+// all equations and has at least one positive coordinate.
 
 /* If SO_EARLYSTOP is defined, this file only sets up a variant of so_solve()
  * named so_solve_early() that stops if the freedoms exceed 1.

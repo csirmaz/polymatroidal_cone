@@ -205,17 +205,18 @@ void *check_pairs(void *my_thread_num) {
             // Next, ensure other there is no other ray that is on all the common faces.
             printf("Combinatorial test\n"); // DEBUG
             int good = 0;
-            for(T_RAYIX ray_k=0; ray_k<old_number_of_rays; ray_k++) {
+            for(T_RAYIX ray_k=0; ray_k<cp_old_number_of_rays; ray_k++) {
                 if(ray_k == ray_i || ray_k == ray_j) continue;
+                ray = rs_get_ray(ray_k);
                 for(int i=0; i<NUM_BITMAP; i++) {
-                    if((face_bm[i] & ~RS_STORE[ray_k].faces[i]) != 0) { 
+                    if((face_bm[i] & ~ray->faces[i]) != 0) { 
                         good = 1; 
                         break;
                     }
                 }
                 if(!good) {
                     printf("Ray_k:   %3zu ", ray_k); // DEBUG
-                    bitmap_print(RS_STORE[ray_k].faces, AXIOMS); // DEBUG
+                    bitmap_print(ray->faces, AXIOMS); // DEBUG
                     printf("\nRay %zu shares intersection\n", ray_k); fflush(stdout); // DEBUG
                     break;
                 }
