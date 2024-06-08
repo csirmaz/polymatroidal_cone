@@ -103,7 +103,7 @@ void check_bitmaps(void) {
             if(!axioms_used[a]) continue;
             T_ELEM d = dot(ray->coords, axioms[a]);
             assert(d >= 0, "check_bitmaps: inside");
-            if(bitmap_read(ray->faces, a)) assert(d == 0, "check_bitmaps: correlates with bitmap");
+            assert(bitmap_read(ray->faces, a) == (d == 0), "check_bitmaps: correlates with bitmap");
         }
     }
     printf("check_bitmaps OK\n"); fflush(stdout); // DEBUG
