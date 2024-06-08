@@ -95,15 +95,19 @@ void dump_data(void) {
 
 
 void check_bitmaps(void) {
-    // Check all bitmaps
+    // Check all bitmaps against dot products
     // WARNING call after garbage collection
     for(T_RAYIX r=0; r<RS_STORE_RANGE; r++) {
         struct ray_record *ray = rs_get_ray(r);
         AXIOM_LOOP(a) {
-            if(!axioms_used[a]) continue;
-            T_ELEM d = dot(ray->coords, axioms[a]);
-            assert(d >= 0, "check_bitmaps: inside");
-            assert(bitmap_read(ray->faces, a) == (d == 0), "check_bitmaps: correlates with bitmap");
+            if(!axioms_used[a]) {
+                assert(bitmap_read(ray->faces, a) == 0, "check_bitmaps: unused bit");
+            }
+            else {
+                T_ELEM d = dot(ray->coords, axioms[a]);
+                assert(d >= 0, "check_bitmaps: inside");
+                assert(bitmap_read(ray->faces, a) == (d == 0), "check_bitmaps: correlates with bitmap");
+            }
         }
     }
     printf("check_bitmaps OK\n"); fflush(stdout); // DEBUG
