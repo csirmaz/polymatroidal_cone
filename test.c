@@ -12,6 +12,9 @@
 #include "vars.c"
 #include "util.c"
 #include "ray_store.c"
+
+#include "slicer_solver.c"
+#define SO_EARLYSTOP
 #include "slicer_solver.c"
 
 int main(void) {
@@ -96,33 +99,33 @@ int main(void) {
     
     // Test ray store & garbage collector
     rs_allocate_ray(); // [1, x, x, x, x
-    RS_STORE[0].coords[0] = 1;
+    RS_STORE_BLOCKS[0][0].coords[0] = 1;
     RS_STORE_SIZE = 5;
     assert(RS_STORE_RANGE == 1, "gc1");
     rs_garbage_collection();
     assert(RS_STORE_RANGE == 1, "gc1");
 
     rs_allocate_ray(); // [1, 2, x, x, x
-    RS_STORE[1].coords[0] = 2;
+    RS_STORE_BLOCKS[0][1].coords[0] = 2;
     assert(RS_STORE_RANGE == 2, "gc1");
     rs_garbage_collection();
     assert(RS_STORE_RANGE == 2, "gc1");
 
     rs_allocate_ray(); // [1, 2, 3, x, x
-    RS_STORE[2].coords[0] = 3;
-    RS_STORE[1].used = U_NEG; // [1, -, 3, x, x
+    RS_STORE_BLOCKS[0][2].coords[0] = 3;
+    RS_STORE_BLOCKS[0][1].used = U_NEG; // [1, -, 3, x, x
     rs_garbage_collection(); // [1, 3, x, x, x
     assert(RS_STORE_RANGE == 2, "gc1");
-    assert(RS_STORE[0].coords[0] == 1, "gc10");
-    assert(RS_STORE[1].coords[0] == 3, "gc11");
+    assert(RS_STORE_BLOCKS[0][0].coords[0] == 1, "gc10");
+    assert(RS_STORE_BLOCKS[0][1].coords[0] == 3, "gc11");
 
     rs_allocate_ray(); // [1, 3, 4, x, x
-    RS_STORE[2].coords[0] = 4;
-    RS_STORE[2].used = U_NEG; // [1, 3, -, x, x
-    RS_STORE[0].used = U_NEG; // [-, 3, -, x, x
+    RS_STORE_BLOCKS[0][2].coords[0] = 4;
+    RS_STORE_BLOCKS[0][2].used = U_NEG; // [1, 3, -, x, x
+    RS_STORE_BLOCKS[0][0].used = U_NEG; // [-, 3, -, x, x
     rs_garbage_collection(); // [3, x, x, x, x
     assert(RS_STORE_RANGE == 1, "gc1");
-    assert(RS_STORE[0].coords[0] == 3, "gc10");
+    assert(RS_STORE_BLOCKS[0][0].coords[0] == 3, "gc10");
 
     rs_allocate_ray();
     rs_allocate_ray();
@@ -138,8 +141,8 @@ int main(void) {
         {0, 0, 1},
         {2, 1, 0}
     };
-    so_init_matrix();
-    so_add_to_matrix(m1[0]);
-    so_add_to_matrix(m1[1]);
-    so_solve();
+    so_init_matrix(0);
+    so_add_to_matrix(0, m1[0]);
+    so_add_to_matrix(0, m1[1]);
+    so_solve(0);
 }

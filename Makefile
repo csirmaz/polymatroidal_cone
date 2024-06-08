@@ -31,15 +31,21 @@ rand_axiom_test:
 remove_lines = RS_DEBUG
 
 slicer_test:
-	gcc -lm test.c -pthread && ./a.out
+	./strip_debug.pl $(remove_lines) < axioms.c > axioms.strp.c
+	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
+	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
+	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
+	./strip_debug.pl $(remove_lines) < vars.c > vars.strp.c
+	./strip_debug.pl $(remove_lines) < test.c > test.strp.c
+	gcc -lm test.strp.c -pthread && ./a.out
 	rm a.out
 
 slicer_run:
 	python get_axioms.py > axioms.c
 	./strip_debug.pl $(remove_lines) < axioms.c > axioms.strp.c
-	./strip_debug.pl $(remove_lines) < slicer.c > slicer.strp.c
 	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
 	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
 	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
+	./strip_debug.pl $(remove_lines) < slicer.c > slicer.strp.c
 	gcc -lm -O3 slicer.strp.c -o slicer -pthread
 	./slicer

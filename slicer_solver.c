@@ -62,7 +62,7 @@ void so_add_to_matrix(size_t thread_num, T_VEC(v)) {
     so_rows_coll[thread_num]++;
 }
 
-inline int so_solve_impl(
+static inline int so_solve_impl(
     size_t thread_num,
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],
@@ -78,7 +78,7 @@ inline int so_solve_impl(
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
     // 2 and above: many freedoms
 #else
-inline int so_solve_early_impl(
+static inline int so_solve_early_impl(
     size_t thread_num,
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],

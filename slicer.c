@@ -232,8 +232,7 @@ void *check_pairs(void *my_thread_num) {
                     for(int i=0; i<NUM_BITMAP; i++) {
                         if((face_bm[i] & ~ray->faces[i]) != 0) { 
                             good = 1;
-                            printf("Ray_k:   %3zu ", ray_k); // DEBUG
-                            bitmap_print(ray->faces, AXIOMS); // DEBUG
+                            printf("Ray_k:   %3zu ", ray_k); bitmap_print(ray->faces, AXIOMS); // DEBUG
                             printf("\nRay %zu differs at the intersection (good)\n", ray_k); fflush(stdout); // DEBUG
                             // We already know this ray is not on all faces in the intersection, so we don't need to keep checking it.
                             break;
