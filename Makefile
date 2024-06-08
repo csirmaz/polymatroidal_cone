@@ -27,8 +27,8 @@ rand_axiom_test:
 # Slice a cone with axioms until we get the final one
 
 # Adjust the below to enable debugging
-remove_lines = DEBUG SO_DEBUG RS_DEBUG
-# remove_lines = RS_DEBUG
+# remove_lines = DEBUG SO_DEBUG RS_DEBUG
+remove_lines = RS_DEBUG
 
 slicer_test:
 	gcc -lm test.c -pthread && ./a.out

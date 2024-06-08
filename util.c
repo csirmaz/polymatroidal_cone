@@ -43,6 +43,12 @@ void vec_scale(T_VEC(v), T_ELEM s) {
     VEC_LOOP(i) v[i] *= s;
 }
 
+// Return if two vectors are the same
+int vec_eq(T_VEC(a), T_VEC(b)) {
+    VEC_LOOP(i) if(a[i] != b[i]) return 0;
+    return 1;
+}
+
 // Simplify a vector
 void simplify(T_VEC(r)) {
     T_ELEM c = gcd(r[0], r[1]);

@@ -14,7 +14,7 @@
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
 #define ALGEBRAIC_TEST // If defined, use algebraic test
-// #define COMBINATORIAL_TEST // If defined, use combinatorial test. If both are enabled, compare
+#define COMBINATORIAL_TEST // If defined, use combinatorial test. If both are enabled, compare
 
 // Type for a value in a matrix/vector
 #define T_ELEM long long int
@@ -38,7 +38,7 @@
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024
 
-#define NUM_THREADS 4
+#define NUM_THREADS 1
 
 #include "util.c"
 #include "ray_store.c"
@@ -196,61 +196,65 @@ void *check_pairs(void *my_thread_num) {
                 continue;
             }
             
-            #ifdef COMBINATORIAL_TEST    
-            #if NUM_THREADS > 1
-            #error Combinatorial test not tested for threads
-            #endif
-            
-            // Combinatorial test
-            // Next, ensure other there is no other ray that is on all the common faces.
-            printf("Combinatorial test\n"); // DEBUG
-            int good = 0;
-            for(T_RAYIX ray_k=0; ray_k<cp_old_number_of_rays; ray_k++) {
-                if(ray_k == ray_i || ray_k == ray_j) continue;
-                ray = rs_get_ray(ray_k);
-                for(int i=0; i<NUM_BITMAP; i++) {
-                    if((face_bm[i] & ~ray->faces[i]) != 0) { 
-                        good = 1; 
+            #ifdef COMBINATORIAL_TEST
+                #if NUM_THREADS > 1
+                #error Combinatorial test not tested for threads
+                #endif
+                
+                // Combinatorial test
+                // Next, ensure other there is no other ray that is on all the common faces.
+                printf("Combinatorial test\n"); // DEBUG
+                int good = 0;
+                for(T_RAYIX ray_k=0; ray_k<cp_old_number_of_rays; ray_k++) {
+                    if(ray_k == ray_i || ray_k == ray_j) continue;
+                    ray = rs_get_ray(ray_k);
+                    for(int i=0; i<NUM_BITMAP; i++) {
+                        if((face_bm[i] & ~ray->faces[i]) != 0) { 
+                            good = 1;
+                            printf("Ray_k:   %3zu ", ray_k); // DEBUG
+                            bitmap_print(ray->faces, AXIOMS); // DEBUG
+                            printf("\nRay %zu differs at the intersection (good)\n", ray_k); fflush(stdout); // DEBUG
+                            // We already know this ray is not on all faces in the intersection, so we don't need to keep checking it.
+                            break;
+                        }
+                    }
+                    if(!good) {
+                        printf("Ray_k:   %3zu ", ray_k); // DEBUG
+                        bitmap_print(ray->faces, AXIOMS); // DEBUG
+                        printf("\nRay %zu shares intersection (bad)\n", ray_k); fflush(stdout); // DEBUG
+                        // We found a ray that is all faces in the intersection. We don't need to check further rays.
                         break;
                     }
-                }
-                if(!good) {
-                    printf("Ray_k:   %3zu ", ray_k); // DEBUG
-                    bitmap_print(ray->faces, AXIOMS); // DEBUG
-                    printf("\nRay %zu shares intersection\n", ray_k); fflush(stdout); // DEBUG
-                    break;
-                }
-            }
-            
+                }            
             #endif
             
             #ifdef ALGEBRAIC_TEST
-            
-            // Algebraic test
-            // Solve the common axioms + the new one; see if we get a ray
-            printf("Algebraic test\n"); // DEBUG
-            so_init_matrix(thread_num);
-            AXIOM_LOOP(a) {
-                if(bitmap_read(face_bm, a)) so_add_to_matrix(thread_num, axioms[a]);
-            }
-            so_add_to_matrix(thread_num, axioms[axiom_ix]);
-            int f = so_solve_early(thread_num);
-            if(f != 1) {
-                printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
+                // Algebraic test
+                // Solve the common axioms + the new one; see if we get a ray
+                printf("Algebraic test\n"); // DEBUG
+                so_init_matrix(thread_num);
+                AXIOM_LOOP(a) {
+                    if(bitmap_read(face_bm, a)) so_add_to_matrix(thread_num, axioms[a]);
+                }
+                so_add_to_matrix(thread_num, axioms[axiom_ix]);
+                int f = so_solve_early(thread_num);
+                if(f != 1) {
+                    printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
+                    #ifdef COMBINATORIAL_TEST
+                        // Comparison between tests {TEST_COMPARE}
+                        assert(!good, "Algebraic: bad, Combinatorial: good");
+                    #endif
+                    continue;
+                }
+                
                 #ifdef COMBINATORIAL_TEST
-                assert(!good, "Algebraic: bad, Combinatorial: good");
-                #endif
-                continue;
-            }
-            
-            #ifdef COMBINATORIAL_TEST
-            assert(good, "Algebraic: good, Combinatorial: bad");
-            #endif
-            
+                    // Comparison between tests {TEST_COMPARE}
+                    assert(good, "Algebraic: good, Combinatorial: bad");
+                #endif            
             #endif
             
             #ifdef COMBINATORIAL_TEST
-            if(!good) continue;
+                if(!good) continue;
             #endif
             
             // --- Create new ray ---
@@ -261,26 +265,28 @@ void *check_pairs(void *my_thread_num) {
             ray = rs_allocate_ray();
             
             // Calculate the coordinates
-            #ifdef ALGEBRAIC_TEST
-            vec_cpy(ray->coords, solution_coll[thread_num]);
-            #endif
             #ifdef COMBINATORIAL_TEST
-            // new_ray := alpha*ray_pos + beta*ray_neg
-            // where alpha, beta > 0
-            //   and dot(new_ray, new_axiom) == 0
-            //       alpha*dot(ray_pos,new_axiom) + beta*dot(ray_neg,new_axiom) == 0
-            //    so:
-            T_ELEM alpha = 0 - dot_opt(ray_neg->coords, axioms[axiom_ix]);
-            T_ELEM beta = dot_opt(ray_pos->coords, axioms[axiom_ix]);
-            VEC_LOOP(i) ray->coords[i] = alpha*ray_pos->coords[i] + beta*ray_neg->coords[i];
-            simplify(ray->coords);
-            #endif
+                // new_ray := alpha*ray_pos + beta*ray_neg
+                // where alpha, beta > 0
+                //   and dot(new_ray, new_axiom) == 0
+                //       alpha*dot(ray_pos,new_axiom) + beta*dot(ray_neg,new_axiom) == 0
+                //    so:
+                T_ELEM alpha = 0 - dot_opt(ray_neg->coords, axioms[axiom_ix]);
+                T_ELEM beta = dot_opt(ray_pos->coords, axioms[axiom_ix]);
+                VEC_LOOP(i) ray->coords[i] = alpha*ray_pos->coords[i] + beta*ray_neg->coords[i];
+                simplify(ray->coords);
+                printf("Ray new: #%zu ", RS_STORE_RANGE-1); // DEBUG
+                print_vec(ray->coords); printf("\n"); // DEBUG
+            #else
+                // In case of the algebraic test, the new ray (without sign) is in solution_coll[thread_num].
+                // When we are NOT running the combinatorial test, we copy the result into ray, and the bitmap
+                // logic below applies to the result from the algebraic test.
+                vec_cpy(ray->coords, solution_coll[thread_num]);                
+            #endif      
             
-            printf("Ray new: %zu (initial) ", RS_STORE_RANGE-1); // DEBUG
-            print_vec(ray->coords); printf("\n"); // DEBUG
-            
-            // Store which faces the new ray is on
-            // We only do this for the used axioms/faces, plus the new face which is already marked used
+            // Store which faces the new ray is on.
+            // We only do this for the used axioms/faces, plus the new face, which is already marked used.
+            // When the combinatorial test is enabled, this applies to the result from that test only.
             bitmap_zero(ray->faces);
             int neg_faces = 0, pos_faces = 0;
             AXIOM_LOOP(a) {
@@ -309,20 +315,77 @@ void *check_pairs(void *my_thread_num) {
                     }
                 }
             }
+            printf("Face check for other faces: neg_faces=%d pos_faces=%d\n", neg_faces, pos_faces); // DEBUG
+            
+            #ifdef COMBINATORIAL_TEST
+                // This condition should be true as from the combinatorial test the solution should have the right sign.
+                // We quickly check the results here, as if the algebraic test is on, we'll mess up neg_faces below due to {TEST_COMPARE}
+                assert(neg_faces == 0, "Other face check (neg)");                
+            #endif
+                
+            #ifdef COMBINATORIAL_TEST
+            #ifdef ALGEBRAIC_TEST
+                // {TEST_COMPARE}
+                // If both tests are on, we have not checked the result from the algebraic test against the faces.
+                // We need that in case we need to flip the sign of the solution. So do that here.
+                neg_faces = 0;
+                pos_faces = 0;
+                AXIOM_LOOP(a) {
+                    if(!axioms_used[a]) continue;
+                    if(a == axiom_ix || bitmap_read(face_bm, a)) {
+                        // We know the ray is on these faces
+                        #ifdef FULL_FACE_CHECK
+                            T_ELEM d = dot_opt(solution_coll[thread_num], axioms[a]);
+                            printf("Algebraic: Checking against known face %d, dot=%lld\n", a, d); fflush(stdout); // DEBUG
+                            if(d != 0) {
+                                printf("Axiom %d: ", a); print_vec(axioms[a]); printf("\n"); // DEBUG
+                                assert(0, "Algebraic: Full face check, known");
+                            }
+                        #endif
+                    }
+                    else {
+                        T_ELEM d = dot_opt(solution_coll[thread_num], axioms[a]);
+                        printf("Algebraic: Checking against other face %d, dot=%lld\n", a, d); fflush(stdout); // DEBUG
+                        if(d < 0){ 
+                            neg_faces++;
+                        }else if(d > 0){ 
+                            pos_faces++; 
+                        }
+                    }
+                }
+                printf("Algebraic: Face check for other faces: neg_faces=%d pos_faces=%d\n", neg_faces, pos_faces); // DEBUG
+            #endif
+            #endif
+            
             #ifdef ALGEBRAIC_TEST
                 // In this case, we don't know the direction of the solution
+                // {TEST_COMPARE}: Note that neg_faces and pos_faces are now according to the ray coming from the algebraic solution
                 if(neg_faces > 0) {
                     assert(pos_faces == 0, "Other face check");
-                    vec_scale(ray->coords, -1);
+                    #ifdef COMBINATORIAL_TEST
+                        // {TEST_COMPARE}
+                        // We don't touch ray, which comes from the combinatorial test. But we fix the result of the algebraic test so we can compare.
+                        vec_scale(solution_coll[thread_num], -1);
+                    #else
+                        vec_scale(ray->coords, -1);
+                    #endif
                 } else {
                     assert(neg_faces == 0, "Other face check (neg)");
                 }
+                #ifdef COMBINATORIAL_TEST
+                    // {TEST_COMPARE}
+                    // Compare the new ray from the two tests
+                    if(!vec_eq(ray->coords, solution_coll[thread_num])) {
+                        printf("New ray from algebraic: "); print_vec(solution_coll[thread_num]); printf("\n");
+                        printf("New ray from combinat.: "); print_vec(ray->coords); printf("\n");
+                        assert(0, "Combinatorial vs algebraic new rays differ");
+                    }
+                #endif                
             #else
-                assert(neg_faces == 0, "Other face check (neg)");
             #endif
 
             printf("Set up new ray. new_rays=%zu RS_STORE_RANGE=%zu pairs_checked=%zu\n", new_rays, RS_STORE_RANGE, pairs_checked); fflush(stdout); // DEBUG
-            printf("Bitmap: "); bitmap_print(ray->faces, AXIOMS); printf("\n"); fflush(stdout); // DEBUG
+            printf("Bitmap for new ray #%zu: ", RS_STORE_RANGE-1); bitmap_print(ray->faces, AXIOMS); printf("\n"); fflush(stdout); // DEBUG
 
         } // for ray_j ends
     } // for ray_i ends
@@ -478,6 +541,7 @@ int main(void) {
     
     while(1) {
         // Choose the next axiom that has the least ray pairs
+        printf("Choosing which axiom/face to use next...\n");
         T_RAYIX min_pairs;
         int min_pairs_axiom = -1;
         AXIOM_LOOP(a) {
