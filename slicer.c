@@ -380,8 +380,7 @@ void *check_pairs(void *my_thread_num) {
                         printf("New ray from combinat.: "); print_vec(ray->coords); printf("\n");
                         assert(0, "Combinatorial vs algebraic new rays differ");
                     }
-                #endif                
-            #else
+                #endif
             #endif
 
             printf("Set up new ray. new_rays=%zu RS_STORE_RANGE=%zu pairs_checked=%zu\n", new_rays, RS_STORE_RANGE, pairs_checked); fflush(stdout); // DEBUG
