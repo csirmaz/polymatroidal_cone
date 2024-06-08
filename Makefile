@@ -1,51 +1,43 @@
-
-# Choose a random subset of axioms in the hope of finding a ray
-
-rand_axiom_run:
-	python get_axioms.py > axioms.c
-	gcc -O3 -lm -D EARLY_STOP rand_axioms.c -o int_solver
-	./int_solver
-
-rand_axiom_debug:
-	python get_axioms.py > axioms.c
-	gcc -O3 -lm -D DEBUG rand_axioms.c -o int_solver
-	./int_solver
-
-rand_axiom_collect:
-	python get_axioms.py > axioms.c
-	gcc -O3 -lm -D EARLY_STOP rand_axioms.c -o int_solver
-	./int_solver | python collect_stats.py
-
-rand_axiom_test:
-	python get_axioms_test.py
-	gcc -Wall -lm -D UNIT_TEST -D TEST0 -D DEBUG rand_axioms.c && ./a.out
-	gcc -lm -D SOLVER_TEST -D TEST1 -D DEBUG rand_axioms.c && ./a.out
-	gcc -lm -D SOLVER_TEST -D TEST2 -D DEBUG rand_axioms.c && ./a.out
-	gcc -lm -D SOLVER_TEST -D TEST3 -D DEBUG rand_axioms.c && ./a.out
-	rm a.out
+.PHONY: slicer_test slicer_run_4 slicer_run_5 slicer_run_6 c_sources
 
 # Slice a cone with axioms until we get the final one
 
 # Adjust the below to enable debugging
-# remove_lines = DEBUG SO_DEBUG RS_DEBUG
-remove_lines = RS_DEBUG
+remove_lines = DEBUG SO_DEBUG RS_DEBUG
+# remove_lines = RS_DEBUG
 
-slicer_test:
-	./strip_debug.pl $(remove_lines) < axioms.c > axioms.strp.c
+data/axioms4.c: get_axioms.py
+	python get_axioms.py 4 > data/axioms4.c
+	
+data/axioms5.c: get_axioms.py
+	python get_axioms.py 5 > data/axioms5.c
+
+data/axioms6.c: get_axioms.py
+	python get_axioms.py 6 > data/axioms6.c
+
+c_sources: data/axioms4.c data/axioms5.c data/axioms6.c
+	./strip_debug.pl $(remove_lines) < data/axioms4.c > data/axioms4.strp.c
+	./strip_debug.pl $(remove_lines) < data/axioms5.c > data/axioms5.strp.c
+	./strip_debug.pl $(remove_lines) < data/axioms6.c > data/axioms6.strp.c
 	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
 	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
 	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
 	./strip_debug.pl $(remove_lines) < vars.c > vars.strp.c
 	./strip_debug.pl $(remove_lines) < test.c > test.strp.c
+	./strip_debug.pl $(remove_lines) < slicer.c > slicer.strp.c
+
+slicer_test: c_sources
 	gcc -lm test.strp.c -pthread && ./a.out
 	rm a.out
 
-slicer_run:
-	python get_axioms.py > axioms.c
-	./strip_debug.pl $(remove_lines) < axioms.c > axioms.strp.c
-	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
-	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
-	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
-	./strip_debug.pl $(remove_lines) < slicer.c > slicer.strp.c
-	gcc -lm -O3 slicer.strp.c -o slicer -pthread
+slicer_run_4: c_sources
+	gcc -lm -O3 -DAXIOMS_FILE=4 slicer.strp.c -o slicer -pthread
+	./slicer
+
+slicer_run_5: c_sources
+	gcc -lm -O3 -DAXIOMS_FILE=5 slicer.strp.c -o slicer -pthread
+	./slicer
+
+slicer_run_6: c_sources
+	gcc -lm -O3 -DAXIOMS_FILE=6 slicer.strp.c -o slicer -pthread
 	./slicer

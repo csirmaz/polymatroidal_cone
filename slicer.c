@@ -14,8 +14,9 @@
 // #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
-// #define ALGEBRAIC_TEST // If defined, use algebraic test
-#define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
+
+#define ALGEBRAIC_TEST // If defined, use algebraic test
+// #define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
 
 // Type for a value in a matrix/vector
 #define T_ELEM long long int
@@ -26,7 +27,13 @@
 // Type for ray indices
 #define T_RAYIX size_t
 
-#include "axioms.c"
+#if AXIOMS_FILE == 4
+#include "data/axioms4.c"
+#elif AXIOMS_FILE == 5
+#include "data/axioms5.c"
+#elif AXIOMS_FILE == 6
+#include "data/axioms6.c"
+#endif
 
 // Length of a vector
 #define VECLEN VARS
@@ -39,7 +46,7 @@
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024
 
-#define NUM_THREADS 1
+#define NUM_THREADS 7
 
 #include "util.c"
 #include "ray_store.c"
@@ -144,6 +151,7 @@ T_RAYIX mark_rays(int axiom_ix) {
     return pos_count*neg_count;
 }
 
+
 void *check_pairs(void *my_thread_num) {
     // Check each pos-neg ray pair
     size_t thread_num = (size_t)my_thread_num;
@@ -218,10 +226,6 @@ void *check_pairs(void *my_thread_num) {
             }
             
             #ifdef COMBINATORIAL_TEST
-                #if NUM_THREADS > 1
-                #error Combinatorial test not tested for threads
-                #endif
-                
                 // Combinatorial test
                 // Next, ensure other there is no other ray that is on all the common faces.
                 printf("Combinatorial test\n"); // DEBUG
@@ -244,8 +248,7 @@ void *check_pairs(void *my_thread_num) {
                         }
                     }
                     if(!good_ray) {
-                        printf("Ray_k:   %3zu ", ray_k); // DEBUG
-                        bitmap_print(ray->faces, AXIOMS); // DEBUG
+                        printf("Ray_k:   %3zu ", ray_k); bitmap_print(ray->faces, AXIOMS); // DEBUG
                         printf("\nRay %zu shares intersection (bad)\n", ray_k); fflush(stdout); // DEBUG
                         // We found a ray that is all faces in the intersection. We don't need to check further rays.
                         good = 0;
@@ -273,7 +276,6 @@ void *check_pairs(void *my_thread_num) {
                     printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
                     continue;
                 }
-                
             #endif
             
             // --- Create new ray ---
@@ -385,10 +387,11 @@ void apply_axiom(int axiom_ix) {
     printf("Setting up new face...\n"); fflush(stdout); // DEBUG
     // Also fill in the bitmaps for the new axiom
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) { // after garbage collection, these are the used rays
-        // a bit wasteful as for the new rays we know it's 0, but this doesn't run often
         struct ray_record *ray = rs_get_ray(i);
-        if(dot_opt(ray->coords, axioms[axiom_ix]) == 0) { 
-            bitmap_set(ray->faces, axiom_ix);
+        if(!bitmap_read(ray->faces, axiom_ix)) {
+            if(dot_opt(ray->coords, axioms[axiom_ix]) == 0) { 
+                bitmap_set(ray->faces, axiom_ix);
+            }
         }
     }
     
@@ -531,7 +534,13 @@ int main(void) {
 
     AXIOM_LOOP(a) assert(axioms_used[a] != 0, "axioms remain");
     
-    printf("TOTAL RAYS: %zu\n", RS_STORE_RANGE); fflush(stdout);
+    #ifdef COMBINATORIAL_TEST
+        printf("Used combinatorial test\n");
+    #endif
+    #ifdef ALGEBRAIC_TEST
+        printf("Used algebraic test\n");
+    #endif
+    printf("Threads=%d TOTAL_RAYS=%zu\n", NUM_THREADS, RS_STORE_RANGE); fflush(stdout);
     
 }
 

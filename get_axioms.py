@@ -1,13 +1,13 @@
 
 # Create C code defining polymatroidal axioms
 # Optionally sort axioms into groups according to symmetries
-# Outputs:
-# - C code on STDOUT
-# - JSON of the axioms and set rotations in JSON_OUT_FILE
+# Usage: python get_axioms.py (4|5|6)
 
-SET_N = 4 # number of elements in the base set
+import sys
+
+SET_N = int(sys.argv[1]) # number of elements in the base set
 TIGHT = True  # whether to consider tight matroids only
-MAKE_GROUPS = False # Whether to create groups of equivalent axioms when permuting the base set
+MAKE_GROUPS = True # Whether to create groups of equivalent axioms when permuting the base set
 
 def dimensions() -> int:
     """Return the number of variables / possible f() values"""
