@@ -12,6 +12,7 @@
 #include <pthread.h>
 
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
+#define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
 #define ALGEBRAIC_TEST // If defined, use algebraic test
 #define COMBINATORIAL_TEST // If defined, use combinatorial test. If both are enabled, compare
@@ -90,6 +91,22 @@ void dump_data(void) {
     rs_dump();
     printf("DATA_DUMP_ENDS\n\n");
     fflush(stdout);
+}
+
+
+void check_bitmaps(void) {
+    // Check all bitmaps
+    // WARNING call after garbage collection
+    for(T_RAYIX r=0; r<RS_STORE_RANGE; r++) {
+        struct ray_record *ray = rs_get_ray(r);
+        AXIOM_LOOP(a) {
+            if(!axioms_used[a]) continue;
+            T_ELEM d = dot(ray->coords, axioms[a]);
+            assert(d >= 0, "check_bitmaps: inside");
+            if(bitmap_read(ray->faces, a)) assert(d == 0, "check_bitmaps: correlates with bitmap");
+        }
+    }
+    printf("check_bitmaps OK\n"); fflush(stdout); // DEBUG
 }
 
 
@@ -425,6 +442,10 @@ void apply_axiom(int axiom_ix) {
             bitmap_set(ray->faces, axiom_ix);
         }
     }
+    
+    #ifdef CHECK_BITMAPS
+    check_bitmaps();
+    #endif
     
     #ifdef DUMP_DATA
     dump_data();
