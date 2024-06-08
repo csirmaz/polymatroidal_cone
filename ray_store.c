@@ -21,8 +21,12 @@
 #define BITMAP_ELOG 6
 #define BITMAP_IMASK ((1<<BITMAP_ELOG)-1)
 
-// memory allocation step
-#define RS_ALLOC_STEP 100000
+// Number of records in one block
+#define RS_ALLOC_BLOCK_LOG 16
+#define RS_ALLOC_BLOCK (1<<RS_ALLOC_BLOCK_LOG)
+#define RS_ALLOC_BLOCK_MASK (RS_ALLOC_BLOCK-1)
+// Max number of blocks
+#define RS_ALLOC_BLOCK_NUM 1024
 
 struct ray_record {
     T_VEC(coords);     // coordinates of the ray
@@ -30,9 +34,10 @@ struct ray_record {
     char used;         // 0 if slot is unused; 1 if used
 };
 
-struct ray_record *RS_STORE;
+struct ray_record *RS_STORE_BLOCKS[RS_ALLOC_BLOCK_NUM];
 T_RAYIX RS_STORE_SIZE = 0; // total allocated size of the store
 T_RAYIX RS_STORE_RANGE = 0; // first known unused slot (may have holes below) -- After garbage collection this is also the number of rays in the store
+int RS_STORE_BLOCK_NEXT = 0; // the next block to allocate
 T_BITMAP(zero_bitmap) = {0,0,0,0}; // see NUM_BITMAP
 
 // Possible values for ray_record.used:
@@ -40,28 +45,38 @@ T_BITMAP(zero_bitmap) = {0,0,0,0}; // see NUM_BITMAP
 #define U_POS 2
 #define U_NEG 3
 
+pthread_mutex_t ray_store_lock;
+
 void rs_init(int required_bitmap_size) {
     // Run this at the very beginning of the code
     // Check that the bitmap is at least this size
     printf("bitmap_size=%ld required_bm_size=%d\n", BITMAP_BITS, required_bitmap_size );
-    assert( BITMAP_BITS >= required_bitmap_size, "bitmap size");
+    assert(BITMAP_BITS >= required_bitmap_size, "bitmap size");
     // Check RS_BITMAP_ELOG
-    assert( BITMAP_ELEM_BITS == (1 << BITMAP_ELOG ), "RS_BITMAP_ELOG");
+    assert(BITMAP_ELEM_BITS == (1 << BITMAP_ELOG), "RS_BITMAP_ELOG");
+    assert(RS_ALLOC_BLOCK == (1 << RS_ALLOC_BLOCK_LOG), "RS_ALLOC_BLOCK");
+}
+
+struct ray_record *rs_get_ray(T_RAYIX ix) {
+    // Return the pointer to a given ray
+    // IMPORTANT This address won't change even if more memory is allocated
+    return &RS_STORE_BLOCKS[ix >> RS_ALLOC_BLOCK_LOG][ix & RS_ALLOC_BLOCK_MASK];
 }
 
 void _rs_extend_store(void) {
     // Extend the store by RS_ALLOC_STEP records
-    if(RS_STORE_SIZE == 0) {
-        RS_STORE = malloc(sizeof(struct ray_record) * RS_ALLOC_STEP);
-    } else {
-        RS_STORE = realloc(RS_STORE, sizeof(struct ray_record) * (RS_STORE_SIZE + RS_ALLOC_STEP));
+    if(RS_STORE_BLOCK_NEXT >= RS_ALLOC_BLOCK_NUM) {
+        printf("Ran out of RS store blocks\n");
+        exit(1);
     }
-    if(RS_STORE == NULL) {
+    RS_STORE_BLOCKS[RS_STORE_BLOCK_NEXT] = malloc(sizeof(struct ray_record) * RS_ALLOC_BLOCK);    
+    if(RS_STORE_BLOCKS[RS_STORE_BLOCK_NEXT] == NULL) {
         printf("Cannot allocate more memory to ray store\n");
         exit(1);
     }
-    RS_STORE_SIZE += RS_ALLOC_STEP;
-    printf("Extended ray store to ray_store_size=%zu\n", RS_STORE_SIZE);
+    RS_STORE_BLOCK_NEXT++;
+    RS_STORE_SIZE += RS_ALLOC_BLOCK;
+    printf("Extended ray store to ray_store_blocks=%d ray_store_size=%zu\n", RS_STORE_BLOCK_NEXT, RS_STORE_SIZE);
     fflush(stdout);
 }
 
@@ -130,13 +145,19 @@ void bitmap_print(T_BITMAP(bm), int max) {
 struct ray_record* rs_allocate_ray(void) {
     // Ensure a new ray slot is available and return its address
     // Use vec_zero() and rs_zero_bitmap() to initialize
+    #if NUM_THREADS > 1
+        pthread_mutex_lock(&ray_store_lock);
+    #endif
     if(RS_STORE_RANGE == RS_STORE_SIZE) {
         // running out of store
         _rs_extend_store();
     }
-    struct ray_record *new_rec = &RS_STORE[RS_STORE_RANGE];
+    struct ray_record *new_rec = rs_get_ray(RS_STORE_RANGE);
     RS_STORE_RANGE++;
     new_rec->used = U_USED;
+    #if NUM_THREADS > 1
+        pthread_mutex_unlock(&ray_store_lock);
+    #endif
     return new_rec;
 }
 
@@ -148,9 +169,11 @@ void rs_garbage_collection(void) {
         assert(RS_STORE_RANGE > 0, "Uh-oh, no rays left?");
         if(current >= RS_STORE_SIZE) { break; }
         if(current >= RS_STORE_RANGE) { break; }
-        if(RS_STORE[RS_STORE_RANGE-1].used == U_NEG) { RS_STORE_RANGE--; continue; }
-        if(RS_STORE[current].used != U_NEG) { current++; continue; }
-        memcpy(&RS_STORE[current], &RS_STORE[RS_STORE_RANGE-1], sizeof(struct ray_record));
+        struct ray_record *ray_top = rs_get_ray(RS_STORE_RANGE-1);
+        struct ray_record *ray_current = rs_get_ray(current);
+        if(ray_top->used == U_NEG) { RS_STORE_RANGE--; continue; }
+        if(ray_current->used != U_NEG) { current++; continue; }
+        memcpy(ray_current, ray_top, sizeof(struct ray_record));
         current++;
         RS_STORE_RANGE--;
     }
@@ -160,9 +183,10 @@ void rs_dump(void) {
     // Print the rays in the store (coordinates only)
     T_RAYIX c = 0;
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
-        if(RS_STORE[i].used == U_NEG) continue;
+        struct ray_record *ray = rs_get_ray(i);
+        if(ray->used == U_NEG) continue;
         printf("ray:%zu ", c);
-        print_vec(RS_STORE[i].coords);
+        print_vec(ray->coords);
         printf("\n");
         c++;
     }

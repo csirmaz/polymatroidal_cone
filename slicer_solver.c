@@ -9,18 +9,19 @@
 #ifndef SO_EARLYSTOP
 
 #define SO_MAX_ROWS AXIOMS
-T_ELEM so_matrix[SO_MAX_ROWS][VECLEN];
-int so_rows = 0; // How many rows are used in the matrix actually
-T_VEC(solution);
-T_VEC(solution_divisor);
+// "_coll" are collections - one for each thread
+T_ELEM so_matrix_coll[NUM_THREADS][SO_MAX_ROWS][VECLEN];
+T_RAYIX so_rows_coll[NUM_THREADS]; // How many rows are used in the matrix actually
+T_ELEM solution_coll[NUM_THREADS][VECLEN];
+T_ELEM solution_divisor_coll[NUM_THREADS][VECLEN];
 
 #define SO_ROWS_FULL_LOOP(a) for(int a=0; a<SO_MAX_ROWS; a++)
 #define SO_ROWS_LOOP(a) for(int a=0; a<so_rows; a++)
 
-int axiom_solved_for[SO_MAX_ROWS]; // stores which axiom is stored for which variable
+int axiom_solved_for_coll[NUM_THREADS][SO_MAX_ROWS]; // stores which axiom is stored for which variable
 int axiom_solved_for_init[SO_MAX_ROWS];
 
-int variables_solved[VARS]; // stores which variables have been solved (bool, 1|0)
+int variables_solved_coll[NUM_THREADS][VARS]; // stores which variables have been solved (bool, 1|0)
 int variables_solved_init[VARS];
 
 /*
@@ -35,12 +36,12 @@ int variables_solved_init[VARS];
  */
 
 
-void so_print_matrix(void) {
+void so_print_matrix(size_t thread_num) {
     // Print `so_matrix`
-    SO_ROWS_LOOP(r) {
+    for(int r=0; r<so_rows_coll[thread_num]; r++) {
         printf("  | %2d ", r);
-        print_vec(so_matrix[r]);
-        printf(" for=%d\n", axiom_solved_for[r]);
+        print_vec(so_matrix_coll[thread_num][r]);
+        printf(" for=%d\n", axiom_solved_for_coll[thread_num][r]);
     }
 }
 
@@ -50,34 +51,26 @@ void so_init(void) {
     VEC_LOOP(i) variables_solved_init[i] = 0;
 }
 
-void so_init_matrix(void) { 
+void so_init_matrix(size_t thread_num) { 
     // Initialize the matrix for injecting expressions
-    so_rows = 0;
+    so_rows_coll[thread_num] = 0;
 }
 
-void so_add_to_matrix(T_VEC(v)) {
+void so_add_to_matrix(size_t thread_num, T_VEC(v)) {
     // Add an expression to the matrix
-    memcpy(so_matrix[so_rows], v, sizeof(T_ELEM)*VECLEN);
-    so_rows++;
+    memcpy(so_matrix_coll[thread_num][so_rows_coll[thread_num]], v, sizeof(T_ELEM)*VECLEN);
+    so_rows_coll[thread_num]++;
 }
 
-int so_has_zero_columns(void) {
-    // Check if the matrix has zero columns
-    int zero_column;
-    SO_ROWS_LOOP(a) {
-        zero_column = 1;
-        VEC_LOOP(i) {
-            if(so_matrix[a][i] != 0) {
-                zero_column = 0;
-                break;
-            }
-        }
-        if(zero_column) return 1;
-    }
-    return 0;
-}
-
-int so_solve(void) {
+inline int so_solve_impl(
+    size_t thread_num,
+    T_RAYIX so_rows,
+    int axiom_solved_for[SO_MAX_ROWS],
+    int variables_solved[VARS],
+    T_ELEM so_matrix[SO_MAX_ROWS][VECLEN],
+    T_ELEM solution[VECLEN],
+    T_ELEM solution_divisor[VECLEN]
+) {
     // Solve the matrix
     // Returns:
     // -1: 1 freedom but there's a mixture of sings for the coordinates
@@ -85,7 +78,15 @@ int so_solve(void) {
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
     // 2 and above: many freedoms
 #else
-int so_solve_early(void) {
+inline int so_solve_early_impl(
+    size_t thread_num,
+    T_RAYIX so_rows,
+    int axiom_solved_for[SO_MAX_ROWS],
+    int variables_solved[VARS],
+    T_ELEM so_matrix[SO_MAX_ROWS][VECLEN],
+    T_ELEM solution[VECLEN],
+    T_ELEM solution_divisor[VECLEN]    
+) {
     // Solve the matrix
     // Returns:
     // -1: 1 freedom but there's a mixture of sings for the coordinates
@@ -94,12 +95,13 @@ int so_solve_early(void) {
 #endif
     
     int freedoms = 0;
+
     memcpy(axiom_solved_for, axiom_solved_for_init, sizeof(int)*SO_MAX_ROWS); // Initialize to [-1,-1,...]
     memcpy(variables_solved, variables_solved_init, sizeof(int)*VARS); // Initialize to [0,0,...]
    
     VEC_LOOP(var_ix) {
-        printf("  | Solving for variable #%d\n  | Begins:\n", var_ix); // SO_DEBUG
-        so_print_matrix(); // SO_DEBUG
+        printf("  | Solving for variable #%d so_rows=%zu thread=%zu\n  | Begins:\n", var_ix, so_rows, thread_num); // SO_DEBUG
+        so_print_matrix(thread_num); // SO_DEBUG
         
         // Get the abs largest coefficient for the v'th variable
         T_ELEM max_v = 0;
@@ -116,7 +118,6 @@ int so_solve_early(void) {
 
         if(max_v == 0) {
             // No non-0 coefficients
-            // TODO We kind of never want this...?
             freedoms++;
             printf("  | No non-0 coefficients, now %d freedoms\n", freedoms); // SO_DEBUG
             #ifdef SO_EARLYSTOP
@@ -143,7 +144,7 @@ int so_solve_early(void) {
     // Note that we do get here if the system is overspecified and in reality has no solution
     // However, we want this system to have 1 degree of freedom anyway
     printf("  | Result: freedoms=%d\n  | Final:\n", freedoms); // SO_DEBUG
-    so_print_matrix(); // SO_DEBUG
+    so_print_matrix(thread_num); // SO_DEBUG
     printf("  | Axioms solved for: ["); // SO_DEBUG
     SO_ROWS_LOOP(i) printf("%d,", axiom_solved_for[i]); // SO_DEBUG
     printf("]\n"); // SO_DEBUG
@@ -198,3 +199,40 @@ int so_solve_early(void) {
 
     return 1;
 }
+
+#ifndef SO_EARLYSTOP
+int so_solve(size_t thread_num) {
+    // Solve the matrix
+    // Returns:
+    // -1: 1 freedom but there's a mixture of sings for the coordinates
+    // 0: 0 freedoms
+    // 1: good (1 freedom & all positive coordinates); solution is in `solution`
+    // 2 and above: many freedoms
+    return so_solve_impl(
+        thread_num,
+        so_rows_coll[thread_num],
+        axiom_solved_for_coll[thread_num],
+        variables_solved_coll[thread_num],
+        so_matrix_coll[thread_num],
+        solution_coll[thread_num],
+        solution_divisor_coll[thread_num]
+    );
+}
+#else
+int so_solve_early(size_t thread_num) {
+    // Solve the matrix
+    // Returns:
+    // -1: 1 freedom but there's a mixture of sings for the coordinates
+    // 0: 0 or >1 freedoms
+    // 1: good (1 freedom & all positive coordinates); solution is in `solution`
+    return so_solve_early_impl(
+        thread_num,
+        so_rows_coll[thread_num],
+        axiom_solved_for_coll[thread_num],
+        variables_solved_coll[thread_num],
+        so_matrix_coll[thread_num],
+        solution_coll[thread_num],
+        solution_divisor_coll[thread_num]
+    );
+}
+#endif

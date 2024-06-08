@@ -9,6 +9,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
+#include <pthread.h>
 
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
@@ -37,6 +38,8 @@
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024
 
+#define NUM_THREADS 4
+
 #include "util.c"
 #include "ray_store.c"
 #include "slicer_solver.c"
@@ -45,8 +48,10 @@
 
 int axioms_used[AXIOMS]; // Which axioms have already been used (bool, 0|1; sometimes index)
 int num_axioms_used = 0;
-
-struct timeval prev_time, current_time;
+// Global variables for check_pairs(), common to all threads
+T_RAYIX cp_all_pairs;
+int cp_axiom_ix;
+T_RAYIX cp_old_number_of_rays;
 
 
 T_RAYIX new_axiom_ray_pairs(int axiom_ix) {
@@ -55,7 +60,7 @@ T_RAYIX new_axiom_ray_pairs(int axiom_ix) {
 
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
         // Note: due to the garbage collector, there are no unused rays
-        T_ELEM d = dot_opt(RS_STORE[i].coords, axioms[axiom_ix]);
+        T_ELEM d = dot_opt(rs_get_ray(i)->coords, axioms[axiom_ix]);
         if(d > 0) { // positive side
             pos_count++;
         }
@@ -88,32 +93,14 @@ void dump_data(void) {
 }
 
 
-void apply_axiom(int axiom_ix) {
-    // Apply the new axiom/face axiom_ix to the known rays
-
-    printf("applying_axiom #%d (%dth %.2f%%) prev_total_rays=%zu\n",
-        axiom_ix, 
-        num_axioms_used,
-        ((float)num_axioms_used)/((float)AXIOMS)*100.,
-        RS_STORE_RANGE
-    );
-    print_vec(axioms[axiom_ix]); printf("\n"); fflush(stdout); // DEBUG
-    
-    gettimeofday(&prev_time, NULL);
-    double prev_elapsed_time = 0;
-
-    axioms_used[axiom_ix] = 1;
-    num_axioms_used++;
-    
-    // (1) Check if the ray is on pos, neg side or on the face of the axiom
+T_RAYIX mark_rays(int axiom_ix) {
+    // Mark each ray according to whether it is on the pos or neg side or on the face of the axiom
     struct ray_record* ray;
-    struct ray_record* ray_pos;
-    struct ray_record* ray_neg;
     T_RAYIX pos_count = 0, neg_count = 0, zero_count = 0;
 
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
         // Note: due to the garbage collector, there are no unused rays
-        ray = &RS_STORE[i];
+        ray = rs_get_ray(i);
 
         T_ELEM d = dot_opt(ray->coords, axioms[axiom_ix]);
         if(d > 0) { // positive side
@@ -133,37 +120,53 @@ void apply_axiom(int axiom_ix) {
 
     printf("positive_rays=%zu negative_rays=%zu zero_rays=%zu ray_pairs=%zu\n", pos_count, neg_count, zero_count, pos_count*neg_count);
     fflush(stdout); // DEBUG
-    
-    // (2) For each pos-neg ray pair
+    return pos_count*neg_count;
+}
+
+void *check_pairs(void *my_thread_num) {
+    // Check each pos-neg ray pair
+    size_t thread_num = (size_t)my_thread_num;
+    int axiom_ix = cp_axiom_ix;
+
+    struct ray_record* ray_pos;
+    struct ray_record* ray_neg;
     T_BITMAP(face_bm);
-    T_RAYIX old_number_of_rays = RS_STORE_RANGE;
     T_RAYIX new_rays = 0;
     T_RAYIX pairs_checked = 0;
-    
-    for(T_RAYIX ray_i=0; ray_i<old_number_of_rays; ray_i++) {
-        if(RS_STORE[ray_i].used != U_POS) continue;
-        ray_pos = &RS_STORE[ray_i];
-        
-        for(T_RAYIX ray_j=0; ray_j<old_number_of_rays; ray_j++) {
-            if(RS_STORE[ray_j].used != U_NEG) continue;
-            ray_neg = &RS_STORE[ray_j];
+    struct timeval prev_time, current_time;
+    struct ray_record* ray;
 
-            printf("Checking pair... ray_i=%zu ray_j=%zu old_number_of_rays=%zu\n", ray_i, ray_j, old_number_of_rays); fflush(stdout); // DEBUG
+    gettimeofday(&prev_time, NULL);
+    double prev_elapsed_time = 0;
+    
+    for(T_RAYIX ray_i=0; ray_i<cp_old_number_of_rays; ray_i++) {
+        #if NUM_THREADS > 1
+            if((ray_i % NUM_THREADS) != thread_num) continue;
+        #endif
+        ray_pos = rs_get_ray(ray_i);
+        if(ray_pos->used != U_POS) continue;
+        
+        for(T_RAYIX ray_j=0; ray_j<cp_old_number_of_rays; ray_j++) {
+            ray_neg = rs_get_ray(ray_j);
+            if(ray_neg->used != U_NEG) continue;
+
+            printf("Checking pair... ray_i=%zu ray_j=%zu old_number_of_rays=%zu\n", ray_i, ray_j, cp_old_number_of_rays ); fflush(stdout); // DEBUG
             
             // Timestamp logs
-            if((pairs_checked % 10000) == 0) {
+            if((pairs_checked % 50000) == 0) {
                 gettimeofday(&current_time, NULL);
                 double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
                 if(elapsed > prev_elapsed_time + 10) {
                     prev_elapsed_time = elapsed;
-                    printf("Axiom #%d (%dth %.2f%%) - %zu pairs checked in %.1lf s, %.6f ms/pair (%.2f%%)\n",
+                    printf("Axiom #%d (%dth %.2f%%) - %zu pairs checked in %.1lf s, %.6f ms/pair (%.2f%%) thread=%zu\n",
                         axiom_ix,
                         num_axioms_used-1,
                         ((float)(num_axioms_used-1))/((float)AXIOMS)*100.,
                         pairs_checked, 
                         elapsed, 
                         elapsed*1000./(float)pairs_checked,
-                        ((float)pairs_checked)/((float)(pos_count*neg_count))*100.
+                        ((float)(pairs_checked*NUM_THREADS))/((float)cp_all_pairs)*100.,
+                        thread_num
                     );
                     fflush(stdout);
                 }
@@ -194,6 +197,9 @@ void apply_axiom(int axiom_ix) {
             }
             
             #ifdef COMBINATORIAL_TEST    
+            #if NUM_THREADS > 1
+            #error Combinatorial test not tested for threads
+            #endif
             
             // Combinatorial test
             // Next, ensure other there is no other ray that is on all the common faces.
@@ -222,12 +228,12 @@ void apply_axiom(int axiom_ix) {
             // Algebraic test
             // Solve the common axioms + the new one; see if we get a ray
             printf("Algebraic test\n"); // DEBUG
-            so_init_matrix();
+            so_init_matrix(thread_num);
             AXIOM_LOOP(a) {
-                if(bitmap_read(face_bm, a)) so_add_to_matrix(axioms[a]);
+                if(bitmap_read(face_bm, a)) so_add_to_matrix(thread_num, axioms[a]);
             }
-            so_add_to_matrix(axioms[axiom_ix]);
-            int f = so_solve_early();
+            so_add_to_matrix(thread_num, axioms[axiom_ix]);
+            int f = so_solve_early(thread_num);
             if(f != 1) {
                 printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
                 #ifdef COMBINATORIAL_TEST
@@ -235,6 +241,7 @@ void apply_axiom(int axiom_ix) {
                 #endif
                 continue;
             }
+            
             #ifdef COMBINATORIAL_TEST
             assert(good, "Algebraic: good, Combinatorial: bad");
             #endif
@@ -251,13 +258,10 @@ void apply_axiom(int axiom_ix) {
             
             new_rays++;
             ray = rs_allocate_ray();
-            // So possibly we have reallocated the memory, so get the new pointer. Do it here so it wouldn't happen too often
-            ray_pos = &RS_STORE[ray_i];
-            ray_neg = &RS_STORE[ray_j];
             
             // Calculate the coordinates
             #ifdef ALGEBRAIC_TEST
-            vec_cpy(ray->coords, solution);
+            vec_cpy(ray->coords, solution_coll[thread_num]);
             #endif
             #ifdef COMBINATORIAL_TEST
             // new_ray := alpha*ray_pos + beta*ray_neg
@@ -321,6 +325,30 @@ void apply_axiom(int axiom_ix) {
 
         } // for ray_j ends
     } // for ray_i ends
+    return NULL;
+}
+
+
+void apply_axiom(int axiom_ix) {
+    // Apply the new axiom/face axiom_ix to the known rays
+
+    printf("applying_axiom #%d (%dth %.2f%%) prev_total_rays=%zu\n",
+        axiom_ix, 
+        num_axioms_used,
+        ((float)num_axioms_used)/((float)AXIOMS)*100.,
+        RS_STORE_RANGE
+    );
+    print_vec(axioms[axiom_ix]); printf("\n"); fflush(stdout); // DEBUG
+
+    axioms_used[axiom_ix] = 1;
+    num_axioms_used++;
+    
+    // Set up global variables common to all threads
+    cp_all_pairs = mark_rays(axiom_ix);
+    cp_axiom_ix = axiom_ix;
+    cp_old_number_of_rays = RS_STORE_RANGE;
+    
+    do_threaded(check_pairs);
     
     printf("Garbage collection...\n"); fflush(stdout); // DEBUG
     rs_garbage_collection();
@@ -329,8 +357,9 @@ void apply_axiom(int axiom_ix) {
     // Also fill in the bitmaps for the new axiom
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) { // after garbage collection, these are the used rays
         // a bit wasteful as for the new rays we know it's 0, but this doesn't run often
-        if(dot_opt(RS_STORE[i].coords, axioms[axiom_ix]) == 0) { 
-            bitmap_set(RS_STORE[i].faces, axiom_ix);
+        struct ray_record *ray = rs_get_ray(i);
+        if(dot_opt(ray->coords, axioms[axiom_ix]) == 0) { 
+            bitmap_set(ray->faces, axiom_ix);
         }
     }
     
@@ -338,7 +367,7 @@ void apply_axiom(int axiom_ix) {
     dump_data();
     #endif
 
-    printf("Adding axiom done. new_rays=%zu total_rays=%zu pairs_checked=%zu\n\n", new_rays, RS_STORE_RANGE, pairs_checked);
+    printf("Adding axiom done. pairs_checked=%zu total_rays=%zu\n\n", cp_all_pairs, RS_STORE_RANGE);
     fflush(stdout);
 }
 
@@ -362,10 +391,10 @@ int main(void) {
         next_axiom++;
         
         // Try them out with the solver to see if they are independent
-        so_init_matrix();
-        AXIOM_LOOP(a) if(axioms_used[a]) so_add_to_matrix(axioms[a]);
-        assert(so_rows == num_axioms_used, "Axiom init num");
-        int f = so_solve();
+        so_init_matrix(0);
+        AXIOM_LOOP(a) if(axioms_used[a]) so_add_to_matrix(0, axioms[a]);
+        assert(so_rows_coll[0] == num_axioms_used, "Axiom init num");
+        int f = so_solve(0);
         printf("-> freedoms=%d\n", f); // DEBUG
         assert(f >= VARS - num_axioms_used, "Axiom init freedoms");
         if(f == VARS - num_axioms_used) {
@@ -393,31 +422,31 @@ int main(void) {
     VEC_LOOP(var_ix) {
         
         int miss_axiom = -1;
-        so_init_matrix();
+        so_init_matrix(0);
         AXIOM_LOOP(a) {
             if(axioms_used[a] == var_ix+1) { // Remember we used indices+1, not bool
                 miss_axiom = a;
             } else if(axioms_used[a] != 0) {
-                so_add_to_matrix(axioms[a]);
+                so_add_to_matrix(0, axioms[a]);
             }
         }
-        printf("Ray #%d to miss face %d, added %d axioms\n", var_ix, miss_axiom, so_rows); // DEBUG
+        printf("Ray #%d to miss face %d, added %zu axioms\n", var_ix, miss_axiom, so_rows_coll[0]); // DEBUG
         assert(miss_axiom != -1, "Init axiom cannot find miss");
-        assert(so_rows == VARS - 1, "Init axiom subset rows");
-        int f = so_solve_early();
+        assert(so_rows_coll[0] == VARS - 1, "Init axiom subset rows");
+        int f = so_solve_early(0);
         if(f != 1) {
             printf("freedom=%d", f); // DEBUG
             assert(0, "Init axiom subset freedom");
         }
         
         // If the ray is not inside the remaining axiom, flip it
-        T_ELEM d = dot_opt(solution, axioms[miss_axiom]);
+        T_ELEM d = dot_opt(solution_coll[0], axioms[miss_axiom]);
         assert(d != 0, "Init axioms ray indep");
-        if(d < 0) vec_scale(solution, -1);
+        if(d < 0) vec_scale(solution_coll[0], -1);
         
         // Add the initial ray
         struct ray_record *ray = rs_allocate_ray();
-        vec_cpy(ray->coords, solution);
+        vec_cpy(ray->coords, solution_coll[0]);
 
         // Create the bitmap
         // We only fill in the bits for the axioms/faces used

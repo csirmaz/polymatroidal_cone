@@ -14,7 +14,8 @@
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024*1024
 
-#define T_VEC(a) T_ELEM a[VECLEN]
+#define NUM_THREADS 1
 
+#define T_VEC(a) T_ELEM a[VECLEN]
 #define VEC_LOOP(i) for(int i=0; i<VECLEN; i++)
 

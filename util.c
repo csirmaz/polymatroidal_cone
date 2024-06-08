@@ -112,3 +112,24 @@ void assert(int flag, char* message) {
         exit(1);
     }
 }
+
+pthread_t THREADS[NUM_THREADS];
+
+// Launch threads with an arbitrary function that receives the thread number, then join them
+void do_threaded(void *(*start_routine)(void *)) {
+    #if NUM_THREADS > 1
+        for(size_t i=0; i<NUM_THREADS; i++) {
+            if(pthread_create(&THREADS[i], NULL, start_routine, (void*)i) != 0) {
+                assert(0, "Could not launch thread");
+            }
+        }
+
+        for(size_t i=0; i<NUM_THREADS; i++) {
+            if(pthread_join(THREADS[i], NULL) != 0) {
+                assert(0, "Could not join thread");
+            }
+        }
+    #else
+        start_routine(0);
+    #endif
+}
