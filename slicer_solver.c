@@ -36,7 +36,7 @@ int variables_solved_init[VARS];
  */
 
 
-void so_print_matrix(size_t thread_num) {
+void so_print_matrix(T_THREAD_NUM thread_num) {
     // Print `so_matrix`
     for(int r=0; r<so_rows_coll[thread_num]; r++) {
         printf("  | %2d ", r);
@@ -51,19 +51,19 @@ void so_init(void) {
     VEC_LOOP(i) variables_solved_init[i] = 0;
 }
 
-void so_init_matrix(size_t thread_num) { 
+void so_init_matrix(T_THREAD_NUM thread_num) { 
     // Initialize the matrix for injecting expressions
     so_rows_coll[thread_num] = 0;
 }
 
-void so_add_to_matrix(size_t thread_num, T_VEC(v)) {
+void so_add_to_matrix(T_THREAD_NUM thread_num, T_VEC(v)) {
     // Add an expression to the matrix
     memcpy(so_matrix_coll[thread_num][so_rows_coll[thread_num]], v, sizeof(T_ELEM)*VECLEN);
     so_rows_coll[thread_num]++;
 }
 
 static inline int so_solve_impl(
-    size_t thread_num,
+    T_THREAD_NUM thread_num,
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],
     int variables_solved[VARS],
@@ -79,7 +79,7 @@ static inline int so_solve_impl(
     // 2 and above: many freedoms
 #else
 static inline int so_solve_early_impl(
-    size_t thread_num,
+    T_THREAD_NUM thread_num,
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],
     int variables_solved[VARS],
@@ -201,7 +201,7 @@ static inline int so_solve_early_impl(
 }
 
 #ifndef SO_EARLYSTOP
-int so_solve(size_t thread_num) {
+int so_solve(T_THREAD_NUM thread_num) {
     // Solve the matrix
     // Returns:
     // -1: 1 freedom but there's a mixture of sings for the coordinates
@@ -219,7 +219,7 @@ int so_solve(size_t thread_num) {
     );
 }
 #else
-int so_solve_early(size_t thread_num) {
+int so_solve_early(T_THREAD_NUM thread_num) {
     // Solve the matrix
     // Returns:
     // -1: 1 freedom but there's a mixture of sings for the coordinates

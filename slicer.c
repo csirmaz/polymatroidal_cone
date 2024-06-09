@@ -11,20 +11,23 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-// #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
+#define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
 #define ALGEBRAIC_TEST // If defined, use algebraic test
 // #define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
 
 // Type for a value in a matrix/vector
-#define T_ELEM long long int
+#define T_ELEM int
 // long long int  format: %lld
 // double  format: %lf
 #define ABS(f) llabs(f)
 
 // Type for ray indices
 #define T_RAYIX size_t
+// Type for ray index squares
+#define T_RAYIX2 size_t
+#define T_THREAD_NUM int
 
 #if AXIOMS_FILE == 4
 #include "data/axioms4.c"
@@ -43,9 +46,9 @@
 #define AXIOM_LOOP(i) for(int i=0; i<AXIOMS; i++)
 
 // Simplify vectors if a number is above
-#define SIMPLIFY_ABOVE 1024*1024
+#define SIMPLIFY_ABOVE 1024
 
-#define NUM_THREADS 7
+#define NUM_THREADS 4
 
 #include "util.c"
 #include "ray_store.c"
@@ -56,12 +59,12 @@
 int axioms_used[AXIOMS]; // Which axioms have already been used (bool, 0|1; sometimes index)
 int num_axioms_used = 0;
 // Global variables for check_pairs(), common to all threads
-T_RAYIX cp_all_pairs;
+T_RAYIX2 cp_all_pairs;
 int cp_axiom_ix;
-T_RAYIX cp_old_number_of_rays;
+T_RAYIX2 cp_old_number_of_rays;
 
 
-T_RAYIX new_axiom_ray_pairs(int axiom_ix) {
+T_RAYIX2 new_axiom_ray_pairs(int axiom_ix) {
     // Return how many pos-neg ray pairs we would need to investigate if we added this axiom
     T_RAYIX pos_count = 0, neg_count = 0;
 
@@ -120,7 +123,7 @@ void check_bitmaps(void) {
 }
 
 
-T_RAYIX mark_rays(int axiom_ix) {
+T_RAYIX2 mark_rays(int axiom_ix) {
     // Mark each ray according to whether it is on the pos or neg side or on the face of the axiom
     struct ray_record* ray;
     T_RAYIX pos_count = 0, neg_count = 0, zero_count = 0;
@@ -153,7 +156,7 @@ T_RAYIX mark_rays(int axiom_ix) {
 
 void *check_pairs(void *my_thread_num) {
     // Check each pos-neg ray pair
-    size_t thread_num = (size_t)my_thread_num;
+    T_THREAD_NUM thread_num = (T_THREAD_NUM)my_thread_num;
     int axiom_ix = cp_axiom_ix;
 
     struct ray_record* ray_pos;
@@ -164,10 +167,10 @@ void *check_pairs(void *my_thread_num) {
     
     // Counters
     T_RAYIX new_rays = 0;
-    T_RAYIX pairs_checked = 0;
-    T_RAYIX skip_bit_count = 0;
-    T_RAYIX skip_mask = 0;
-    T_RAYIX skip_test = 0;
+    T_RAYIX2 pairs_checked = 0;
+    T_RAYIX2 skip_bit_count = 0;
+    T_RAYIX2 skip_mask = 0;
+    T_RAYIX2 skip_test = 0;
 
     gettimeofday(&prev_time, NULL);
     double prev_elapsed_time = 0;
@@ -191,7 +194,7 @@ void *check_pairs(void *my_thread_num) {
                 double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
                 if(elapsed > prev_elapsed_time + 10) {
                     prev_elapsed_time = elapsed;
-                    printf("Axiom #%d (%dth %.2f%%) - %zu pairs checked in %.1lf s, %.6f ms/pair (%.2f%%) thread=%zu\n",
+                    printf("Axiom #%d (%dth %.2f%%) - %zu pairs checked in %.1lf s, %.6f ms/pair (%.2f%%) thread=%d\n",
                         axiom_ix,
                         num_axioms_used-1,
                         ((float)(num_axioms_used-1))/((float)AXIOMS)*100.,
@@ -322,7 +325,7 @@ void *check_pairs(void *my_thread_num) {
                     // We know the ray is on these faces
                     #ifdef FULL_FACE_CHECK
                         T_ELEM d = dot_opt(ray->coords, axioms[a]);
-                        printf("Checking against known face %d, dot=%lld\n", a, d); fflush(stdout); // DEBUG
+                        printf("Checking against known face %d, dot=%d\n", a, d); fflush(stdout); // DEBUG
                         if(d != 0) {
                             printf("Axiom %d: ", a); print_vec(axioms[a]); printf("\n"); // DEBUG
                             assert(0, "Full face check, known");
@@ -332,7 +335,7 @@ void *check_pairs(void *my_thread_num) {
                 }
                 else {
                     T_ELEM d = dot_opt(ray->coords, axioms[a]);
-                    printf("Checking against other face %d, dot=%lld\n", a, d); fflush(stdout); // DEBUG
+                    printf("Checking against other face %d, dot=%d\n", a, d); fflush(stdout); // DEBUG
                     if(d < 0){ 
                         neg_faces++; 
                     }else if(d > 0){ 
@@ -364,7 +367,7 @@ void *check_pairs(void *my_thread_num) {
         } // for ray_j ends
     } // for ray_i ends
     
-    printf("Summary - Axiom #%d (%dth %.2f%%) - new_rays=%zu pairs_checked=%zu skip_bit_count=%zu skip_mask=%zu skip_test=%zu thread=%zu\n",
+    printf("Summary - Axiom #%d (%dth %.2f%%) - new_rays=%zu pairs_checked=%zu skip_bit_count=%zu skip_mask=%zu skip_test=%zu thread=%d\n",
         axiom_ix,
         num_axioms_used-1,
         ((float)(num_axioms_used-1))/((float)AXIOMS)*100.,
@@ -384,7 +387,7 @@ void *check_pairs(void *my_thread_num) {
 void apply_axiom(int axiom_ix) {
     // Apply the new axiom/face axiom_ix to the known rays
 
-    printf("applying_axiom #%d (%dth %.2f%%) prev_total_rays=%zu\n",
+    printf("applying_axiom=%d (%dth %.2f%%) prev_total_rays=%zu\n",
         axiom_ix, 
         num_axioms_used,
         ((float)num_axioms_used)/((float)AXIOMS)*100.,
@@ -424,7 +427,7 @@ void apply_axiom(int axiom_ix) {
     dump_data();
     #endif
 
-    printf("Adding axiom done. pairs_checked=%zu total_rays=%zu\n\n", cp_all_pairs, RS_STORE_RANGE);
+    printf("applied_axiom=%d pairs_checked=%zu total_rays=%zu\n\n", axiom_ix, cp_all_pairs, RS_STORE_RANGE);
     fflush(stdout);
 }
 
@@ -558,10 +561,15 @@ void slicer(void) {
         printf("Used algebraic test\n");
     #endif
     printf("SET_N=%d, Threads=%d TOTAL_RAYS=%zu\n", SET_N, NUM_THREADS, RS_STORE_RANGE); fflush(stdout);
+    
+    #if SET_N == 5
+        printf("Number of rays "); if(RS_STORE_RANGE == 117978) { printf("OK!\n"); } else { printf("not as expected!!\n"); exit(1); }
+    #endif
 }
 
 
 int main(void) {
+    srand(time(NULL) + getpid());
     util_init();
     so_init();    
     rs_init(AXIOMS); // total number of faces

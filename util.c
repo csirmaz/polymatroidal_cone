@@ -75,7 +75,7 @@ void print_vec(T_VEC(r)) {
     printf("[");
     VEC_LOOP(i) {
         if(i>0) printf(",");
-        printf("%2lld", r[i]);
+        printf("%2d", r[i]);
     }
     printf("]");
 }
