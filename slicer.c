@@ -14,7 +14,6 @@
 // #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
-
 #define ALGEBRAIC_TEST // If defined, use algebraic test
 // #define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
 
@@ -31,7 +30,7 @@
 #include "data/axioms4.c"
 #elif AXIOMS_FILE == 5
 #include "data/axioms5.c"
-#elif AXIOMS_FILE == 6
+#else
 #include "data/axioms6.c"
 #endif
 
@@ -160,10 +159,15 @@ void *check_pairs(void *my_thread_num) {
     struct ray_record* ray_pos;
     struct ray_record* ray_neg;
     T_BITMAP(face_bm);
-    T_RAYIX new_rays = 0;
-    T_RAYIX pairs_checked = 0;
     struct timeval prev_time, current_time;
     struct ray_record* ray;
+    
+    // Counters
+    T_RAYIX new_rays = 0;
+    T_RAYIX pairs_checked = 0;
+    T_RAYIX skip_bit_count = 0;
+    T_RAYIX skip_mask = 0;
+    T_RAYIX skip_test = 0;
 
     gettimeofday(&prev_time, NULL);
     double prev_elapsed_time = 0;
@@ -204,7 +208,7 @@ void *check_pairs(void *my_thread_num) {
 
             // Get the axioms/faces both rays are on 
             // (restricted to the axioms already used as only those bits are set in the bitmap)
-            for(int i=0; i<NUM_BITMAP; i++) face_bm[i] = (ray_pos->faces[i] & ray_neg->faces[i]);
+            bitmap_cpy_and(face_bm, ray_pos->faces, ray_neg->faces);
 
             printf("Ray pos: %zu ", ray_i); // DEBUG
             print_vec(ray_pos->coords); // DEBUG
@@ -220,8 +224,10 @@ void *check_pairs(void *my_thread_num) {
             
             // Ensure there are at least VARS-2 faces both rays are on; otherwise they can't be
             // on the same 2D facet.
-            if(bitmap_bitcount(face_bm) < VARS - 2) {
+            int bm_face_count = bitmap_bitcount(face_bm);
+            if(bm_face_count < VARS - 2) {
                 printf("Intersection too short\n"); fflush(stdout); // DEBUG
+                skip_bit_count++;
                 continue;
             }
             
@@ -255,7 +261,7 @@ void *check_pairs(void *my_thread_num) {
                         break;
                     }
                 }            
-                if(!good) continue;
+                if(!good) { skip_test++; continue; }
             #endif
             
             #ifdef ALGEBRAIC_TEST
@@ -274,6 +280,7 @@ void *check_pairs(void *my_thread_num) {
                 int f = so_solve_early(thread_num);
                 if(f != 1) {
                     printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
+                    skip_test++;
                     continue;
                 }
             #endif
@@ -356,6 +363,20 @@ void *check_pairs(void *my_thread_num) {
 
         } // for ray_j ends
     } // for ray_i ends
+    
+    printf("Summary - Axiom #%d (%dth %.2f%%) - new_rays=%zu pairs_checked=%zu skip_bit_count=%zu skip_mask=%zu skip_test=%zu thread=%zu\n",
+        axiom_ix,
+        num_axioms_used-1,
+        ((float)(num_axioms_used-1))/((float)AXIOMS)*100.,
+        new_rays,
+        pairs_checked, 
+        skip_bit_count,
+        skip_mask,
+        skip_test,
+        thread_num
+    );
+    fflush(stdout);
+    
     return NULL;
 }
 
@@ -408,12 +429,8 @@ void apply_axiom(int axiom_ix) {
 }
 
 
-int main(void) {
+void slicer(void) {
     printf("Slicer starting LABEL=%s VARS=%d AXIOMS=%d\n", LABEL, VARS, AXIOMS);
-    util_init();
-    so_init();
-    
-    rs_init(AXIOMS); // total number of faces
     
     // First we search for VARS independent axioms
     printf("Finding initial independent axioms...\n");
@@ -540,10 +557,19 @@ int main(void) {
     #ifdef ALGEBRAIC_TEST
         printf("Used algebraic test\n");
     #endif
-    printf("Threads=%d TOTAL_RAYS=%zu\n", NUM_THREADS, RS_STORE_RANGE); fflush(stdout);
-    
+    printf("SET_N=%d, Threads=%d TOTAL_RAYS=%zu\n", SET_N, NUM_THREADS, RS_STORE_RANGE); fflush(stdout);
 }
 
+
+int main(void) {
+    util_init();
+    so_init();    
+    rs_init(AXIOMS); // total number of faces
+
+    slicer();
+    
+    return 0;
+}
 
 
 

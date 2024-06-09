@@ -10,10 +10,10 @@
 
 #define SO_MAX_ROWS AXIOMS
 // "_coll" are collections - one for each thread
-T_ELEM so_matrix_coll[NUM_THREADS][SO_MAX_ROWS][VECLEN];
+T_VEC(so_matrix_coll[NUM_THREADS][SO_MAX_ROWS]);
 T_RAYIX so_rows_coll[NUM_THREADS]; // How many rows are used in the matrix actually
-T_ELEM solution_coll[NUM_THREADS][VECLEN];
-T_ELEM solution_divisor_coll[NUM_THREADS][VECLEN];
+T_VEC(solution_coll[NUM_THREADS]);
+T_VEC(solution_divisor_coll[NUM_THREADS]);
 
 #define SO_ROWS_FULL_LOOP(a) for(int a=0; a<SO_MAX_ROWS; a++)
 #define SO_ROWS_LOOP(a) for(int a=0; a<so_rows; a++)

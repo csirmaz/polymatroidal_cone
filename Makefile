@@ -20,6 +20,7 @@ c_sources: data/axioms4.c data/axioms5.c data/axioms6.c
 	./strip_debug.pl $(remove_lines) < data/axioms5.c > data/axioms5.strp.c
 	./strip_debug.pl $(remove_lines) < data/axioms6.c > data/axioms6.strp.c
 	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
+	./strip_debug.pl $(remove_lines) < slicer_dependency_check.c > slicer_dependency_check.strp.c
 	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
 	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
 	./strip_debug.pl $(remove_lines) < vars.c > vars.strp.c

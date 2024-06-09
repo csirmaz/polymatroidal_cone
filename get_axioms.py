@@ -279,6 +279,7 @@ def print_c_code():
         group_map = {i: '?' for i in range(len(axioms))}
     
     print(f'#define LABEL "SET_N={SET_N} TIGHT={TIGHT}"')
+    print(f'#define SET_N {SET_N}')
     print(f'#define AXIOMS {len(axioms)}')
     print(f'#define VARS {len(axioms[0])}')
     out = []

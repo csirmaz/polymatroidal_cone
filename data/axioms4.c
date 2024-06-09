@@ -1,4 +1,5 @@
 #define LABEL "SET_N=4 TIGHT=True"
+#define SET_N 4
 #define AXIOMS 24
 #define VARS 11
 T_ELEM axioms[AXIOMS][VARS] = {

@@ -80,9 +80,14 @@ void _rs_extend_store(void) {
     fflush(stdout);
 }
 
-inline void bitmap_cpy(T_BITMAP(dest), T_BITMAP(src)) {
+static inline void bitmap_cpy(T_BITMAP(dest), T_BITMAP(src)) {
     // Copy one bitmap over another
     memcpy(dest, src, BITMAP_BYTES );
+}
+
+static inline void bitmap_cpy_and(T_BITMAP(dest), T_BITMAP(a), T_BITMAP(b)) {
+    // dest := a & b
+    for(int i=0; i<NUM_BITMAP; i++) dest[i] = (a[i] & b[i]);
 }
 
 void bitmap_zero(T_BITMAP(bm)) {
@@ -90,6 +95,12 @@ void bitmap_zero(T_BITMAP(bm)) {
     // TODO Check which one is faster
     // rs_bitmap_cpy(bm, zero_bitmap);
     for(int i=0; i<NUM_BITMAP; i++) bm[i] = BITMAP_ZERO;
+}
+
+int bitmap_eq(T_BITMAP(a), T_BITMAP(b)) {
+    // Return if two bitmaps are the same
+    for(int i=0; i<NUM_BITMAP; i++) if(a[i] != b[i]) return 0;
+    return 1;
 }
 
 int bitmap_read(T_BITMAP(bm), int ix) {
