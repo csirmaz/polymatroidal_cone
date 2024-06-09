@@ -189,7 +189,7 @@ void *check_pairs(void *my_thread_num) {
             printf("Checking pair... ray_i=%zu ray_j=%zu old_number_of_rays=%zu\n", ray_i, ray_j, cp_old_number_of_rays ); fflush(stdout); // DEBUG
             
             // Timestamp logs
-            if((pairs_checked % 50000) == 0) {
+            if((pairs_checked & ((1ULL<<16)-1)) == 0) {
                 gettimeofday(&current_time, NULL);
                 double elapsed = (current_time.tv_sec - prev_time.tv_sec) + (current_time.tv_usec - prev_time.tv_usec) / 1000. / 1000.;
                 if(elapsed > prev_elapsed_time + 10) {
@@ -433,6 +433,8 @@ void apply_axiom(int axiom_ix) {
 
 
 void slicer(void) {
+    struct timeval start_time, end_time;
+    
     printf("Slicer starting LABEL=%s VARS=%d AXIOMS=%d\n", LABEL, VARS, AXIOMS);
     
     // First we search for VARS independent axioms
@@ -530,28 +532,41 @@ void slicer(void) {
     } // end VAR_LOOP(var_ix)
 
     printf("ADDING MORE AXIOMS\n"); fflush(stdout);
+    gettimeofday(&start_time, NULL);
     
     while(1) {
         // Choose the next axiom that has the least ray pairs
         printf("Choosing which axiom/face to use next...\n");
+        int new_axiom = -1;
+        /*
+        // Choose the one with the least number of pairs
         T_RAYIX min_pairs;
-        int min_pairs_axiom = -1;
         AXIOM_LOOP(a) {
             if(axioms_used[a]) continue;
             T_RAYIX pairs = new_axiom_ray_pairs(a);
             printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
-            if(min_pairs_axiom == -1 || min_pairs > pairs) {
-                min_pairs_axiom = a;
+            if(new_axiom == -1 || min_pairs > pairs) {
+                new_axiom = a;
                 min_pairs = pairs;
             }
         }
+        */
         
-        printf("Chose axiom #%d to add next\n", min_pairs_axiom);
-        apply_axiom(min_pairs_axiom);
+        // Choose a random one
+        assert(AXIOMS < 511, "rnd mask");
+        while(1) {
+            new_axiom = (rand() & 511);
+            if(new_axiom < AXIOMS && axioms_used[new_axiom] == 0) break;
+        }
+        
+        printf("Chose axiom #%d to add next\n", new_axiom);
+        apply_axiom(new_axiom);
         
         if(num_axioms_used == AXIOMS) break;
     }
-
+    gettimeofday(&end_time, NULL);
+    double elapsed = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
+    
     AXIOM_LOOP(a) assert(axioms_used[a] != 0, "axioms remain");
     
     #ifdef COMBINATORIAL_TEST
@@ -560,7 +575,7 @@ void slicer(void) {
     #ifdef ALGEBRAIC_TEST
         printf("Used algebraic test\n");
     #endif
-    printf("SET_N=%d, Threads=%d TOTAL_RAYS=%zu\n", SET_N, NUM_THREADS, RS_STORE_RANGE); fflush(stdout);
+    printf("SET_N=%d threads=%d total_elapsed_time=%.1f TOTAL_RAYS=%zu\n", SET_N, NUM_THREADS, elapsed, RS_STORE_RANGE); fflush(stdout);
     
     #if SET_N == 5
         printf("Number of rays "); if(RS_STORE_RANGE == 117978) { printf("OK!\n"); } else { printf("not as expected!!\n"); exit(1); }
