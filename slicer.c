@@ -64,6 +64,12 @@ int cp_axiom_ix;
 T_RAYIX2 cp_old_number_of_rays;
 
 
+void main_init(void) {
+    AXIOM_LOOP(a) axioms_used[a] = 0;
+    num_axioms_used = 0;
+}
+
+
 T_RAYIX2 new_axiom_ray_pairs(int axiom_ix) {
     // Return how many pos-neg ray pairs we would need to investigate if we added this axiom
     T_RAYIX pos_count = 0, neg_count = 0;
@@ -149,7 +155,7 @@ T_RAYIX2 mark_rays(int axiom_ix) {
     } // end loop over stored rays
 
     printf("positive_rays=%zu negative_rays=%zu zero_rays=%zu ray_pairs=%zu\n", pos_count, neg_count, zero_count, pos_count*neg_count);
-    fflush(stdout); // DEBUG
+    fflush(stdout);
     return pos_count*neg_count;
 }
 
@@ -393,7 +399,8 @@ void apply_axiom(int axiom_ix) {
         ((float)num_axioms_used)/((float)AXIOMS)*100.,
         RS_STORE_RANGE
     );
-    print_vec(axioms[axiom_ix]); printf("\n"); fflush(stdout); // DEBUG
+    print_vec(axioms[axiom_ix]); printf("\n"); // DEBUG
+    fflush(stdout);
 
     axioms_used[axiom_ix] = 1;
     num_axioms_used++;
@@ -405,10 +412,10 @@ void apply_axiom(int axiom_ix) {
     
     do_threaded(check_pairs);
     
-    printf("Garbage collection...\n"); fflush(stdout); // DEBUG
+    printf("Garbage collection...\n"); fflush(stdout);
     rs_garbage_collection();
 
-    printf("Setting up new face...\n"); fflush(stdout); // DEBUG
+    printf("Setting up new face...\n"); fflush(stdout);
     // Also fill in the bitmaps for the new axiom
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) { // after garbage collection, these are the used rays
         struct ray_record *ray = rs_get_ray(i);
@@ -467,8 +474,8 @@ void slicer(void) {
         }
     }
     
-    assert(num_axioms_used == VARS, "num_axioms_used");
-    printf("Initial axioms chosen: ");
+    assert(num_axioms_used == VARS, "initial num_axioms_used");
+    printf("initial_axioms=");
     AXIOM_LOOP(a) if(axioms_used[a]) printf("%d, ", a);
     printf("\n");
     
@@ -476,7 +483,7 @@ void slicer(void) {
     
     // Calculate the initial rays
     // Take VARS-1 axioms, solve them, and ensure the resulting ray is inside the remaining axiom
-    printf("INITIAL RAYS\n"); fflush(stdout);
+    printf("INITIAL_RAYS\n"); fflush(stdout);
     VEC_LOOP(var_ix) {
         
         int miss_axiom = -1;

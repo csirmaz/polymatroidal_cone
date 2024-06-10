@@ -49,6 +49,7 @@ pthread_mutex_t ray_store_lock;
 
 void rs_init(int required_bitmap_size) {
     // Run this at the very beginning of the code
+    RS_STORE_RANGE = 0;
     // Check that the bitmap is at least this size
     printf("bitmap_size=%ld required_bm_size=%d\n", BITMAP_BITS, required_bitmap_size );
     assert(BITMAP_BITS >= required_bitmap_size, "bitmap size");
