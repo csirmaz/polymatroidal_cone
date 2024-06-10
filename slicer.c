@@ -48,7 +48,7 @@
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024
 
-#define NUM_THREADS 4
+#define NUM_THREADS 6
 
 #include "util.c"
 #include "ray_store.c"
@@ -439,17 +439,19 @@ void apply_axiom(int axiom_ix) {
 }
 
 
-void slicer(void) {
+void slicer(int last_axiom) {
     struct timeval start_time, end_time;
     
-    printf("Slicer starting LABEL=%s VARS=%d AXIOMS=%d\n", LABEL, VARS, AXIOMS);
+    printf("SLICER_STARTING LABEL=%s VARS=%d AXIOMS=%d\n", LABEL, VARS, AXIOMS);
+    printf("Last axiom: %d\n", last_axiom);
     
     // First we search for VARS independent axioms
     printf("Finding initial independent axioms...\n");
 
-    AXIOM_LOOP(a) axioms_used[a] = 0;
     int next_axiom = 0;
     while(1) {
+        if(next_axiom == last_axiom) { next_axiom++; continue; }
+        
         axioms_used[next_axiom] = num_axioms_used+1; // use a 1-based index to mark them
         printf("add #%d ", next_axiom); // DEBUG
         num_axioms_used++;
@@ -543,31 +545,43 @@ void slicer(void) {
     
     while(1) {
         // Choose the next axiom that has the least ray pairs
-        printf("Choosing which axiom/face to use next...\n");
+        printf("Choosing which axiom/face to use next...\n"); fflush(stdout);
         int new_axiom = -1;
-        /*
-        // Choose the one with the least number of pairs
-        T_RAYIX min_pairs;
-        AXIOM_LOOP(a) {
-            if(axioms_used[a]) continue;
-            T_RAYIX pairs = new_axiom_ray_pairs(a);
-            printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
-            if(new_axiom == -1 || min_pairs > pairs) {
-                new_axiom = a;
-                min_pairs = pairs;
+
+        if(num_axioms_used == AXIOMS-1) {
+            new_axiom = last_axiom;
+        }
+        else {
+        
+            // Choose the one with the least number of pairs
+            T_RAYIX min_pairs;
+            AXIOM_LOOP(a) {
+                if(axioms_used[a] || a == last_axiom) continue;
+                T_RAYIX pairs = new_axiom_ray_pairs(a);
+                printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
+                if(new_axiom == -1 || min_pairs > pairs) {
+                    new_axiom = a;
+                    min_pairs = pairs;
+                }
             }
-        }
-        */
         
-        // Choose a random one
-        assert(AXIOMS < 511, "rnd mask");
-        while(1) {
-            new_axiom = (rand() & 511);
-            if(new_axiom < AXIOMS && axioms_used[new_axiom] == 0) break;
+            /*
+            // Choose a random one
+            assert(AXIOMS < 511, "rnd mask");
+            while(1) {
+                new_axiom = (rand() & 511);
+                if(new_axiom < AXIOMS && axioms_used[new_axiom] == 0 && new_axiom != last_axiom) break;
+            }
+            */
+            
         }
         
-        printf("Chose axiom #%d to add next\n", new_axiom);
-        apply_axiom(new_axiom);
+        T_RAYIX will_process_pairs = new_axiom_ray_pairs(new_axiom);
+        printf("will_apply_axiom=%d will_process_pairs=%zu\n", new_axiom, will_process_pairs); fflush(stdout);
+        if(will_process_pairs > 250000LLU*250000LLU) { printf("TOOMANYPAIRS\n"); return; }
+        
+        apply_axiom(new_axiom); // changes axioms_used and num_axioms_used
+        fflush(stdout);
         
         if(num_axioms_used == AXIOMS) break;
     }
@@ -592,11 +606,15 @@ void slicer(void) {
 
 int main(void) {
     srand(time(NULL) + getpid());
-    util_init();
-    so_init();    
-    rs_init(AXIOMS); // total number of faces
+    
 
-    slicer();
+    for(int last_axiom=0; last_axiom<AXIOMS; last_axiom++) {
+        main_init();
+        util_init();
+        so_init();    
+        rs_init(AXIOMS); // total number of faces
+        slicer(last_axiom);
+    }
     
     return 0;
 }
