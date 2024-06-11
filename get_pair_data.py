@@ -6,7 +6,7 @@ import re
 import json
 
 STATE = "filebegin"
-AXIOM_SET = set()
+AXIOM_SET = []
 EXPERIENCES = []
 
 for line in sys.stdin:
@@ -14,7 +14,11 @@ for line in sys.stdin:
         if re.search(r"SLICER_STARTING", line):
             m = re.search(r"VARS=([0-9]+)", line)
             VARS=int(m.group(1))
-            AXIOM_SET = set()
+            
+            m = re.search(r"AXIOMS=([0-9]+)", line)
+            AXIOMS=int(m.group(1))
+            
+            AXIOM_SET = []
             STATE="init"
             continue
     
@@ -24,7 +28,7 @@ for line in sys.stdin:
             init_axioms = m.group(1).split(',')[:-1]
             assert len(init_axioms) == VARS
             for a in init_axioms:
-                AXIOM_SET.add(int(a))
+                AXIOM_SET.append(int(a))
             STATE="initends"
             continue
         
@@ -50,14 +54,14 @@ for line in sys.stdin:
         m = re.search(r"total_elapsed_time=([0-9\.]+)", line)
         if m:
             EXPERIENCES[-1]['total_time'] = float(m.group(1))
-            AXIOM_SET = set()
+            AXIOM_SET = []
             STATE='init'
             continue
         
     if STATE=="axiomheader":
         if re.search(r"TOOMANYPAIRS", line):
             EXPERIENCES[-1]['too_many'] = 1
-            AXIOM_SET = set()
+            AXIOM_SET = []
             STATE='init'
             continue
 
@@ -66,20 +70,20 @@ for line in sys.stdin:
             assert NEW_AXIOM == int(m.group(1))
             m = re.search(r"total_rays=([0-9]+)", line)
             EXPERIENCES[-1]['result_rays'] = int(m.group(1))
-            AXIOM_SET.add(NEW_AXIOM)
+            AXIOM_SET.append(NEW_AXIOM)
             STATE='axiombegins'
             continue
 
 for e in EXPERIENCES:
     o = []
-    if e.get('total_time'):
-        o.append(f"E")
+    o.append(f"Step={len(e['prev_axioms'])+1}")
     if e.get('too_many'):
         o.append("TooManyRayPairs")
     o.append(f"ResultRays={e.get('result_rays')}")
     o.append(f"RayPairs={e.get('ray_pairs')}")
     o.append(f"NewAxiom={e.get('new_axiom')}")
-    o.append(f"PrevAxioms={','.join([str(x) for x in e['prev_axioms']])}")
+    o.append(f"""PrevAxioms={','.join([str(x) for x in e['prev_axioms']] + [f'+{e["new_axiom"]}'])}""")
+    o.append(f"MissingAxioms={','.join([str(x) for x in range(AXIOMS) if x not in e['prev_axioms'] and x != e['new_axiom']])}")
     if e.get('total_time'):
         o.append(f"TotalTime={e.get('total_time')}")
-    print(', '.join(o))
+    print(' '.join(o))

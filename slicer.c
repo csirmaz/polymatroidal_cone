@@ -270,7 +270,10 @@ void *check_pairs(void *my_thread_num) {
                         break;
                     }
                 }            
-                if(!good) { skip_test++; continue; }
+                if(!good) { 
+                    skip_test++; 
+                    continue;
+                }
             #endif
             
             #ifdef ALGEBRAIC_TEST
@@ -439,18 +442,18 @@ void apply_axiom(int axiom_ix) {
 }
 
 
-void slicer(int last_axiom) {
+void slicer(int vary_axiom) {
     struct timeval start_time, end_time;
     
     printf("SLICER_STARTING LABEL=%s VARS=%d AXIOMS=%d\n", LABEL, VARS, AXIOMS);
-    printf("Last axiom: %d\n", last_axiom);
+    printf("Last but one axiom: %d\n", vary_axiom );
     
     // First we search for VARS independent axioms
     printf("Finding initial independent axioms...\n");
 
     int next_axiom = 0;
     while(1) {
-        if(next_axiom == last_axiom) { next_axiom++; continue; }
+        if(next_axiom == vary_axiom || next_axiom==0 || next_axiom==8 || next_axiom==24) { next_axiom++; continue; } // {EXPLORE}
         
         axioms_used[next_axiom] = num_axioms_used+1; // use a 1-based index to mark them
         printf("add #%d ", next_axiom); // DEBUG
@@ -549,14 +552,23 @@ void slicer(int last_axiom) {
         int new_axiom = -1;
 
         if(num_axioms_used == AXIOMS-1) {
-            new_axiom = last_axiom;
+            new_axiom = 0;
+        }
+        else if(num_axioms_used == AXIOMS-2) {
+            new_axiom = 8;
+        }
+        else if(num_axioms_used == AXIOMS-3) {
+            new_axiom = 24;
+        }
+        else if(num_axioms_used == AXIOMS-4) { // {EXPLORE}
+            new_axiom = vary_axiom;
         }
         else {
         
             // Choose the one with the least number of pairs
             T_RAYIX min_pairs;
             AXIOM_LOOP(a) {
-                if(axioms_used[a] || a == last_axiom) continue;
+                if(axioms_used[a] || a==vary_axiom || a==0 || a==8 || a==24) continue; // {EXPLORE}
                 T_RAYIX pairs = new_axiom_ray_pairs(a);
                 printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
                 if(new_axiom == -1 || min_pairs > pairs) {
@@ -588,7 +600,12 @@ void slicer(int last_axiom) {
     gettimeofday(&end_time, NULL);
     double elapsed = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
     
-    AXIOM_LOOP(a) assert(axioms_used[a] != 0, "axioms remain");
+    AXIOM_LOOP(a) {
+        if(axioms_used[a] == 0) {
+            printf("Axiom %d is still unused\n", a);
+            assert(0, "axioms remain");
+        }
+    }
     
     #ifdef COMBINATORIAL_TEST
         printf("Used combinatorial test\n");
@@ -606,14 +623,16 @@ void slicer(int last_axiom) {
 
 int main(void) {
     srand(time(NULL) + getpid());
-    
 
-    for(int last_axiom=0; last_axiom<AXIOMS; last_axiom++) {
+    for(int vary_axiom=0; vary_axiom<AXIOMS; vary_axiom++) {
+        if(vary_axiom==0) continue; // last axioms
+        if(vary_axiom==8) continue; // last axioms
+        if(vary_axiom==24) continue; // last axioms {EXPLORE}
         main_init();
         util_init();
         so_init();    
         rs_init(AXIOMS); // total number of faces
-        slicer(last_axiom);
+        slicer(vary_axiom);
     }
     
     return 0;
