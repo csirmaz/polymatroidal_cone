@@ -454,7 +454,9 @@ void slicer(int vary_axiom) {
     int next_axiom = 0;
     while(1) {
         if(next_axiom == vary_axiom || next_axiom==0 || next_axiom==8 || next_axiom==24 || next_axiom==48 || next_axiom==7
-            || next_axiom==15 || next_axiom==31 || next_axiom==55 || next_axiom==18
+            || next_axiom==15 || next_axiom==31 || next_axiom==55 || next_axiom==18 || next_axiom==34 || next_axiom==42
+            || next_axiom==58 || next_axiom==66 || next_axiom==20 || next_axiom==16 || next_axiom==17 || next_axiom==79
+            || next_axiom==78 || next_axiom==72 || next_axiom==75 || next_axiom==77
         ) { next_axiom++; continue; } // {EXPLORE}
         
         axioms_used[next_axiom] = num_axioms_used+1; // use a 1-based index to mark them
@@ -562,7 +564,19 @@ void slicer(int vary_axiom) {
         else if(num_axioms_used == AXIOMS-7) { new_axiom = 31; }
         else if(num_axioms_used == AXIOMS-8) { new_axiom = 55; }
         else if(num_axioms_used == AXIOMS-9) { new_axiom = 18; }
-        else if(num_axioms_used == AXIOMS-10) { // {EXPLORE}
+        else if(num_axioms_used == AXIOMS-10) { new_axiom = 34; }
+        else if(num_axioms_used == AXIOMS-11) { new_axiom = 42; }
+        else if(num_axioms_used == AXIOMS-12) { new_axiom = 58; }
+        else if(num_axioms_used == AXIOMS-13) { new_axiom = 66; }
+        else if(num_axioms_used == AXIOMS-14) { new_axiom = 20; }
+        else if(num_axioms_used == AXIOMS-15) { new_axiom = 16; }
+        else if(num_axioms_used == AXIOMS-16) { new_axiom = 17; }
+        else if(num_axioms_used == AXIOMS-17) { new_axiom = 79; }
+        else if(num_axioms_used == AXIOMS-18) { new_axiom = 78; }
+        else if(num_axioms_used == AXIOMS-19) { new_axiom = 72; }
+        else if(num_axioms_used == AXIOMS-20) { new_axiom = 75; }
+        else if(num_axioms_used == AXIOMS-21) { new_axiom = 77; }
+        else if(num_axioms_used == AXIOMS-22) { // {EXPLORE}
             new_axiom = vary_axiom;
         }
         else {
@@ -571,7 +585,8 @@ void slicer(int vary_axiom) {
             T_RAYIX min_pairs;
             AXIOM_LOOP(a) {
                 if(axioms_used[a] || a==vary_axiom || a==0 || a==8 || a==24 || a==48 || a==7 || a==15 || a==31 || a==55 
-                    || a==18) continue; // {EXPLORE}
+                    || a==18 || a==34 || a==42 || a==58 || a==66 || a==20 || a==16 || a==17 || a==79 || a==78 || a==72
+                    || a==75 || a==77) continue; // {EXPLORE}
                 T_RAYIX pairs = new_axiom_ray_pairs(a);
                 printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
                 if(new_axiom == -1 || min_pairs > pairs) {
@@ -599,7 +614,7 @@ void slicer(int vary_axiom) {
         fflush(stdout);
         
         if(num_axioms_used == AXIOMS) break;
-        if(num_axioms_used > AXIOMS-10) break; // {EXPLORE}
+        if(num_axioms_used > AXIOMS-22) break; // {EXPLORE}
     }
     gettimeofday(&end_time, NULL);
     double elapsed = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
@@ -642,6 +657,18 @@ int main(void) {
         if(vary_axiom==31) continue; // last axioms 
         if(vary_axiom==55) continue; // last axioms 
         if(vary_axiom==18) continue; // last axioms 
+        if(vary_axiom==34) continue; // last axioms 
+        if(vary_axiom==42) continue; // last axioms 
+        if(vary_axiom==58) continue; // last axioms 
+        if(vary_axiom==66) continue; // last axioms 
+        if(vary_axiom==20) continue; // last axioms 
+        if(vary_axiom==16) continue; // last axioms 
+        if(vary_axiom==17) continue; // last axioms 
+        if(vary_axiom==79) continue; // last axioms 
+        if(vary_axiom==78) continue; // last axioms 
+        if(vary_axiom==72) continue; // last axioms 
+        if(vary_axiom==75) continue; // last axioms 
+        if(vary_axiom==77) continue; // last axioms 
         // {EXPLORE}
         main_init();
         util_init();
