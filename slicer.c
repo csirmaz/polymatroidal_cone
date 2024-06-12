@@ -453,7 +453,9 @@ void slicer(int vary_axiom) {
 
     int next_axiom = 0;
     while(1) {
-        if(next_axiom == vary_axiom || next_axiom==0 || next_axiom==8 || next_axiom==24) { next_axiom++; continue; } // {EXPLORE}
+        if(next_axiom == vary_axiom || next_axiom==0 || next_axiom==8 || next_axiom==24 || next_axiom==48 || next_axiom==7
+            || next_axiom==15 || next_axiom==31 || next_axiom==55 || next_axiom==18
+        ) { next_axiom++; continue; } // {EXPLORE}
         
         axioms_used[next_axiom] = num_axioms_used+1; // use a 1-based index to mark them
         printf("add #%d ", next_axiom); // DEBUG
@@ -551,16 +553,16 @@ void slicer(int vary_axiom) {
         printf("Choosing which axiom/face to use next...\n"); fflush(stdout);
         int new_axiom = -1;
 
-        if(num_axioms_used == AXIOMS-1) {
-            new_axiom = 0;
-        }
-        else if(num_axioms_used == AXIOMS-2) {
-            new_axiom = 8;
-        }
-        else if(num_axioms_used == AXIOMS-3) {
-            new_axiom = 24;
-        }
-        else if(num_axioms_used == AXIOMS-4) { // {EXPLORE}
+        if(num_axioms_used == AXIOMS-1) { new_axiom = 0; }
+        else if(num_axioms_used == AXIOMS-2) { new_axiom = 8; }
+        else if(num_axioms_used == AXIOMS-3) { new_axiom = 24; }
+        else if(num_axioms_used == AXIOMS-4) { new_axiom = 48; }
+        else if(num_axioms_used == AXIOMS-5) { new_axiom = 7; }
+        else if(num_axioms_used == AXIOMS-6) { new_axiom = 15; }
+        else if(num_axioms_used == AXIOMS-7) { new_axiom = 31; }
+        else if(num_axioms_used == AXIOMS-8) { new_axiom = 55; }
+        else if(num_axioms_used == AXIOMS-9) { new_axiom = 18; }
+        else if(num_axioms_used == AXIOMS-10) { // {EXPLORE}
             new_axiom = vary_axiom;
         }
         else {
@@ -568,7 +570,8 @@ void slicer(int vary_axiom) {
             // Choose the one with the least number of pairs
             T_RAYIX min_pairs;
             AXIOM_LOOP(a) {
-                if(axioms_used[a] || a==vary_axiom || a==0 || a==8 || a==24) continue; // {EXPLORE}
+                if(axioms_used[a] || a==vary_axiom || a==0 || a==8 || a==24 || a==48 || a==7 || a==15 || a==31 || a==55 
+                    || a==18) continue; // {EXPLORE}
                 T_RAYIX pairs = new_axiom_ray_pairs(a);
                 printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
                 if(new_axiom == -1 || min_pairs > pairs) {
@@ -596,16 +599,19 @@ void slicer(int vary_axiom) {
         fflush(stdout);
         
         if(num_axioms_used == AXIOMS) break;
+        if(num_axioms_used > AXIOMS-10) break; // {EXPLORE}
     }
     gettimeofday(&end_time, NULL);
     double elapsed = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
     
+    /*
     AXIOM_LOOP(a) {
         if(axioms_used[a] == 0) {
             printf("Axiom %d is still unused\n", a);
             assert(0, "axioms remain");
         }
     }
+    */
     
     #ifdef COMBINATORIAL_TEST
         printf("Used combinatorial test\n");
@@ -615,9 +621,11 @@ void slicer(int vary_axiom) {
     #endif
     printf("SET_N=%d threads=%d total_elapsed_time=%.1f TOTAL_RAYS=%zu\n", SET_N, NUM_THREADS, elapsed, RS_STORE_RANGE); fflush(stdout);
     
+    /*
     #if SET_N == 5
         printf("Number of rays "); if(RS_STORE_RANGE == 117978) { printf("OK!\n"); } else { printf("not as expected!!\n"); exit(1); }
     #endif
+    */
 }
 
 
@@ -627,7 +635,14 @@ int main(void) {
     for(int vary_axiom=0; vary_axiom<AXIOMS; vary_axiom++) {
         if(vary_axiom==0) continue; // last axioms
         if(vary_axiom==8) continue; // last axioms
-        if(vary_axiom==24) continue; // last axioms {EXPLORE}
+        if(vary_axiom==24) continue; // last axioms
+        if(vary_axiom==48) continue; // last axioms
+        if(vary_axiom==7) continue; // last axioms 
+        if(vary_axiom==15) continue; // last axioms 
+        if(vary_axiom==31) continue; // last axioms 
+        if(vary_axiom==55) continue; // last axioms 
+        if(vary_axiom==18) continue; // last axioms 
+        // {EXPLORE}
         main_init();
         util_init();
         so_init();    
