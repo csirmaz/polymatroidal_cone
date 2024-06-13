@@ -36,11 +36,11 @@
     // These are from the end backwards!
     #define FIX_AXIOMS 0
     // Optimizing for number of ray pairs
-    #define FIX_AXIOMS_AVAIL 21
-    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77};
+    // #define FIX_AXIOMS_AVAIL 21
+    // int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77};
     // Optimizing for number of rays
-    // #define FIX_AXIOMS_AVAIL 5
-    // int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16}
+    #define FIX_AXIOMS_AVAIL 5
+    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16};
 #else
 #include "data/axioms6.c"
     #define FIX_AXIOMS 0
@@ -616,7 +616,7 @@ void slicer(int vary_axiom) {
         fflush(stdout);
         
         if(num_axioms_used == AXIOMS) break;
-        // if(num_axioms_used > AXIOMS-FIX_AXIOMS-1) break; // Early stop
+        if(num_axioms_used > AXIOMS-FIX_AXIOMS-1) break; // Early stop
     }
     gettimeofday(&end_time, NULL);
     double elapsed = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
