@@ -34,7 +34,7 @@
 #elif AXIOMS_FILE == 5
 #include "data/axioms5.c"
     // These are from the end backwards!
-    #define FIX_AXIOMS 0
+    #define FIX_AXIOMS 5
     // Optimizing for number of ray pairs
     // #define FIX_AXIOMS_AVAIL 21
     // int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77};
@@ -463,7 +463,7 @@ void slicer(int vary_axiom) {
     struct timeval start_time, end_time;
     
     printf("SLICER_STARTING LABEL=%s VARS=%d AXIOMS=%d\n", LABEL, VARS, AXIOMS);
-    printf("Last but one axiom: %d\n", vary_axiom );
+    printf("vary_axiom=%d\n", vary_axiom );
     
     // First we search for VARS independent axioms
     printf("Finding initial independent axioms...\n");
@@ -575,7 +575,7 @@ void slicer(int vary_axiom) {
         int new_axiom = -1;
         
         // Use a fixed axiom if available
-        for(int si=0; si<FIX_AXIOMS; si++) if(num_axioms_used == AXIOMS-1-si) next_axiom = fixed_axioms[si];
+        for(int si=0; si<FIX_AXIOMS; si++) if(num_axioms_used == AXIOMS-1-si) new_axiom = fixed_axioms[si];
         if(vary_axiom>-1 && num_axioms_used == AXIOMS-FIX_AXIOMS-1) new_axiom = vary_axiom;
         if(new_axiom == -1) {
         
@@ -584,10 +584,10 @@ void slicer(int vary_axiom) {
             AXIOM_LOOP(a) {
                 // Avoid used and fixed axioms
                 if(axioms_used[a]) continue;
-                int fixed_found;
+                int fixed_found = 0;
                 for(int si=0; si<FIX_AXIOMS; si++) if(a == fixed_axioms[si]) { fixed_found=1; break; }
                 if(fixed_found) continue;
-                if(vary_axiom>-1 && a==vary_axiom) continue;
+                if(vary_axiom!=-1 && a==vary_axiom) continue;
 
                 T_RAYIX pairs = new_axiom_ray_pairs(a);
                 printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
