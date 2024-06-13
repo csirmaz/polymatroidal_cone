@@ -38,6 +38,9 @@
     // Optimizing for number of ray pairs
     #define FIX_AXIOMS_AVAIL 21
     int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77};
+    // Optimizing for number of rays
+    // #define FIX_AXIOMS_AVAIL 5
+    // int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16}
 #else
 #include "data/axioms6.c"
     #define FIX_AXIOMS 0
