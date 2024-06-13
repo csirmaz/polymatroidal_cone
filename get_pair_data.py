@@ -1,10 +1,12 @@
 
 # From the output of "make slicer_run_*" get the number of rays and pairs from the processed axioms
+# Usage: python get_pair_data.py N where N is -1 to show all data or only print data for step N
 
 import sys
 import re
 import json
 
+OUT_STEP = int(sys.argv[1])
 STATE = "filebegin"
 AXIOM_SET = []
 EXPERIENCES = []
@@ -151,7 +153,16 @@ for line in sys.stdin:
             AXIOM_SET = []
             STATE='init'
             continue
-
+        
+        m = re.search(r"applying_axiom=([0-9]+)", line)
+        if m:
+            assert NEW_AXIOM == int(m.group(1))
+            m = re.search(r"prev_total_rays=([0-9]+)", line)
+            PREV_RAYS = int(m.group(1))
+            EXPERIENCES[-1]['prev_rays'] = PREV_RAYS
+            STATE='axiombody'
+            
+    if STATE=='axiombody':
         m = re.search(r"applied_axiom=([0-9]+)", line)
         if m:
             assert NEW_AXIOM == int(m.group(1))
@@ -162,13 +173,16 @@ for line in sys.stdin:
             continue
 
 def printw(v, n):
+    # print v at width n
     x = str(v)
     while len(x) < n:
         x = " "+x
     return x
 
 max_ray_pairs = {i:None for i in range(AXIOMS+1)}
-pairs_to_axiom = {i:[] for i in range(AXIOMS+1)}
+max_prev_rays = {i:None for i in range(AXIOMS+1)}
+pairs_to_axiom = {i:[] for i in range(AXIOMS+1)} # number of ray pairs to axiom
+rays_to_axiom = {i:[] for i in range(AXIOMS+1)} # number of prev rays to axiom
 
 for e in EXPERIENCES:
     step = len(e['prev_axioms'])+1
@@ -176,6 +190,9 @@ for e in EXPERIENCES:
     o.append(f"Step={step}")
     if e.get('too_many'):
         o.append("TooManyRayPairs")
+    o.append(f"PrevRays={printw(e.get('prev_rays'), 6)}")
+    if max_prev_rays[step] is None or e['prev_rays'] > max_prev_rays[step]:
+        max_prev_rays[step] = e['prev_rays']
     o.append(f"ResultRays={printw(e.get('result_rays'), 6)}")
     o.append(f"RayPairs={printw(e.get('ray_pairs'), 10)}")
     if max_ray_pairs[step] is None or e['ray_pairs'] > max_ray_pairs[step]:
@@ -185,17 +202,42 @@ for e in EXPERIENCES:
     o.append(f"MissingAxioms={','.join([str(x) for x in range(AXIOMS) if x not in e['prev_axioms'] and x != e['new_axiom']])}")
     if e.get('total_time'):
         o.append(f"TotalTime={e.get('total_time')}")
-    print(' '.join(o))
+
+    if OUT_STEP == -1 or OUT_STEP == step:
+        print(' '.join(o))
+
     pairs_to_axiom[step].append({'ray_pairs': e['ray_pairs'], 'new_axiom': e['new_axiom']})
+    rays_to_axiom[step].append({'prev_rays': e['prev_rays'], 'new_axiom': e['new_axiom']})
 
 print()
+print("Ordered by number of ray pairs:")
 
 for step in range(AXIOMS+1):
-    pairs_to_axiom[step].sort(key=lambda x: x['ray_pairs'])
-    for e in pairs_to_axiom[step]:
-        o = []
-        o.append(f"Step={step}")
-        d = int(e['ray_pairs']*30/max_ray_pairs[step]+.5)
-        o.append("#"*d + "."*(30-d))
-        o.append(N_5_AXIOMS[e['new_axiom']])
-        print(' '.join(o))
+    if OUT_STEP==-1 or OUT_STEP==step:
+        pairs_to_axiom[step].sort(key=lambda x: x['ray_pairs'])
+        for e in pairs_to_axiom[step]:
+            o = []
+            o.append(f"Step={step}")
+            d = int(e['ray_pairs']*30/max_ray_pairs[step]+.5)
+            o.append("#"*d + "."*(30-d))
+            if e['ray_pairs'] == pairs_to_axiom[step][0]['ray_pairs']:
+                o.append("(min)")
+            o.append(N_5_AXIOMS[e['new_axiom']])
+            print(' '.join(o))
+
+print()
+print("Ordered by number of previous rays:")
+
+for step in range(AXIOMS+1):
+    if OUT_STEP==-1 or OUT_STEP==step:
+        rays_to_axiom[step].sort(key=lambda x: x['prev_rays'])
+        for e in rays_to_axiom[step]:
+            o = []
+            o.append(f"Step={step}")
+            d = int(e['prev_rays']*30/max_prev_rays[step]+.5)
+            o.append("$"*d + "."*(30-d))
+            if e['prev_rays'] == rays_to_axiom[step][0]['prev_rays']:
+                o.append("(min)")
+            o.append(N_5_AXIOMS[e['new_axiom']])
+            print(' '.join(o))
+

@@ -33,10 +33,22 @@
 #include "data/axioms4.c"
 #elif AXIOMS_FILE == 5
 #include "data/axioms5.c"
+    // These are from the end backwards!
+    #define FIX_AXIOMS 0
+    // Optimizing for number of ray pairs
+    #define FIX_AXIOMS_AVAIL 21
+    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77};
 #else
 #include "data/axioms6.c"
+    #define FIX_AXIOMS 0
+    #define FIX_AXIOMS_AVAIL 0
+    int fixed_axioms[FIX_AXIOMS_AVAIL] = {};
 #endif
 
+#if FIX_AXIOMS > FIX_AXIOMS_AVAIL
+#error Trying to fix too many axioms
+#endif
+    
 // Length of a vector
 #define VECLEN VARS
 #define T_VEC(a) T_ELEM a[VECLEN]
@@ -442,6 +454,8 @@ void apply_axiom(int axiom_ix) {
 }
 
 
+// The main slicer method that bootstraps with VARS axioms and repeatedly adds faces
+// Use vary_axiom to force using that before any fixed ones, or -1 to ignore.
 void slicer(int vary_axiom) {
     struct timeval start_time, end_time;
     
@@ -453,11 +467,13 @@ void slicer(int vary_axiom) {
 
     int next_axiom = 0;
     while(1) {
-        if(next_axiom == vary_axiom || next_axiom==0 || next_axiom==8 || next_axiom==24 || next_axiom==48 || next_axiom==7
-            || next_axiom==15 || next_axiom==31 || next_axiom==55 || next_axiom==18 || next_axiom==34 || next_axiom==42
-            || next_axiom==58 || next_axiom==66 || next_axiom==20 || next_axiom==16 || next_axiom==17 || next_axiom==79
-            || next_axiom==78 || next_axiom==72 || next_axiom==75 || next_axiom==77
-        ) { next_axiom++; continue; } // {EXPLORE}
+        // Avoid any fixed axioms
+        if(vary_axiom != -1 && next_axiom == vary_axiom) { next_axiom++; continue; }
+        int fixed_found = 0;
+        for(int si=0; si<FIX_AXIOMS; si++) {
+            if(next_axiom == fixed_axioms[si]) { fixed_found=1; break; }
+        }
+        if(fixed_found) { next_axiom++; continue; }
         
         axioms_used[next_axiom] = num_axioms_used+1; // use a 1-based index to mark them
         printf("add #%d ", next_axiom); // DEBUG
@@ -554,39 +570,22 @@ void slicer(int vary_axiom) {
         // Choose the next axiom that has the least ray pairs
         printf("Choosing which axiom/face to use next...\n"); fflush(stdout);
         int new_axiom = -1;
-
-        if(num_axioms_used == AXIOMS-1) { new_axiom = 0; }
-        else if(num_axioms_used == AXIOMS-2) { new_axiom = 8; }
-        else if(num_axioms_used == AXIOMS-3) { new_axiom = 24; }
-        else if(num_axioms_used == AXIOMS-4) { new_axiom = 48; }
-        else if(num_axioms_used == AXIOMS-5) { new_axiom = 7; }
-        else if(num_axioms_used == AXIOMS-6) { new_axiom = 15; }
-        else if(num_axioms_used == AXIOMS-7) { new_axiom = 31; }
-        else if(num_axioms_used == AXIOMS-8) { new_axiom = 55; }
-        else if(num_axioms_used == AXIOMS-9) { new_axiom = 18; }
-        else if(num_axioms_used == AXIOMS-10) { new_axiom = 34; }
-        else if(num_axioms_used == AXIOMS-11) { new_axiom = 42; }
-        else if(num_axioms_used == AXIOMS-12) { new_axiom = 58; }
-        else if(num_axioms_used == AXIOMS-13) { new_axiom = 66; }
-        else if(num_axioms_used == AXIOMS-14) { new_axiom = 20; }
-        else if(num_axioms_used == AXIOMS-15) { new_axiom = 16; }
-        else if(num_axioms_used == AXIOMS-16) { new_axiom = 17; }
-        else if(num_axioms_used == AXIOMS-17) { new_axiom = 79; }
-        else if(num_axioms_used == AXIOMS-18) { new_axiom = 78; }
-        else if(num_axioms_used == AXIOMS-19) { new_axiom = 72; }
-        else if(num_axioms_used == AXIOMS-20) { new_axiom = 75; }
-        else if(num_axioms_used == AXIOMS-21) { new_axiom = 77; }
-        else if(num_axioms_used == AXIOMS-22) { // {EXPLORE}
-            new_axiom = vary_axiom;
-        }
-        else {
+        
+        // Use a fixed axiom if available
+        for(int si=0; si<FIX_AXIOMS; si++) if(num_axioms_used == AXIOMS-1-si) next_axiom = fixed_axioms[si];
+        if(vary_axiom>-1 && num_axioms_used == AXIOMS-FIX_AXIOMS-1) new_axiom = vary_axiom;
+        if(new_axiom == -1) {
         
             // Choose the one with the least number of pairs
             T_RAYIX min_pairs;
             AXIOM_LOOP(a) {
-                if(axioms_used[a] || a==vary_axiom || a==0 || a==8 || a==24 || a==48 || a==7 || a==15 || a==31 || a==55 
-                    || a==18 || a==34 || a==42 || a==58 || a==66 || a==20 || a==16 || a==17 || a==79 || a==78 || a==72
-                    || a==75 || a==77) continue; // {EXPLORE}
+                // Avoid used and fixed axioms
+                if(axioms_used[a]) continue;
+                int fixed_found;
+                for(int si=0; si<FIX_AXIOMS; si++) if(a == fixed_axioms[si]) { fixed_found=1; break; }
+                if(fixed_found) continue;
+                if(vary_axiom>-1 && a==vary_axiom) continue;
+
                 T_RAYIX pairs = new_axiom_ray_pairs(a);
                 printf("  Axiom #%d would result in %zu ray pairs\n", a, pairs); // DEBUG
                 if(new_axiom == -1 || min_pairs > pairs) {
@@ -596,7 +595,7 @@ void slicer(int vary_axiom) {
             }
         
             /*
-            // Choose a random one
+            // Choose a random one TODO Avoid fixed axioms
             assert(AXIOMS < 511, "rnd mask");
             while(1) {
                 new_axiom = (rand() & 511);
@@ -614,7 +613,7 @@ void slicer(int vary_axiom) {
         fflush(stdout);
         
         if(num_axioms_used == AXIOMS) break;
-        if(num_axioms_used > AXIOMS-22) break; // {EXPLORE}
+        // if(num_axioms_used > AXIOMS-FIX_AXIOMS-1) break; // Early stop
     }
     gettimeofday(&end_time, NULL);
     double elapsed = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
@@ -647,29 +646,13 @@ void slicer(int vary_axiom) {
 int main(void) {
     srand(time(NULL) + getpid());
 
+    // Experiments using all axioms
     for(int vary_axiom=0; vary_axiom<AXIOMS; vary_axiom++) {
-        if(vary_axiom==0) continue; // last axioms
-        if(vary_axiom==8) continue; // last axioms
-        if(vary_axiom==24) continue; // last axioms
-        if(vary_axiom==48) continue; // last axioms
-        if(vary_axiom==7) continue; // last axioms 
-        if(vary_axiom==15) continue; // last axioms 
-        if(vary_axiom==31) continue; // last axioms 
-        if(vary_axiom==55) continue; // last axioms 
-        if(vary_axiom==18) continue; // last axioms 
-        if(vary_axiom==34) continue; // last axioms 
-        if(vary_axiom==42) continue; // last axioms 
-        if(vary_axiom==58) continue; // last axioms 
-        if(vary_axiom==66) continue; // last axioms 
-        if(vary_axiom==20) continue; // last axioms 
-        if(vary_axiom==16) continue; // last axioms 
-        if(vary_axiom==17) continue; // last axioms 
-        if(vary_axiom==79) continue; // last axioms 
-        if(vary_axiom==78) continue; // last axioms 
-        if(vary_axiom==72) continue; // last axioms 
-        if(vary_axiom==75) continue; // last axioms 
-        if(vary_axiom==77) continue; // last axioms 
-        // {EXPLORE}
+        // Don't try fixed axioms
+        int fixed_found = 0;
+        for(int si=0; si<FIX_AXIOMS; si++) if(vary_axiom == fixed_axioms[si]) { fixed_found=1; break; }
+        if(fixed_found) continue;
+
         main_init();
         util_init();
         so_init();    
