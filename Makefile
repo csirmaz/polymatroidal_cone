@@ -12,12 +12,16 @@ data/axioms4.c: get_axioms.py
 data/axioms5.c: get_axioms.py
 	python get_axioms.py 5 > data/axioms5.c
 
+data/axioms5i.c: get_axioms.py
+	python get_axioms.py 5 i > data/axioms5i.c
+
 data/axioms6.c: get_axioms.py
 	python get_axioms.py 6 > data/axioms6.c
 
-c_sources: data/axioms4.c data/axioms5.c data/axioms6.c
+c_sources: data/axioms4.c data/axioms5.c data/axioms5i.c data/axioms6.c
 	./strip_debug.pl $(remove_lines) < data/axioms4.c > data/axioms4.strp.c
 	./strip_debug.pl $(remove_lines) < data/axioms5.c > data/axioms5.strp.c
+	./strip_debug.pl $(remove_lines) < data/axioms5i.c > data/axioms5i.strp.c
 	./strip_debug.pl $(remove_lines) < data/axioms6.c > data/axioms6.strp.c
 	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
 	./strip_debug.pl $(remove_lines) < slicer_dependency_check.c > slicer_dependency_check.strp.c
@@ -37,6 +41,10 @@ slicer_run_4: c_sources
 
 slicer_run_5: c_sources
 	gcc -lm -O3 -DAXIOMS_FILE=5 slicer.strp.c -o slicer -pthread
+	./slicer
+
+slicer_run_5_i: c_sources
+	gcc -lm -O3 -DAXIOMS_FILE=500 slicer.strp.c -o slicer -pthread
 	./slicer
 
 slicer_run_6: c_sources

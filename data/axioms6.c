@@ -1,6 +1,8 @@
 #define LABEL "SET_N=6 TIGHT=True"
 #define SET_N 6
 #define AXIOMS 240
+#define REAL_AXIOMS 240 // Without "identity" axioms
+#define HAS_IDENTITY_AXIOMS 0
 #define VARS 57
 T_ELEM axioms[AXIOMS][VARS] = {
 {1,1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0} /* Axiom0 Group0 f({0}) + f({1}) >= f({0, 1})*/,

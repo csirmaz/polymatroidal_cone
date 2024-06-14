@@ -1,11 +1,13 @@
 
 # Create C code defining polymatroidal axioms
 # Optionally sort axioms into groups according to symmetries
-# Usage: python get_axioms.py (4|5|6)
+# Usage: python get_axioms.py (4|5|6) [i]
+# "i" notes whether "identity" axioms should be added
 
 import sys
 
 SET_N = int(sys.argv[1]) # number of elements in the base set
+ADD_IDENTITY = (len(sys.argv) >=3 and sys.argv[2] == 'i')
 TIGHT = True  # whether to consider tight matroids only
 MAKE_GROUPS = True # Whether to create groups of equivalent axioms when permuting the base set
 
@@ -278,13 +280,21 @@ def print_c_code():
     else:
         group_map = {i: '?' for i in range(len(axioms))}
     
+    VARS = len(axioms[0])
     print(f'#define LABEL "SET_N={SET_N} TIGHT={TIGHT}"')
     print(f'#define SET_N {SET_N}')
-    print(f'#define AXIOMS {len(axioms)}')
-    print(f'#define VARS {len(axioms[0])}')
+    print(f'#define AXIOMS {len(axioms) + (len(axioms[0]) if ADD_IDENTITY else 0)}')
+    print(f'#define REAL_AXIOMS {len(axioms)} // Without "identity" axioms')
+    print(f'#define HAS_IDENTITY_AXIOMS {1 if ADD_IDENTITY else 0}')
+    print(f'#define VARS {VARS}')
     out = []
     for i, e in enumerate(axioms):
         out.append('{'+','.join([str(x) for x in e]) + '} /* ' + f'Axiom{i} Group{group_map[i]} ' + display_expression(e) + '*/')
+    if ADD_IDENTITY:
+        for i in range(VARS):
+            onehot = [0 for x in range(VARS)]
+            onehot[i] = 1
+            out.append('{'+','.join([str(x) for x in onehot]) + '} /* identity */')
     print('T_ELEM axioms[AXIOMS][VARS] = {')
     print(',\n'.join(out))
     print('};')
@@ -293,6 +303,11 @@ def print_c_code():
     out = []
     for i, e in enumerate(axioms):
         out.append(f'"Axiom{i} Group{group_map[i]} {display_expression(e)}"')
+    if ADD_IDENTITY:
+        for i in range(VARS):
+            onehot = [0 for x in range(VARS)]
+            onehot[i] = 1
+            out.append(f'"Axiom{i+len(axioms)} GroupID {display_expression(onehot)}"')
     print('char* human_readable_axioms[AXIOMS] = {')
     print(',\n'.join(out))
     print('};')

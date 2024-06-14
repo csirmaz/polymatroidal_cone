@@ -11,8 +11,8 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-// #define DO_VARY_AXIOMS // whether to loop through and try axioms in front of the fixed ones
-// #define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
+#define DO_VARY_AXIOMS // whether to loop through and try axioms in front of the fixed ones
+#define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
@@ -36,13 +36,20 @@
 #elif AXIOMS_FILE == 5
 #include "data/axioms5.c"
     // These are from the end backwards!
-    #define FIX_AXIOMS 54
+    //// #define FIX_AXIOMS 0
     // Optimizing for number of ray pairs
-    // #define FIX_AXIOMS_AVAIL 54
-    // int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77, 27, 51, 1, 23, 28, 52, 73, 6, 14, 22, 3, 11, 5, 38, 62, 25, 26, 49, 74, 32, 40, 29, 53, 2, 10, 33, 71, 35, 57, 47, 37, 19, 41};
+    //// #define FIX_AXIOMS_AVAIL 54
+    //// int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77, 27, 51, 1, 23, 28, 52, 73, 6, 14, 22, 3, 11, 5, 38, 62, 25, 26, 49, 74, 32, 40, 29, 53, 2, 10, 33, 71, 35, 57, 47, 37, 19, 41};
     // Optimizing for number of rays
-    #define FIX_AXIOMS_AVAIL 54
-    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16, 32, 56, 40, 64, 7, 3, 44, 68, 76, 5, 1, 2, 4, 47, 71, 79, 15, 23, 31, 39, 55, 41, 45, 46, 42, 65, 69, 77, 70, 30, 14, 52, 28, 50, 12, 10, 26, 11, 19, 17, 18, 20, 34, 51, 9, 73, 33, 25, 49};
+    //// #define FIX_AXIOMS_AVAIL 54
+    //// int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16, 32, 56, 40, 64, 7, 3, 44, 68, 76, 5, 1, 2, 4, 47, 71, 79, 15, 23, 31, 39, 55, 41, 45, 46, 42, 65, 69, 77, 70, 30, 14, 52, 28, 50, 12, 10, 26, 11, 19, 17, 18, 20, 34, 51, 9, 73, 33, 25, 49};
+#elif AXIOMS_FILE == 500
+#include "data/axioms5i.c"
+    // These are from the end backwards!
+    #define FIX_AXIOMS 4
+    // Optimizing for number of rays, using identity axioms
+    #define FIX_AXIOMS_AVAIL 4
+    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48};
 #else
 #include "data/axioms6.c"
     #define FIX_AXIOMS 0
@@ -470,45 +477,53 @@ void slicer(int vary_axiom) {
     // First we search for VARS independent axioms
     printf("Finding initial independent axioms...\n");
 
-    int next_axiom = 0;
-    while(1) {
-        printf("Considering axiom %d for an initial axiom\n", next_axiom); // DEBUG
-        if(next_axiom >= AXIOMS) {
-            // We have not found a solution
-            printf("NO_INITIAL_AXIOMS\n"); fflush(stdout); return;
+    #if HAS_IDENTITY_AXIOMS
+        printf("Using identity axioms\n");
+        for(int a=REAL_AXIOMS; a<AXIOMS; a++) {
+            axioms_used[a] = a - REAL_AXIOMS + 1;
+            num_axioms_used++;
         }
-        // Avoid any fixed axioms
-        if(vary_axiom != -1 && next_axiom == vary_axiom) { next_axiom++; continue; }
-        int fixed_found = 0;
-        for(int si=0; si<FIX_AXIOMS; si++) {
-            if(next_axiom == fixed_axioms[si]) { fixed_found=1; break; }
+    #else
+        int next_axiom = 0;
+        while(1) {
+            printf("Considering axiom %d for an initial axiom\n", next_axiom); // DEBUG
+            if(next_axiom >= AXIOMS) {
+                // We have not found a solution
+                printf("NO_INITIAL_AXIOMS\n"); fflush(stdout); return;
+            }
+            // Avoid any fixed axioms
+            if(vary_axiom != -1 && next_axiom == vary_axiom) { next_axiom++; continue; }
+            int fixed_found = 0;
+            for(int si=0; si<FIX_AXIOMS; si++) {
+                if(next_axiom == fixed_axioms[si]) { fixed_found=1; break; }
+            }
+            if(fixed_found) { next_axiom++; continue; }
+            
+            axioms_used[next_axiom] = num_axioms_used+1; // use a 1-based index to mark them
+            printf("add #%d ", next_axiom); // DEBUG
+            num_axioms_used++;
+            next_axiom++;
+            
+            // Try them out with the solver to see if they are independent
+            so_init_matrix(0);
+            AXIOM_LOOP(a) if(axioms_used[a]) so_add_to_matrix(0, axioms[a]);
+            assert(so_rows_coll[0] == num_axioms_used, "Axiom init num");
+            int f = so_solve(0);
+            printf("-> freedoms=%d\n", f); // DEBUG
+            assert(f >= VARS - num_axioms_used, "Axiom init freedoms");
+            if(f == VARS - num_axioms_used) {
+                // They are independent
+                if(num_axioms_used == VARS) break;
+            }
+            else {
+                // Not independent
+                num_axioms_used--;
+                printf("removing %d\n", next_axiom-1); // DEBUG
+                axioms_used[next_axiom-1] = 0;
+            }
         }
-        if(fixed_found) { next_axiom++; continue; }
+    #endif
         
-        axioms_used[next_axiom] = num_axioms_used+1; // use a 1-based index to mark them
-        printf("add #%d ", next_axiom); // DEBUG
-        num_axioms_used++;
-        next_axiom++;
-        
-        // Try them out with the solver to see if they are independent
-        so_init_matrix(0);
-        AXIOM_LOOP(a) if(axioms_used[a]) so_add_to_matrix(0, axioms[a]);
-        assert(so_rows_coll[0] == num_axioms_used, "Axiom init num");
-        int f = so_solve(0);
-        printf("-> freedoms=%d\n", f); // DEBUG
-        assert(f >= VARS - num_axioms_used, "Axiom init freedoms");
-        if(f == VARS - num_axioms_used) {
-            // They are independent
-            if(num_axioms_used == VARS) break;
-        }
-        else {
-            // Not independent
-            num_axioms_used--;
-            printf("removing %d\n", next_axiom-1); // DEBUG
-            axioms_used[next_axiom-1] = 0;
-        }
-    }
-    
     assert(num_axioms_used == VARS, "initial num_axioms_used");
     printf("initial_axioms=");
     AXIOM_LOOP(a) if(axioms_used[a]) printf("%d, ", a);
@@ -661,7 +676,7 @@ int main(void) {
 
     // Experiments using all axioms
     #ifdef DO_VARY_AXIOMS
-    for(int vary_axiom=0; vary_axiom<AXIOMS; vary_axiom++) {
+    for(int vary_axiom=0; vary_axiom<REAL_AXIOMS; vary_axiom++) {
         // Don't try fixed axioms
         int fixed_found = 0;
         for(int si=0; si<FIX_AXIOMS; si++) if(vary_axiom == fixed_axioms[si]) { fixed_found=1; break; }

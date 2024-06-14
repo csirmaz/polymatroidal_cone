@@ -5,18 +5,20 @@ use strict;
 my $code = $ENV{'MATROID_CODE'};
 my $logs = $ENV{'MATROID_LOGS'};
 
-my $STEP = 59;
-my $MINSTEP = 26;
+my $STEP = 80-4;
+my $MINSTEP = 1;
 
 while(1) {
     
     print "RUNNING STEP $STEP\n";
     
-    my $output = $logs . "/by_ray/n5_vary".$STEP."_output";
+    my $output = $logs . "/by_ray_id/n5_vary".$STEP."_output";
+    # my $output = $logs . "/by_ray/n5_vary".$STEP."_output";
     # my $output = $logs . "/by_ray_pair/n5_vary".$STEP."_output";
 
     # Run slicer
-    `make slicer_run_5 > $output`;
+    `make slicer_run_5_i > $output`;
+    # `make slicer_run_5 > $output`;
     
     # Evaluate
     my $eval = `python $code/get_pair_data.py $STEP 5 < $output`;

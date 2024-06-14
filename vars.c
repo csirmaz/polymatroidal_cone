@@ -13,6 +13,9 @@
 #define VARS 3
 #define AXIOMS 3
 
+#define REAL_AXIOMS 3
+#define HAS_IDENTITY_AXIOMS 0
+
 // Simplify vectors if a number is above
 #define SIMPLIFY_ABOVE 1024
 
