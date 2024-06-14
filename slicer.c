@@ -11,6 +11,8 @@
 #include <sys/time.h>
 #include <pthread.h>
 
+// #define DO_VARY_AXIOMS // whether to loop through and try axioms in front of the fixed ones
+// #define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
@@ -34,13 +36,13 @@
 #elif AXIOMS_FILE == 5
 #include "data/axioms5.c"
     // These are from the end backwards!
-    #define FIX_AXIOMS 5
+    #define FIX_AXIOMS 54
     // Optimizing for number of ray pairs
-    // #define FIX_AXIOMS_AVAIL 21
-    // int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77};
+    // #define FIX_AXIOMS_AVAIL 54
+    // int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77, 27, 51, 1, 23, 28, 52, 73, 6, 14, 22, 3, 11, 5, 38, 62, 25, 26, 49, 74, 32, 40, 29, 53, 2, 10, 33, 71, 35, 57, 47, 37, 19, 41};
     // Optimizing for number of rays
-    #define FIX_AXIOMS_AVAIL 5
-    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16};
+    #define FIX_AXIOMS_AVAIL 54
+    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16, 32, 56, 40, 64, 7, 3, 44, 68, 76, 5, 1, 2, 4, 47, 71, 79, 15, 23, 31, 39, 55, 41, 45, 46, 42, 65, 69, 77, 70, 30, 14, 52, 28, 50, 12, 10, 26, 11, 19, 17, 18, 20, 34, 51, 9, 73, 33, 25, 49};
 #else
 #include "data/axioms6.c"
     #define FIX_AXIOMS 0
@@ -470,6 +472,11 @@ void slicer(int vary_axiom) {
 
     int next_axiom = 0;
     while(1) {
+        printf("Considering axiom %d for an initial axiom\n", next_axiom); // DEBUG
+        if(next_axiom >= AXIOMS) {
+            // We have not found a solution
+            printf("NO_INITIAL_AXIOMS\n"); fflush(stdout); return;
+        }
         // Avoid any fixed axioms
         if(vary_axiom != -1 && next_axiom == vary_axiom) { next_axiom++; continue; }
         int fixed_found = 0;
@@ -616,19 +623,22 @@ void slicer(int vary_axiom) {
         fflush(stdout);
         
         if(num_axioms_used == AXIOMS) break;
-        if(num_axioms_used > AXIOMS-FIX_AXIOMS-1) break; // Early stop
+        #ifdef VARY_EARLY_STOP
+            if(num_axioms_used > AXIOMS-FIX_AXIOMS-1) break; // Early stop
+        #endif
     }
     gettimeofday(&end_time, NULL);
     double elapsed = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000. / 1000.;
     
-    /*
-    AXIOM_LOOP(a) {
-        if(axioms_used[a] == 0) {
-            printf("Axiom %d is still unused\n", a);
-            assert(0, "axioms remain");
+    #ifndef VARY_EARLY_STOP
+        AXIOM_LOOP(a) {
+            if(axioms_used[a] == 0) {
+                printf("Axiom %d is still unused\n", a);
+                assert(0, "axioms remain");
+            }
         }
-    }
-    */
+    #endif
+
     
     #ifdef COMBINATORIAL_TEST
         printf("Used combinatorial test\n");
@@ -638,11 +648,11 @@ void slicer(int vary_axiom) {
     #endif
     printf("SET_N=%d threads=%d total_elapsed_time=%.1f TOTAL_RAYS=%zu\n", SET_N, NUM_THREADS, elapsed, RS_STORE_RANGE); fflush(stdout);
     
-    /*
-    #if SET_N == 5
-        printf("Number of rays "); if(RS_STORE_RANGE == 117978) { printf("OK!\n"); } else { printf("not as expected!!\n"); exit(1); }
+    #ifndef VARY_EARLY_STOP
+        #if SET_N == 5
+            printf("Number of rays "); if(RS_STORE_RANGE == 117978) { printf("OK!\n"); } else { printf("not as expected!!\n"); exit(1); }
+        #endif
     #endif
-    */
 }
 
 
@@ -650,18 +660,24 @@ int main(void) {
     srand(time(NULL) + getpid());
 
     // Experiments using all axioms
+    #ifdef DO_VARY_AXIOMS
     for(int vary_axiom=0; vary_axiom<AXIOMS; vary_axiom++) {
         // Don't try fixed axioms
         int fixed_found = 0;
         for(int si=0; si<FIX_AXIOMS; si++) if(vary_axiom == fixed_axioms[si]) { fixed_found=1; break; }
         if(fixed_found) continue;
+    #else
+        int vary_axiom = -1;
+    #endif
 
         main_init();
         util_init();
         so_init();    
         rs_init(AXIOMS); // total number of faces
         slicer(vary_axiom);
+    #ifdef DO_VARY_AXIOMS
     }
+    #endif
     
     return 0;
 }

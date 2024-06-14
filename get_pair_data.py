@@ -1,12 +1,15 @@
 
-# From the output of "make slicer_run_*" get the number of rays and pairs from the processed axioms
-# Usage: python get_pair_data.py N where N is -1 to show all data or only print data for step N
+# From the output of "make slicer_run_*" get the number of rays and pairs for the processed axioms.
+# Usage: python get_pair_data.py N SET_N where 
+# - N is -1 to show all data or only print data for step N (all Nth steps)
+# - SET_N is 4|5|6
 
 import sys
 import re
 import json
 
 OUT_STEP = int(sys.argv[1])
+SET_N = int(sys.argv[2])
 STATE = "filebegin"
 AXIOM_SET = []
 EXPERIENCES = []
@@ -95,6 +98,8 @@ N_5_AXIOMS = [
 ]
 
 for line in sys.stdin:
+    # print(f"::{STATE}::{line}", end="")
+    
     if STATE=="filebegin":
         if re.search(r"SLICER_STARTING", line):
             m = re.search(r"VARS=([0-9]+)", line)
@@ -108,8 +113,14 @@ for line in sys.stdin:
             assert SET_N == 5
             
             AXIOM_SET = []
-            STATE="init"
+            STATE="filebegin2"
             continue
+
+    if STATE=="filebegin2":
+        m = re.search(r"(vary_axiom=|Last but one axiom: )(.*)$", line)
+        if m:
+            VARY_AXIOM = int(m.group(2))
+            STATE="init"
     
     if STATE=="init":
         m = re.search(r"initial_axioms=(.*)$", line)
@@ -117,9 +128,17 @@ for line in sys.stdin:
             init_axioms = m.group(1).split(',')[:-1]
             assert len(init_axioms) == VARS
             for a in init_axioms:
-                AXIOM_SET.append(int(a))
+                AXIOM_SET.append(int(a)) # collect for previous axioms
             STATE="initends"
             continue
+        
+        if re.search(r"NO_INITIAL_AXIOMS", line):
+            EXPERIENCES.append({
+                'vary_axiom': VARY_AXIOM,
+                'no_initial': True
+            })
+            STATE="filebegin"
+            
         
     if STATE=="initends":
         if re.search(r"ADDING MORE AXIOMS", line):
@@ -135,6 +154,7 @@ for line in sys.stdin:
             EXPERIENCES.append({
                 'prev_axioms': [x for x in AXIOM_SET],
                 'new_axiom': NEW_AXIOM,
+                'vary_axiom': VARY_AXIOM,
                 'ray_pairs': RAY_PAIRS
             })
             STATE="axiomheader"
@@ -144,14 +164,14 @@ for line in sys.stdin:
         if m:
             EXPERIENCES[-1]['total_time'] = float(m.group(1))
             AXIOM_SET = []
-            STATE='init'
+            STATE='filebegin'
             continue
         
     if STATE=="axiomheader":
         if re.search(r"TOOMANYPAIRS", line):
             EXPERIENCES[-1]['too_many'] = 1
             AXIOM_SET = []
-            STATE='init'
+            STATE='filebegin'
             continue
         
         m = re.search(r"applying_axiom=([0-9]+)", line)
@@ -185,6 +205,10 @@ pairs_to_axiom = {i:[] for i in range(AXIOMS+1)} # number of ray pairs to axiom
 rays_to_axiom = {i:[] for i in range(AXIOMS+1)} # number of prev rays to axiom
 
 for e in EXPERIENCES:
+    if e.get('no_initial'):
+        print(f"! VaryAxiom={e.get('vary_axiom')} NoInitialAxiomSet")
+        continue
+    
     step = len(e['prev_axioms'])+1
     o = []
     o.append(f"Step={step}")
@@ -209,35 +233,59 @@ for e in EXPERIENCES:
     pairs_to_axiom[step].append({'ray_pairs': e['ray_pairs'], 'new_axiom': e['new_axiom']})
     rays_to_axiom[step].append({'prev_rays': e['prev_rays'], 'new_axiom': e['new_axiom']})
 
-print()
-print("Ordered by number of ray pairs:")
+if OUT_STEP != -1:
+    print()
+    print("Ordered by number of ray pairs:")
 
-for step in range(AXIOMS+1):
-    if OUT_STEP==-1 or OUT_STEP==step:
-        pairs_to_axiom[step].sort(key=lambda x: x['ray_pairs'])
-        for e in pairs_to_axiom[step]:
-            o = []
-            o.append(f"Step={step}")
-            d = int(e['ray_pairs']*30/max_ray_pairs[step]+.5)
-            o.append("#"*d + "."*(30-d))
-            if e['ray_pairs'] == pairs_to_axiom[step][0]['ray_pairs']:
-                o.append("(min)")
-            o.append(N_5_AXIOMS[e['new_axiom']])
-            print(' '.join(o))
+    for step in range(AXIOMS+1):
+        if OUT_STEP==-1 or OUT_STEP==step:
+            pairs_to_axiom[step].sort(key=lambda x: x['ray_pairs'])
+            for e in pairs_to_axiom[step]:
+                o = []
+                o.append(f"Step={step}")
+                d = int(e['ray_pairs']*30/max_ray_pairs[step]+.5)
+                o.append("#"*d + "."*(30-d))
+                if e['ray_pairs'] == pairs_to_axiom[step][0]['ray_pairs']:
+                    o.append("(min)")
+                o.append(N_5_AXIOMS[e['new_axiom']])
+                print(' '.join(o))
 
-print()
-print("Ordered by number of previous rays:")
+    print()
+    print("Ordered by number of previous rays:")
 
-for step in range(AXIOMS+1):
-    if OUT_STEP==-1 or OUT_STEP==step:
-        rays_to_axiom[step].sort(key=lambda x: x['prev_rays'])
-        for e in rays_to_axiom[step]:
-            o = []
-            o.append(f"Step={step}")
-            d = int(e['prev_rays']*30/max_prev_rays[step]+.5)
-            o.append("$"*d + "."*(30-d))
-            if e['prev_rays'] == rays_to_axiom[step][0]['prev_rays']:
-                o.append("(min)")
-            o.append(N_5_AXIOMS[e['new_axiom']])
-            print(' '.join(o))
+    for step in range(AXIOMS+1):
+        if OUT_STEP==-1 or OUT_STEP==step:
+            rays_to_axiom[step].sort(key=lambda x: x['prev_rays'])
+            for e in rays_to_axiom[step]:
+                o = []
+                o.append(f"Step={step}")
+                d = int(e['prev_rays']*30/max_prev_rays[step]+.5)
+                o.append("$"*d + "."*(30-d))
+                if e['prev_rays'] == rays_to_axiom[step][0]['prev_rays']:
+                    o.append("(min)")
+                o.append(N_5_AXIOMS[e['new_axiom']])
+                print(' '.join(o))
 
+else: # For a single run, called with -1
+    
+    # Get initial axioms
+    seen = set()
+    for step in range(AXIOMS+1):
+        if len(rays_to_axiom[step]):
+            assert len(rays_to_axiom[step]) == 1
+            seen.add(rays_to_axiom[step][0]['new_axiom'])
+
+    print()
+    print("Initial axioms, in no particular order:")
+    for a in range(AXIOMS):
+        if a not in seen:
+            print(N_5_AXIOMS[a])
+    
+    # List axioms in order
+    print()
+    print("Axioms in order:")
+    for step in range(AXIOMS+1):
+        if len(rays_to_axiom[step]):
+            assert len(rays_to_axiom[step]) == 1
+            print(f"Step={step} {N_5_AXIOMS[rays_to_axiom[step][0]['new_axiom']]}")
+    

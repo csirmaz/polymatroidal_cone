@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+
+my $code = $ENV{'MATROID_CODE'};
+my $logs = $ENV{'MATROID_LOGS'};
+
+for(my $i=80; $i>26; $i--) {
+`python $code/get_pair_data.py $i 5 < $logs/by_ray_pair/n5_vary${i}_output > $code/choose_axioms/by_ray_pairs/n5_vary$i`;
+}
+
+
