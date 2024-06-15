@@ -51,6 +51,14 @@ def set_len(s: int) -> int:
     return d
 
 
+def set_print(s: set) -> str:
+    """String representation of a set"""
+    l = [x for x in s]
+    l.sort()
+    o = ",".join([str(x) for x in l])
+    return o
+
+
 SET_MAP = None
 REV_MAP = None
 def set_create_index_map(force=False):
@@ -184,11 +192,14 @@ def expression2str(vec):
     return ",".join([str(i) for i in vec])
 
 
+modularity_labels = [] # Succinct representation of a submodularity axiom
 def modularities():
     """Create linear expressions (matrix of coefficients) for the (sub)modularity axioms"""
     # f(K+i) + f(K+j) >= F(K+i+j) + f(K)
+    global modularity_labels
     smap = set_create_index_map()
     expressions = []
+    modularity_labels = []
     for i in range(SET_N):  # 0 <= i < SET_N
         for j in range(i):  # 0 <= j < i
             for k in range(2 ** SET_N):  # 0 <= s < 2**SET_N
@@ -201,6 +212,7 @@ def modularities():
                     expression[smap[k]] -= 1
                 expression[smap[k + 2**j + 2**i]] -= 1
                 expressions.append(expression)
+                modularity_labels.append(f"{i}{j}({set_print(set_bitmap_to_set(k))})")
     assert len(expressions) == SET_N*(SET_N-1)*(2**(SET_N-3))
     return expressions
 
@@ -270,6 +282,11 @@ def axiom_to_group(axioms, unique_groups):
     return map
 
 
+def axiom_to_string(i, e, group_map) -> str:
+    label = modularity_labels[i] if TIGHT else ""  # if not tight, the index may refer to a monotonicity axiom
+    return f'"Axiom{i} {label} - g{group_map[i]} {display_expression(e)}"'
+    
+
 def print_c_code():
     """Print C code defining the axioms and other constants, and dump json data"""
     
@@ -289,7 +306,7 @@ def print_c_code():
     print(f'#define VARS {VARS}')
     out = []
     for i, e in enumerate(axioms):
-        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + f'Axiom{i} Group{group_map[i]} ' + display_expression(e) + '*/')
+        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + axiom_to_string(i, e, group_map) + '*/')
     if ADD_IDENTITY:
         for i in range(VARS):
             onehot = [0 for x in range(VARS)]
@@ -302,7 +319,8 @@ def print_c_code():
     # Also store the readable axioms
     out = []
     for i, e in enumerate(axioms):
-        out.append(f'"Axiom{i} Group{group_map[i]} {display_expression(e)}"')
+        label = modularity_labels[i] if TIGHT else ""  # if not tight, the index may refer to a monotonicity axiom
+        out.append(axiom_to_string(i, e, group_map))
     if ADD_IDENTITY:
         for i in range(VARS):
             onehot = [0 for x in range(VARS)]
@@ -316,7 +334,7 @@ def print_c_code():
     print('/* VARIABLES / SETS');
     rev_map = set_create_rev_map()
     for v in range(len(axioms[0])):
-        print(f" Variable{v} is for set {set_bitmap_to_set(rev_map[v])}")
+        print(f" Variable{v} is for set {set_print(set_bitmap_to_set(rev_map[v]))}")
     print('*/')
     
     # Display information about axiom groups
@@ -347,7 +365,7 @@ def display_expression(exp) -> str:
     for e, v in enumerate(exp):
         if v == 0: continue
         s = rev_map[e]
-        f = f"f({set_bitmap_to_set(s)})"
+        f = "f("+set_print(set_bitmap_to_set(s))+")"
         if v == 1:
             big.append(f)
         elif v == -1:

@@ -1,15 +1,12 @@
 #!/usr/bin/perl
 
 # From the outputs of get_pair_data.py, create a summary of the experiments
-# Usage: ./create_summary 4|5|6 r|p "<selected axioms>"
-# r = use rays
-# p = use ray pairs
+# Usage: ./create_summary 4|5|6 "<selected axioms>"
 
 use strict;
 
 my $SET_N = $ARGV[0];
-my $MODE = $ARGV[1];
-my @FIXED_AXIOMS = split(/,\s*/, $ARGV[2]);
+my @FIXED_AXIOMS = split(/,\s*/, $ARGV[1]);
 
-print "SET_N=$SET_N MODE=$MODE FIXED_AXIOMS=".join(',', @FIXED_AXIOMS)."\n";
+print "SET_N=$SET_N FIXED_AXIOMS=".join(',', @FIXED_AXIOMS)."\n";
 
