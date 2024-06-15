@@ -6,3 +6,5 @@ my $logs = $ENV{'MATROID_LOGS'};
 for(my $i=80; $i>26; $i--) {
 `python $code/get_pair_data.py $i 5 < $logs/by_ray/n5_vary${i}_output > $code/choose_axioms/by_rays/n5_vary$i`;
 }
+
+`python $code/get_pair_data.py -1 5 < $logs/by_ray/full_run > $code/choose_axioms/by_rays/full_run`;

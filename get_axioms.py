@@ -212,7 +212,7 @@ def modularities():
                     expression[smap[k]] -= 1
                 expression[smap[k + 2**j + 2**i]] -= 1
                 expressions.append(expression)
-                modularity_labels.append(f"{i}{j}({set_print(set_bitmap_to_set(k))})")
+                modularity_labels.append(f"{j}{i}({set_print(set_bitmap_to_set(k))})")
     assert len(expressions) == SET_N*(SET_N-1)*(2**(SET_N-3))
     return expressions
 
