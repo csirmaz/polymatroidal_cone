@@ -113,24 +113,31 @@ T_RAYIX2 new_axiom_ray_pairs(int axiom_ix) {
 }
 
 
-void dump_data(void) {
+void dump_data(int axiom_ix) {
     // Print all relevant data
     // WARNING Call after garbage collection
-    printf("\nDATA_DUMP_STARTS\n");
-    printf("%s\n", LABEL);
-    printf("vars=%d total_axioms=%d\n", VARS, AXIOMS);
-    printf("AXIOMS_APPLIED\n");
-    printf("num_axioms_used=%d\n", num_axioms_used);
+    
+    char filename[256];
+    sprintf(filename, "%s/n%d_dump", getenv("MATROID_LOGS"), SET_N);
+    FILE *fptr;
+    fptr = fopen(filename, "w");
+    if(fptr == NULL) { printf("Cannot open dump file\n"); exit(1); }
+    
+    fprintf(fptr, "DATA_DUMP_STARTS\n");
+    fprintf(fptr, "%s\n", LABEL);
+    fprintf(fptr, "vars=%d total_axioms=%d axiom_just_applied=%d\n", VARS, AXIOMS, axiom_ix);
+    fprintf(fptr, "AXIOMS_APPLIED\n");
+    fprintf(fptr, "num_axioms_used=%d\n", num_axioms_used);
     AXIOM_LOOP(a) {
         if(!axioms_used[a]) continue;
-        printf("axiom_applied:%d\n", a);
+        fprintf(fptr, "axiom_already_applied=%d\n", a);
         // print_vec(axioms[a]);
     }
-    printf("RAYS\n");
-    printf("num_rays=%zu\n", RS_STORE_RANGE);
-    rs_dump();
-    printf("DATA_DUMP_ENDS\n\n");
-    fflush(stdout);
+    fprintf(fptr, "RAYS\n");
+    fprintf(fptr, "num_rays=%zu\n", RS_STORE_RANGE);
+    rs_dump(fptr);
+    fprintf(fptr, "DATA_DUMP_ENDS\n");
+    fclose(fptr);
 }
 
 
@@ -459,7 +466,7 @@ void apply_axiom(int axiom_ix) {
     #endif
     
     #ifdef DUMP_DATA
-    dump_data();
+    dump_data(axiom_ix);
     #endif
 
     printf("applied_axiom=%d pairs_checked=%zu total_rays=%zu\n\n", axiom_ix, cp_all_pairs, RS_STORE_RANGE);
