@@ -9,7 +9,8 @@ import sys
 SET_N = int(sys.argv[1]) # number of elements in the base set
 ADD_IDENTITY = (len(sys.argv) >=3 and sys.argv[2] == 'i')
 TIGHT = True  # whether to consider tight matroids only
-MAKE_GROUPS = True # Whether to create groups of equivalent axioms when permuting the base set
+
+# TODO Remove permutation-related functions
 
 def dimensions() -> int:
     """Return the number of variables / possible f() values"""
@@ -282,20 +283,15 @@ def axiom_to_group(axioms, unique_groups):
     return map
 
 
-def axiom_to_string(i, e, group_map) -> str:
+def axiom_to_string(i, e) -> str:
     label = modularity_labels[i] if TIGHT else ""  # if not tight, the index may refer to a monotonicity axiom
-    return f'"Axiom{i} {label} - g{group_map[i]} {display_expression(e)}"'
+    return f'"Axiom{i} {label} - {display_expression(e)}"'
     
 
 def print_c_code():
     """Print C code defining the axioms and other constants, and dump json data"""
     
     axioms = get_axioms()
-    if MAKE_GROUPS:
-        groups = get_axiom_groups(axioms)
-        group_map = axiom_to_group(axioms, groups)
-    else:
-        group_map = {i: '?' for i in range(len(axioms))}
     
     VARS = len(axioms[0])
     print(f'#define LABEL "SET_N={SET_N} TIGHT={TIGHT}"')
@@ -306,7 +302,7 @@ def print_c_code():
     print(f'#define VARS {VARS}')
     out = []
     for i, e in enumerate(axioms):
-        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + axiom_to_string(i, e, group_map) + '*/')
+        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + axiom_to_string(i, e) + '*/')
     if ADD_IDENTITY:
         for i in range(VARS):
             onehot = [0 for x in range(VARS)]
@@ -320,7 +316,7 @@ def print_c_code():
     out = []
     for i, e in enumerate(axioms):
         label = modularity_labels[i] if TIGHT else ""  # if not tight, the index may refer to a monotonicity axiom
-        out.append(axiom_to_string(i, e, group_map))
+        out.append(axiom_to_string(i, e))
     if ADD_IDENTITY:
         for i in range(VARS):
             onehot = [0 for x in range(VARS)]
@@ -337,12 +333,9 @@ def print_c_code():
         print(f" Variable{v} is for set {set_print(set_bitmap_to_set(rev_map[v]))}")
     print('*/')
     
-    # Display information about axiom groups
-    if MAKE_GROUPS:
-        print('/* AXIOM GROUPS');
-        for i, group in enumerate(groups):
-            print(f" Group{i} size={len(group)} {group}")
-        print('*/')
+    print('/* GENERATED ORDER');
+    print(make_simple_order());
+    print('*/');
         
 
 def display_vector(v) -> str:
@@ -374,6 +367,34 @@ def display_expression(exp) -> str:
             raise ValueError("Wrong v")
     return f"{' + '.join(big)} >= {' + '.join(small)}"
 
+
+def make_simple_order():
+    
+    if SET_N == 5:
+        group_order = {0: 0, 1: 2, 2: 3, 3: 1}
+    elif SET_N == 6:
+        group_order = {0: 0, 1: 2, 2: 4, 3: 3, 4: 1}
+    
+    
+    assert len(modularity_labels)
+    ax = [{'ix':i, 'label':l} for i, l in enumerate(modularity_labels)]
+    
+    for a in ax:
+        a['elem1'] = a['label'][0]
+        a['elem2'] = a['label'][1]
+        if a['elem2'] < a['elem1']:
+            a['elem2'], a['elem1'] = a['elem1'], a['elem2']
+        a['subset'] = a['label'].split('(')[1]
+        assert a['subset'][-1] == ')'
+        a['subset'] = a['subset'][:-1]
+        a['subset'] = [c for c in a['subset'] if c != ',']
+        a['group'] = len(a['subset'])
+        
+    ax.sort(key = lambda x: f"{group_order[x['group']]}.{x['elem1']}.{x['elem2']}")
+
+    out = [f"{x['ix']}, // {x['label']}" for x in ax]
+    return f"// {len(ax)} axioms:\n" + ("\n".join(out))
+    
 
 if __name__ == "__main__":
     print_c_code()
