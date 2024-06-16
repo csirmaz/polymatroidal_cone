@@ -5,7 +5,7 @@ use strict;
 my $code = $ENV{'MATROID_CODE'};
 my $logs = $ENV{'MATROID_LOGS'};
 
-my $STEP = 80+26-1;
+my $STEP = 97;
 my $MINSTEP = 26;
 
 while(1) {

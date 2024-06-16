@@ -333,8 +333,8 @@ def print_c_code():
         print(f" Variable{v} is for set {set_print(set_bitmap_to_set(rev_map[v]))}")
     print('*/')
     
-    print('/* GENERATED ORDER');
-    print(make_simple_order());
+    print('/* AXIOMS DATA');
+    print(axiom_data());
     print('*/');
         
 
@@ -368,14 +368,8 @@ def display_expression(exp) -> str:
     return f"{' + '.join(big)} >= {' + '.join(small)}"
 
 
-def make_simple_order():
-    
-    if SET_N == 5:
-        group_order = {0: 0, 1: 2, 2: 3, 3: 1}
-    elif SET_N == 6:
-        group_order = {0: 0, 1: 2, 2: 4, 3: 3, 4: 1}
-    
-    
+def axiom_data():
+    """Return machine readable data about axioms"""
     assert len(modularity_labels)
     ax = [{'ix':i, 'label':l} for i, l in enumerate(modularity_labels)]
     
@@ -388,12 +382,10 @@ def make_simple_order():
         assert a['subset'][-1] == ')'
         a['subset'] = a['subset'][:-1]
         a['subset'] = [c for c in a['subset'] if c != ',']
-        a['group'] = len(a['subset'])
+        # a['group'] = len(a['subset'])
         
-    ax.sort(key = lambda x: f"{group_order[x['group']]}.{x['elem1']}.{x['elem2']}")
-
-    out = [f"{x['ix']}, // {x['label']}" for x in ax]
-    return f"// {len(ax)} axioms:\n" + ("\n".join(out))
+    out = [f"axiom_data;ix;{x['ix']};label;{x['label']};elem1;{x['elem1']};elem2;{x['elem2']};subset;{''.join(x['subset'])}" for x in ax]
+    return f"axiom_data;len;{len(ax)}\n" + ("\n".join(out))
     
 
 if __name__ == "__main__":

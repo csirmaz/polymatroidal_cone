@@ -12,6 +12,7 @@ while(<STDIN>) {
         $skip = 1 if $_ =~ m/\b$p\b/;
     }
     next if $skip;
-    s/#include "([^"]+).c"/#include "$1.strp.c"/g;
+    s/#include "([^"]+)\.c"/#include "$1.strp.c"/g;
+    s/#include "fixed_axioms([^"]+)\.strp\.c"/#include "fixed_axioms$1.c"/g;
     print;
 }

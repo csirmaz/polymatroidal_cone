@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+
+# Try to generate a good order of axioms
+
+use strict;
+use Data::Dumper;
+
+my $SET_N = 5;
+
+my $GROUP_ORDER = {
+    5 => {0=>0, 1=>2, 2=>3, 3=>1},
+    6 => {0=>0, 1=>2, 2=>4, 3=>3, 4=>1}
+};
+my @AXIOMS;
+my $NUM_AXIOMS;
+
+
+sub write_fix_set {
+    # Write a set of fixed axioms to a file
+    my $list = shift;
+    
+    my $l = scalar(@$list);
+    open(FH, '>', 'fixed_axioms_test.c') or die $!;
+    print FH "#define FIX_AXIOMS $l\n";
+    print FH "#define FIX_AXIOMS_AVAIL $l\n";
+    print FH ("int fixed_axioms[FIX_AXIOMS_AVAIL] = {" . join(",", @$list) . "};\n");
+    close(FH);
+}
+
+sub test_fix_set {
+    # Test if a set of fixed axioms allows for initial axioms to be selected
+    my $list = shift;
+    
+    write_fix_set($list);
+    
+    my $out = `make slicer_run_${SET_N}_fix_test`;
+    # print "[[[[[[[[[[[[[[[[\n$out\n]]]]]]]]]]]]]]]]\n";
+    
+    if($out =~ /INIT_AXIOMS_OK/) { return 1; }
+    if($out =~ /NO_INITIAL_AXIOMS/) { return 0; }
+    die "unexpected output";
+}
+
+# Generate and read data about axioms from get_axioms.py
+my @axiomdata = `python get_axioms.py $SET_N`;
+foreach my $line (@axiomdata) {
+    # print($line);
+    next unless $line =~ /^axiom_data;/;
+    $line =~ s/^axiom_data;//;
+    $line =~ s/\s*$//;
+    my %ad = split(/;/, $line);
+    if($ad{'len'}) { $NUM_AXIOMS = $ad{'len'}; next; }
+    $ad{'group'} = length($ad{'subset'});
+    push @AXIOMS, \%ad;
+}
+
+die "Wrong number of axioms" unless $NUM_AXIOMS == scalar(@AXIOMS);
+# print(Dumper(\@AXIOMS));
+
+@AXIOMS = sort {
+    ($GROUP_ORDER->{$SET_N}->{$a->{'group'}} <=> $GROUP_ORDER->{$SET_N}->{$b->{'group'}})
+    || ($a->{'elem1'} <=> $b->{'elem1'})
+    || ($a->{'elem2'} <=> $b->{'elem2'})
+} @AXIOMS;
+
+# print(Dumper(\@AXIOMS));
+
+
+# Leave out axioms we can't add
+my @final = ();
+foreach my $ad (@AXIOMS) {
+    print "Checking if we can add $ad->{'ix'} to @final\n";
+    my @trial = @final;
+    push @trial, $ad->{'ix'};
+    if(test_fix_set(\@trial)) {
+        print "Yes\n";
+        @final = @trial;
+        $ad->{'included'} = 1;
+    }
+}
+
+
+print "FINAL ORDER\n";
+foreach my $ad (@AXIOMS) {
+    next unless $ad->{'included'};
+    print $ad->{'ix'} . ", // ".$ad->{'label'}."\n";
+}
+
+write_fix_set(\@final);
+print "RUN: make slicer_run_${SET_N}_run_test\n";
