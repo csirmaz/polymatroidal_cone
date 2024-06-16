@@ -10,6 +10,9 @@ import json
 
 OUT_STEP = int(sys.argv[1])
 SET_N = int(sys.argv[2])
+
+assert SET_N in [4,5,6]
+
 STATE = "filebegin"
 AXIOM_SET = []
 EXPERIENCES = []
