@@ -635,7 +635,7 @@ void slicer(int vary_axiom) {
         
         T_RAYIX will_process_pairs = new_axiom_ray_pairs(new_axiom);
         printf("will_apply_axiom=%d will_process_pairs=%zu\n", new_axiom, will_process_pairs); fflush(stdout);
-        if(will_process_pairs > 250000LLU*250000LLU) { printf("TOOMANYPAIRS\n"); return; }
+        // if(will_process_pairs > 250000LLU*250000LLU) { printf("TOOMANYPAIRS\n"); return; }
         
         apply_axiom(new_axiom); // changes axioms_used and num_axioms_used
         fflush(stdout);
