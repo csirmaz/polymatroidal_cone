@@ -46,14 +46,14 @@
 #elif AXIOMS_FILE == 500
 #include "data/axioms5i.c"
     // These are from the end backwards!
-    #define FIX_AXIOMS 4
+    #define FIX_AXIOMS 10
     // Optimizing for number of rays, using identity axioms
-    #define FIX_AXIOMS_AVAIL 4
-    int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48};
+    #define FIX_AXIOMS_AVAIL 10
+    int fixed_axioms[FIX_AXIOMS_AVAIL] = { 0, 8, 24, 16, 32, 40, 1, 26, 34, 9};
 #else
 #include "data/axioms6.c"
-    #define FIX_AXIOMS 0
-    #define FIX_AXIOMS_AVAIL 0
+    #define FIX_AXIOMS 11
+    #define FIX_AXIOMS_AVAIL 11
     int fixed_axioms[FIX_AXIOMS_AVAIL] = {};
 #endif
 
@@ -530,6 +530,11 @@ void slicer(int vary_axiom) {
     printf("\n");
     
     AXIOM_LOOP(a) printf("%d;", axioms_used[a]); printf("\n"); // DEBUG
+    
+    #ifdef INIT_AXIOMS_ONLY
+        printf("INIT_AXIOMS_OK\n");
+        return;
+    #endif
     
     // Calculate the initial rays
     // Take VARS-1 axioms, solve them, and ensure the resulting ray is inside the remaining axiom

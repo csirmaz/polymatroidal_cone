@@ -5,7 +5,7 @@
 use strict;
 use Data::Dumper;
 
-my $SET_N = 5;
+my $SET_N = 6;
 
 my $GROUP_ORDER = {
     5 => {0=>0, 1=>2, 2=>3, 3=>1},
