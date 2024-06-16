@@ -11,8 +11,8 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-#define DO_VARY_AXIOMS // whether to loop through and try axioms in front of the fixed ones
-#define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
+// #define DO_VARY_AXIOMS // whether to loop through and try axioms in front of the fixed ones
+// #define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 // #define DUMP_DATA // whether to dump data after each step. Use axioms.c as reference
@@ -32,28 +32,26 @@
 #define T_THREAD_NUM int
 
 #if AXIOMS_FILE == 4
-#include "data/axioms4.c"
+    #include "data/axioms4.c"
 #elif AXIOMS_FILE == 5
-#include "data/axioms5.c"
-    // These are from the end backwards!
-    //// #define FIX_AXIOMS 0
-    // Optimizing for number of ray pairs
-    //// #define FIX_AXIOMS_AVAIL 54
-    //// int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 7, 15, 31, 55, 18, 34, 42, 58, 66, 20, 16, 17, 79, 78, 72, 75, 77, 27, 51, 1, 23, 28, 52, 73, 6, 14, 22, 3, 11, 5, 38, 62, 25, 26, 49, 74, 32, 40, 29, 53, 2, 10, 33, 71, 35, 57, 47, 37, 19, 41};
-    // Optimizing for number of rays
-    //// #define FIX_AXIOMS_AVAIL 54
-    //// int fixed_axioms[FIX_AXIOMS_AVAIL] = {0, 8, 24, 48, 16, 32, 56, 40, 64, 7, 3, 44, 68, 76, 5, 1, 2, 4, 47, 71, 79, 15, 23, 31, 39, 55, 41, 45, 46, 42, 65, 69, 77, 70, 30, 14, 52, 28, 50, 12, 10, 26, 11, 19, 17, 18, 20, 34, 51, 9, 73, 33, 25, 49};
+    #include "data/axioms5.c"
+    // #include "fixed_axioms_n5_ray_pairs.c"
+    // #include "fixed_axioms_n5_rays.c"
 #elif AXIOMS_FILE == 500
-#include "data/axioms5i.c"
-    // These are from the end backwards!
-    #define FIX_AXIOMS 10
-    // Optimizing for number of rays, using identity axioms
-    #define FIX_AXIOMS_AVAIL 10
-    int fixed_axioms[FIX_AXIOMS_AVAIL] = { 0, 8, 24, 16, 32, 40, 1, 26, 34, 9};
+    // include identity axioms
+    #include "data/axioms5i.c"
+    // #include "fixed_axioms_n5_i_rays.c"
 #else
-#include "data/axioms6.c"
-    #define FIX_AXIOMS 11
-    #define FIX_AXIOMS_AVAIL 11
+    #include "data/axioms6.c"
+#endif
+
+#ifdef INIT_AXIOMS_TEST
+    #include "fixed_axioms_test.c"
+#endif
+
+#ifndef FIX_AXIOMS
+    #define FIX_AXIOMS 0
+    #define FIX_AXIOMS_AVAIL 0
     int fixed_axioms[FIX_AXIOMS_AVAIL] = {};
 #endif
 

@@ -30,7 +30,6 @@ c_sources: data/axioms4.c data/axioms5.c data/axioms5i.c data/axioms6.c
 	./strip_debug.pl $(remove_lines) < vars.c > vars.strp.c
 	./strip_debug.pl $(remove_lines) < test.c > test.strp.c
 	./strip_debug.pl $(remove_lines) < slicer.c > slicer.strp.c
-	./strip_debug.pl $(remove_lines) < slicer_copy.c > slicer_copy.strp.c
 
 slicer_test: c_sources
 	gcc -lm test.strp.c -pthread && ./a.out
@@ -50,12 +49,12 @@ slicer_run_5_i: c_sources
 	
 slicer_run_5_fix_test: c_sources
 	# Called by generate_order to test if fixed axioms allow selecting initial ones
-	gcc -lm -O3 -DAXIOMS_FILE=5 -DINIT_AXIOMS_TEST -DINIT_AXIOMS_ONLY slicer_copy.strp.c -o slicer -pthread
+	gcc -lm -O3 -DAXIOMS_FILE=5 -DINIT_AXIOMS_TEST -DINIT_AXIOMS_ONLY slicer.strp.c -o slicer -pthread
 	./slicer
 
 slicer_run_5_run_test: c_sources
 	# Called by generate_order to test the resulting order
-	gcc -lm -O3 -DAXIOMS_FILE=5 -DINIT_AXIOMS_TEST slicer_copy.strp.c -o slicer -pthread
+	gcc -lm -O3 -DAXIOMS_FILE=5 -DINIT_AXIOMS_TEST slicer.strp.c -o slicer -pthread
 	./slicer
 
 slicer_run_6: c_sources
@@ -64,11 +63,11 @@ slicer_run_6: c_sources
 
 slicer_run_6_fix_test: c_sources
 	# Called by generate_order to test if fixed axioms allow selecting initial ones
-	gcc -lm -O3 -DAXIOMS_FILE=6 -DINIT_AXIOMS_TEST -DINIT_AXIOMS_ONLY slicer_copy.strp.c -o slicer -pthread
+	gcc -lm -O3 -DAXIOMS_FILE=6 -DINIT_AXIOMS_TEST -DINIT_AXIOMS_ONLY slicer.strp.c -o slicer -pthread
 	./slicer
 
 slicer_run_6_run_test: c_sources
 	# Called by generate_order to test the resulting order
-	gcc -lm -O3 -DAXIOMS_FILE=6 -DINIT_AXIOMS_TEST slicer_copy.strp.c -o slicer -pthread
+	gcc -lm -O3 -DAXIOMS_FILE=6 -DINIT_AXIOMS_TEST slicer.strp.c -o slicer -pthread
 	./slicer
 
