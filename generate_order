@@ -20,7 +20,7 @@ sub write_fix_set {
     my $list = shift;
     
     my $l = scalar(@$list);
-    open(FH, '>', 'fixed_axioms_test.c') or die $!;
+    open(FH, '>', 'data/fixed_axioms_test.c') or die $!;
     print FH "#define FIX_AXIOMS $l\n";
     print FH "#define FIX_AXIOMS_AVAIL $l\n";
     print FH ("int fixed_axioms[FIX_AXIOMS_AVAIL] = {" . join(",", @$list) . "};\n");

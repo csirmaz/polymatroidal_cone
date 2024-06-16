@@ -19,12 +19,7 @@ data/axioms6.c: get_axioms.py
 	python get_axioms.py 6 > data/axioms6.c
 
 c_sources: data/axioms4.c data/axioms5.c data/axioms5i.c data/axioms6.c
-	./strip_debug.pl $(remove_lines) < data/axioms4.c > data/axioms4.strp.c
-	./strip_debug.pl $(remove_lines) < data/axioms5.c > data/axioms5.strp.c
-	./strip_debug.pl $(remove_lines) < data/axioms5i.c > data/axioms5i.strp.c
-	./strip_debug.pl $(remove_lines) < data/axioms6.c > data/axioms6.strp.c
 	./strip_debug.pl $(remove_lines) < slicer_solver.c > slicer_solver.strp.c
-	./strip_debug.pl $(remove_lines) < slicer_dependency_check.c > slicer_dependency_check.strp.c
 	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
 	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
 	./strip_debug.pl $(remove_lines) < vars.c > vars.strp.c
@@ -53,7 +48,7 @@ slicer_run_5_fix_test: c_sources
 	./slicer
 
 slicer_run_5_run_test: c_sources
-	# Called by generate_order to test the resulting order
+	# Call to test the resulting order
 	gcc -lm -O3 -DAXIOMS_FILE=5 -DINIT_AXIOMS_TEST slicer.strp.c -o slicer -pthread
 	./slicer
 
@@ -67,7 +62,7 @@ slicer_run_6_fix_test: c_sources
 	./slicer
 
 slicer_run_6_run_test: c_sources
-	# Called by generate_order to test the resulting order
+	# Call to test the resulting order
 	gcc -lm -O3 -DAXIOMS_FILE=6 -DINIT_AXIOMS_TEST slicer.strp.c -o slicer -pthread
 	./slicer
 

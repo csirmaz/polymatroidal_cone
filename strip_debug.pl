@@ -13,6 +13,6 @@ while(<STDIN>) {
     }
     next if $skip;
     s/#include "([^"]+)\.c"/#include "$1.strp.c"/g;
-    s/#include "fixed_axioms([^"]+)\.strp\.c"/#include "fixed_axioms$1.c"/g;
+    s/#include "data\/([^"]+)\.strp\.c"/#include "data\/$1.c"/g;
     print;
 }
