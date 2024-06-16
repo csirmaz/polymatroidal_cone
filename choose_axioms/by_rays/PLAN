@@ -19,10 +19,10 @@ INIT  -- notes axioms reserved for the initial set
 #8 02(), 12(), 03(), 13(), 04(), 14()             only ones with 0 or 1 ( 01() selected)
 
 [78]
-#24 ---        03(),       04()                   only ones with 0 or 2 ( 02() selected)
+#24 ---        03(),       04()                   ???
 
 [77]
-#48            ----        04()                   only ones with 0 or 3 ( 03() selected)
+#48            ----        04()                   ???
 
 [76]
 #16  12(), 13(), 23(), 14(), 24(), 34()           all group0 left
