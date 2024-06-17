@@ -118,7 +118,10 @@ void dump_data(int axiom_ix) {
     // WARNING Call after garbage collection
     
     char filename[256];
-    sprintf(filename, "%s/n%d_dump", getenv("MATROID_LOGS"), SET_N);
+    char * filepath = getenv("MATROID_LOGS");
+    if(filepath == NULL) { printf("Environment variable missing\n"); exit(1); }
+    sprintf(filename, "%s/n%d_dump", filepath, SET_N);
+    printf("Writing data to %s\n", filename);
     FILE *fptr;
     fptr = fopen(filename, "w");
     if(fptr == NULL) { printf("Cannot open dump file\n"); exit(1); }
