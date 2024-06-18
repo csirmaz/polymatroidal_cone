@@ -7,10 +7,6 @@ use Data::Dumper;
 
 my $SET_N = 6;
 
-my $GROUP_ORDER = {
-    5 => {0=>0, 1=>2, 2=>3, 3=>1},
-    6 => {0=>0, 1=>2, 2=>4, 3=>3, 4=>1}
-};
 my @AXIOMS;
 my $NUM_AXIOMS;
 
@@ -51,17 +47,106 @@ foreach my $line (@axiomdata) {
     my %ad = split(/;/, $line);
     if($ad{'len'}) { $NUM_AXIOMS = $ad{'len'}; next; }
     $ad{'group'} = length($ad{'subset'});
+    $ad{'short_label'} = $ad{'label'};
+    $ad{'short_label'} =~ s/,//g;
     push @AXIOMS, \%ad;
 }
 
 die "Wrong number of axioms" unless $NUM_AXIOMS == scalar(@AXIOMS);
 # print(Dumper(\@AXIOMS));
 
-@AXIOMS = sort {
-    ($GROUP_ORDER->{$SET_N}->{$a->{'group'}} <=> $GROUP_ORDER->{$SET_N}->{$b->{'group'}})
-    || ($a->{'elem1'} <=> $b->{'elem1'})
-    || ($a->{'elem2'} <=> $b->{'elem2'})
-} @AXIOMS;
+# Properties of each axiom:
+# ix      39
+# label   "01(2,3)"
+# short_label   "01(23)"
+# elem1   "0"
+# elem2   "1"
+# subset  "23"
+# group   2
+
+# NOTE that we return the last axiom to apply first
+
+# SORT BY GROUP (MIDDLE LAST) AND OTHERWISE LEXICOGRAPHICALLY
+
+if(0) {
+    my $GROUP_ORDER = {
+        5 => {0=>0, 1=>2, 2=>3, 3=>1},
+        6 => {0=>0, 1=>2, 2=>4, 3=>3, 4=>1}
+    };
+    @AXIOMS = sort {
+        ($GROUP_ORDER->{$SET_N}->{$a->{'group'}} <=> $GROUP_ORDER->{$SET_N}->{$b->{'group'}})
+        || ($a->{'elem1'} <=> $b->{'elem1'})
+        || ($a->{'elem2'} <=> $b->{'elem2'})
+    } @AXIOMS;
+}
+
+# FULL RECURSIVE ORDER
+
+if(1) {
+    my @labelorder;
+    for(my $e1=0; $e1<$SET_N; $e1++) {
+    for(my $e2=$e1+1; $e2<$SET_N; $e2++) {
+
+    for(my $e3=0; $e3<$SET_N; $e3++) {
+    next if $e3 == $e2 || $e3 == $e1;
+    for(my $e4=$e3+1; $e4<$SET_N; $e4++) {
+    next if $e4 == $e2 || $e4 == $e1;
+    for(my $e5=$e4+1; $e5<$SET_N; $e5++) {
+    next if $e5 == $e2 || $e5 == $e1;
+        if($SET_N == 5) {
+            # print $e1.$e2.$e3.$e4.$e5."\n";
+            push @labelorder, $e1.$e2.'('.$e3.$e4.$e5.')';
+            push @labelorder, $e1.$e2.'('.$e3.$e4.')';
+            push @labelorder, $e1.$e2.'('.$e3.')';
+            push @labelorder, $e1.$e2.'('.$e4.')';
+            push @labelorder, $e1.$e2.'('.')';
+            push @labelorder, $e1.$e2.'('.$e3.$e5.')';
+            push @labelorder, $e1.$e2.'('.$e5.')';
+            push @labelorder, $e1.$e2.'('.$e4.$e5.')';
+        }
+    for(my $e6=$e5+1; $e6<$SET_N; $e6++) {
+    next if $e6 == $e2 || $e6 == $e1;
+        if($SET_N == 6) {
+            # print $e1.$e2.$e3.$e4.$e5.$e6."\n";
+            push @labelorder, $e1.$e2.'('.$e3.$e4.$e5.$e6.')';
+            push @labelorder, $e1.$e2.'('.$e3.$e4.$e5.')';
+            push @labelorder, $e1.$e2.'('.$e3.$e4.')';
+            push @labelorder, $e1.$e2.'('.$e3.')';
+            push @labelorder, $e1.$e2.'('.$e4.')';
+            push @labelorder, $e1.$e2.'('.')';
+            push @labelorder, $e1.$e2.'('.$e3.$e5.')';
+            push @labelorder, $e1.$e2.'('.$e5.')';
+            push @labelorder, $e1.$e2.'('.$e4.$e5.')';
+
+            push @labelorder, $e1.$e2.'('.$e3.$e4.$e6.')';
+            push @labelorder, $e1.$e2.'('.$e3.$e6.')';
+            push @labelorder, $e1.$e2.'('.$e6.')';
+            push @labelorder, $e1.$e2.'('.$e4.$e6.')';
+
+            push @labelorder, $e1.$e2.'('.$e3.$e5.$e6.')';
+            push @labelorder, $e1.$e2.'('.$e5.$e6.')';
+
+            push @labelorder, $e1.$e2.'('.$e4.$e5.$e6.')';
+        }
+    }}}}}}
+
+    # print join("\n", @labelorder);
+    my @NEW;
+    foreach my $label (@labelorder) {
+        my $found = 0;
+        foreach my $ad (@AXIOMS) {
+            if($ad->{'short_label'} eq $label) {
+                die "already used" if $ad->{'_used_'};
+                $ad->{'_used_'} = 1;
+                push @NEW, $ad;
+                $found = 1;
+                last;
+            }
+        }
+        die "not found" unless $found;
+    }
+    @AXIOMS = @NEW;
+}
 
 # print(Dumper(\@AXIOMS));
 
@@ -69,6 +154,7 @@ die "Wrong number of axioms" unless $NUM_AXIOMS == scalar(@AXIOMS);
 # Leave out axioms we can't add
 my @final = ();
 foreach my $ad (@AXIOMS) {
+
     print "Checking if we can add $ad->{'ix'} to @final\n";
     my @trial = @final;
     push @trial, $ad->{'ix'};

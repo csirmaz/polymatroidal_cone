@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
+#include <strings.h>
 #include <math.h>
 #include <sys/time.h>
 #include <pthread.h>
@@ -15,7 +16,7 @@
 // #define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
 // #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
-#define DUMP_DATA // whether to dump data after each step. Use axioms?.c as reference
+// #define DUMP_DATA // whether to dump data after each step. Use axioms?.c as reference
 #define ALGEBRAIC_TEST // If defined, use algebraic test
 // #define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
 // #define INIT_AXIOMS_TEST // Read fixed axioms from a special file (defined in Makefile)
@@ -45,7 +46,7 @@
     // #include "data/fixed_axioms_n5_i_rays.c"
 #else
     #include "data/axioms6.c"
-    #include "data/fixed_axioms_n6_proposed.c"
+    // #include "data/fixed_axioms_n6_proposed.c"
 #endif
 
 #ifdef INIT_AXIOMS_TEST
@@ -70,8 +71,8 @@
 // Loop through all axioms
 #define AXIOM_LOOP(i) for(int i=0; i<AXIOMS; i++)
 
-// Simplify vectors if a number is above (sqrt(32767) = 181)
-#define SIMPLIFY_ABOVE 180
+// Simplify vectors if a number is above
+#define SIMPLIFY_ABOVE 1024
 
 #define NUM_THREADS 6
 
@@ -415,8 +416,8 @@ void *check_pairs(void *my_thread_num) {
         axiom_ix,
         num_axioms_used-1,
         ((float)(num_axioms_used-1))/((float)AXIOMS)*100.,
-        new_rays,
-        pairs_checked, 
+        new_rays, // new_rays=
+        pairs_checked, // pairs_checked=
         skip_bit_count,
         skip_mask,
         skip_test,
@@ -472,7 +473,10 @@ void apply_axiom(int axiom_ix) {
     dump_data(axiom_ix);
     #endif
 
-    printf("applied_axiom=%d pairs_checked=%zu total_rays=%zu\n\n", axiom_ix, cp_all_pairs, RS_STORE_RANGE);
+    printf("applied_axiom=%d pairs_checked=%zu old_total_rays=%zu total_rays=%zu rays_change=%.2f\n\n",
+        axiom_ix, cp_all_pairs, cp_old_number_of_rays, RS_STORE_RANGE,
+        ((float)RS_STORE_RANGE)/((float)cp_old_number_of_rays)
+    );
     fflush(stdout);
 }
 
@@ -618,7 +622,7 @@ void slicer(int vary_axiom) {
         if(new_axiom == -1) {
         
             // Choose the one with the least number of pairs
-            T_RAYIX min_pairs;
+            T_RAYIX min_pairs = 0; // init value not needed as we assign when new_axiom==-1
             AXIOM_LOOP(a) {
                 // Avoid used and fixed axioms
                 if(axioms_used[a]) continue;

@@ -23,7 +23,7 @@ c_sources: data/axioms4.c data/axioms5.c data/axioms5i.c data/axioms6.c
 	./strip_debug.pl $(remove_lines) < ray_store.c > ray_store.strp.c
 	./strip_debug.pl $(remove_lines) < util.c > util.strp.c
 	./strip_debug.pl $(remove_lines) < vars.c > vars.strp.c
-	./strip_debug.pl $(remove_lines) < test.c > test.strp.c
+	# ./strip_debug.pl $(remove_lines) < test.c > test.strp.c
 	./strip_debug.pl $(remove_lines) < slicer.c > slicer.strp.c
 
 slicer_test: c_sources
@@ -35,7 +35,7 @@ slicer_run_4: c_sources
 	./slicer
 
 slicer_run_5: c_sources
-	gcc -lm -O3 -DAXIOMS_FILE=5 slicer.strp.c -o slicer -pthread
+	gcc -Wall -lm -O3 -DAXIOMS_FILE=5 slicer.strp.c -o slicer -pthread
 	./slicer
 
 slicer_run_5_i: c_sources
@@ -53,7 +53,7 @@ slicer_run_5_run_test: c_sources
 	./slicer
 
 slicer_run_6: c_sources
-	gcc -lm -O3 -DAXIOMS_FILE=6 slicer.strp.c -o slicer -pthread
+	gcc -Wall -lm -O3 -DAXIOMS_FILE=6 slicer.strp.c -o slicer -pthread
 	./slicer
 
 slicer_run_6_fix_test: c_sources

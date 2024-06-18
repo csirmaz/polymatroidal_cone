@@ -22,7 +22,7 @@ int axiom_solved_for_coll[NUM_THREADS][SO_MAX_ROWS]; // stores which axiom is st
 int axiom_solved_for_init[SO_MAX_ROWS];
 
 int variables_solved_coll[NUM_THREADS][VARS]; // stores which variables have been solved (bool, 1|0)
-int variables_solved_init[VARS];
+// int variables_solved_init[VARS];
 
 /*
  * USAGE
@@ -48,7 +48,7 @@ void so_print_matrix(T_THREAD_NUM thread_num) {
 void so_init(void) {
     // Call this once at the beginning
     SO_ROWS_FULL_LOOP(i) axiom_solved_for_init[i] = -1;
-    VEC_LOOP(i) variables_solved_init[i] = 0;
+    // VEC_LOOP(i) variables_solved_init[i] = 0;
 }
 
 void so_init_matrix(T_THREAD_NUM thread_num) { 
@@ -97,10 +97,11 @@ static inline int so_solve_early_impl(
     int freedoms = 0;
 
     memcpy(axiom_solved_for, axiom_solved_for_init, sizeof(int)*SO_MAX_ROWS); // Initialize to [-1,-1,...]
-    memcpy(variables_solved, variables_solved_init, sizeof(int)*VARS); // Initialize to [0,0,...]
+    // memcpy(variables_solved, variables_solved_init, sizeof(int)*VARS); // Initialize to [0,0,...]
+    bzero(variables_solved, sizeof(int)*VARS); // Initialize to [0,0,...]
    
     VEC_LOOP(var_ix) {
-        printf("  | Solving for variable #%d so_rows=%zu thread=%zu\n  | Begins:\n", var_ix, so_rows, thread_num); // SO_DEBUG
+        printf("  | Solving for variable #%d so_rows=%zu thread=%d\n  | Begins:\n", var_ix, so_rows, thread_num); // SO_DEBUG
         so_print_matrix(thread_num); // SO_DEBUG
         
         // Get the abs largest coefficient for the v'th variable
@@ -114,7 +115,7 @@ static inline int so_solve_early_impl(
                 max_ix = a;
             }
         }
-        printf("  | Largest coefficient (abs) %lld at axiom %d\n", max_v, max_ix); // SO_DEBUG
+        printf("  | Largest coefficient (abs) %d at axiom %d\n", max_v, max_ix); // SO_DEBUG
 
         if(max_v == 0) {
             // No non-0 coefficients

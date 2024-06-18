@@ -285,7 +285,7 @@ def axiom_to_group(axioms, unique_groups):
 
 def axiom_to_string(i, e) -> str:
     label = modularity_labels[i] if TIGHT else ""  # if not tight, the index may refer to a monotonicity axiom
-    return f'"Axiom{i} {label} - {display_expression(e)}"'
+    return f'"Axiom{i} {label} : {display_expression(e)}"'
     
 
 def print_c_code():

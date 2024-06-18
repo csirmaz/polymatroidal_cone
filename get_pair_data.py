@@ -17,6 +17,7 @@ STATE = "filebegin"
 INITIAL_AXIOMS = []
 AXIOM_SET = []
 EXPERIENCES = []
+SLICER_RUNS = 0
 
 N_5_AXIOMS = [
 "Axiom0 01() - g0 f(0) + f(1) >= f(0,1)",
@@ -352,6 +353,7 @@ for line in sys.stdin:
     
     if STATE=="filebegin":
         if re.search(r"SLICER_STARTING", line):
+            SLICER_RUNS += 1
             m = re.search(r"VARS=([0-9]+)", line)
             VARS=int(m.group(1))
             
@@ -405,6 +407,7 @@ for line in sys.stdin:
             m = re.search(r"will_process_pairs=([0-9]+)", line)
             RAY_PAIRS = int(m.group(1))
             EXPERIENCES.append({
+                'initial_axioms': [x for x in INITIAL_AXIOMS],
                 'prev_axioms': [x for x in AXIOM_SET],
                 'new_axiom': NEW_AXIOM,
                 'vary_axiom': VARY_AXIOM,
@@ -481,7 +484,7 @@ for e in EXPERIENCES:
     o.append(f"MissingAxioms={','.join([str(x) for x in range(AXIOMS) if x not in e['prev_axioms'] and x != e['new_axiom']])}")
     if e.get('total_time'):
         o.append(f"TotalTime={e.get('total_time')}")
-
+        
     if OUT_STEP == -1 or OUT_STEP == step:
         print(' '.join(o))
 
@@ -489,7 +492,7 @@ for e in EXPERIENCES:
     rays_to_axiom[step].append({'prev_rays': e['prev_rays'], 'new_axiom': e['new_axiom']})
 
 if OUT_STEP != -1:
-    print()
+    print("")
     print("Ordered by number of ray pairs:")
 
     for step in range(AXIOMS+1):
@@ -505,7 +508,7 @@ if OUT_STEP != -1:
                 o.append(AXIOM_DESC[e['new_axiom']])
                 print(' '.join(o))
 
-    print()
+    print("")
     print("Ordered by number of previous rays:")
 
     for step in range(AXIOMS+1):
@@ -523,9 +526,13 @@ if OUT_STEP != -1:
 
 else: # For a single run, called with -1
     
+    if SLICER_RUNS != 1:
+        print("")
+        print("WARNING! NUMBER OF RUNS IN FILE IS NOT 1 - DATA IS LIKELY INACCURATE")
+    
     print()
     print("Initial axioms:")
-    for a in INITIAL_AXIOMS:
+    for a in EXPERIENCES[0]['initial_axioms']:
         print(AXIOM_DESC[a])
     
     # List axioms in order
@@ -535,4 +542,6 @@ else: # For a single run, called with -1
         if len(rays_to_axiom[step]):
             assert len(rays_to_axiom[step]) == 1
             print(f"Step={step} {AXIOM_DESC[rays_to_axiom[step][0]['new_axiom']]}")
-    
+
+print("")    
+print(f"Runs found in file: {SLICER_RUNS}")

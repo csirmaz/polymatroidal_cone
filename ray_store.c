@@ -38,7 +38,7 @@ struct ray_record *RS_STORE_BLOCKS[RS_ALLOC_BLOCK_NUM];
 T_RAYIX RS_STORE_SIZE = 0; // total allocated size of the store
 T_RAYIX RS_STORE_RANGE = 0; // first known unused slot (may have holes below) -- After garbage collection this is also the number of rays in the store
 int RS_STORE_BLOCK_NEXT = 0; // the next block to allocate
-T_BITMAP(zero_bitmap) = {0,0,0,0}; // see NUM_BITMAP
+// T_BITMAP(zero_bitmap) = {0,0,0,0}; // see NUM_BITMAP
 
 // Possible values for ray_record.used:
 #define U_USED 1 // or "zero" - on the face
@@ -94,8 +94,9 @@ static inline void bitmap_cpy_and(T_BITMAP(dest), T_BITMAP(a), T_BITMAP(b)) {
 void bitmap_zero(T_BITMAP(bm)) {
     // Set bitmap to zero
     // TODO Check which one is faster
-    // rs_bitmap_cpy(bm, zero_bitmap);
-    for(int i=0; i<NUM_BITMAP; i++) bm[i] = BITMAP_ZERO;
+    // bitmap_cpy(bm, zero_bitmap);
+    // for(int i=0; i<NUM_BITMAP; i++) bm[i] = BITMAP_ZERO;
+    bzero(bm, BITMAP_BYTES);
 }
 
 int bitmap_eq(T_BITMAP(a), T_BITMAP(b)) {
