@@ -192,18 +192,21 @@ void rs_garbage_collection(void) {
     }
 }
 
-void rs_dump(FILE *fptr) {
+void rs_dump(FILE *fptr, int bitmap_max) {
     // Print the rays in the store (coordinates only)
     T_RAYIX c = 0;
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
         struct ray_record *ray = rs_get_ray(i);
         if(ray->used == U_NEG) continue;
         fprintf(fptr, "ray=%zu [", c);
-        VEC_LOOP(i) {
-            if(i>0) fprintf(fptr, ",");
-            fprintf(fptr, "%d", ray->coords[i]);
+        VEC_LOOP(j) {
+            if(j>0) fprintf(fptr, ",");
+            fprintf(fptr, "%d", ray->coords[j]);
         }
-        fprintf(fptr, "]\n");
+        fprintf(fptr, "] <");
+        for(int j=0; j<bitmap_max; j++) fprintf(fptr, "%d", bitmap_read(ray->faces, j) ? 1 : 0);
+        fprintf(fptr, ">\n");
+
         c++;
     }
 }

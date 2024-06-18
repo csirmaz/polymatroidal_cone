@@ -16,7 +16,7 @@
 // #define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
 // #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
-// #define DUMP_DATA // whether to dump data after each step. Use axioms?.c as reference
+#define DUMP_DATA // whether to dump data after each step. Use axioms?.c as reference
 #define ALGEBRAIC_TEST // If defined, use algebraic test
 // #define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
 // #define INIT_AXIOMS_TEST // Read fixed axioms from a special file (defined in Makefile)
@@ -139,7 +139,7 @@ void dump_data(int axiom_ix) {
     }
     fprintf(fptr, "RAYS\n");
     fprintf(fptr, "num_rays=%zu\n", RS_STORE_RANGE);
-    rs_dump(fptr);
+    rs_dump(fptr, AXIOMS);
     fprintf(fptr, "DATA_DUMP_ENDS\n");
     fclose(fptr);
 }
