@@ -444,7 +444,7 @@ for line in sys.stdin:
         m = re.search(r"applied_axiom=([0-9]+)", line)
         if m:
             assert NEW_AXIOM == int(m.group(1))
-            m = re.search(r"total_rays=([0-9]+)", line)
+            m = re.search(r"\btotal_rays=([0-9]+)", line)
             EXPERIENCES[-1]['result_rays'] = int(m.group(1))
             AXIOM_SET.append(NEW_AXIOM)
             STATE='axiombegins'
