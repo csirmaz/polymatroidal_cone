@@ -14,11 +14,11 @@
 
 // #define DO_VARY_AXIOMS // whether to loop through and try axioms in front of the fixed ones
 // #define VARY_EARLY_STOP // stop when the fixed axioms are reached - useful when optimizing (DO_VARY_AXIOMS is on)
-// #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
+#define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 #define DUMP_DATA // whether to dump data after each step. Use axioms?.c as reference
-#define ALGEBRAIC_TEST // If defined, use algebraic test
-// #define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
+// #define ALGEBRAIC_TEST // If defined, use algebraic test
+#define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
 // #define INIT_AXIOMS_TEST // Read fixed axioms from a special file (defined in Makefile)
 // #define INIT_AXIOMS_ONLY // Return after trying to select initial axioms (defined in Makefile)
 
@@ -372,7 +372,10 @@ void *check_pairs(void *my_thread_num) {
                         T_ELEM d = dot_opt(ray->coords, axioms[a]);
                         printf("Checking against known face %d, dot=%d\n", a, d); fflush(stdout); // DEBUG
                         if(d != 0) {
-                            printf("Axiom %d: ", a); print_vec(axioms[a]); printf("\n"); // DEBUG
+                            printf("ERROR Ray is not on expected face.\nAxiom %d: ", a); print_vec(axioms[a]); printf("\n");
+                            printf("Ray: "); print_vec(ray->coords); printf("\n");
+                            printf("RS_STORE_RANGE=%zu axiom_ix=%d\n", RS_STORE_RANGE, axiom_ix);
+                            printf("face_bm="); bitmap_print(face_bm, AXIOMS); printf("\n");
                             assert(0, "Full face check, known");
                         }
                     #endif
@@ -398,11 +401,23 @@ void *check_pairs(void *my_thread_num) {
             #endif
             #ifdef ALGEBRAIC_TEST
                 // In this case, we don't know the direction of the solution
-                if(neg_faces > 0) {
-                    assert(pos_faces == 0, "Other face check");
+                if(neg_faces != 0) { // actually it cannot be negative
+                    if(pos_faces != 0) { // actually it cannot be negative
+                        printf("ERROR: Ray has both negative and positive dot products with faces ");
+                        print_vec(ray->coords); printf("\n");
+                        printf("RS_STORE_RANGE=%zu axiom_ix=%d\n", RS_STORE_RANGE, axiom_ix);
+                        printf("face_bm="); bitmap_print(face_bm, AXIOMS); printf("\n");
+                        assert(0, "Other face check (both)");
+                    }
                     vec_scale(ray->coords, -1);
-                } else {
-                    assert(neg_faces == 0, "Other face check (neg)");
+                } else { // neg_faces == 0
+                    if(pos_faces == 0) {
+                        printf("ERROR: Ray is on all known faces ");
+                        print_vec(ray->coords);
+                        printf(" RS_STORE_RANGE=%zu axiom_ix=%d\n", RS_STORE_RANGE, axiom_ix);
+                        printf("face_bm="); bitmap_print(face_bm, AXIOMS); printf("\n");
+                        assert(0, "Other face check (null)");
+                    }
                 }
             #endif
 
@@ -690,6 +705,17 @@ void slicer(int vary_axiom) {
     #endif
 }
 
+void test_solver(void) {
+    // test the solver on a specific case
+    // axioms to solve
+    char *face_bm = "000000000000001000000000000000101010001000010010000000000000001001000000100000000000011110010011000000000000001001000000111001101000010101000110100001011000000000000000000000100101100111111011000010010000000001101101010000000010011100010010";
+    int new_axiom = 14;
+    assert(SET_N==6, "set_n");
+    AXIOM_LOOP(a) {
+        if(a == new_axiom || face_bm[a] == '1') {
+        }
+    }
+}
 
 int main(void) {
     srand(time(NULL) + getpid());

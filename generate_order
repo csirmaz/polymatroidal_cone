@@ -84,8 +84,37 @@ if(0) {
 
 if(1) {
     my @labelorder;
+
+    # Group 0 first
     for(my $e1=0; $e1<$SET_N; $e1++) {
     for(my $e2=$e1+1; $e2<$SET_N; $e2++) {
+        push @labelorder, $e1.$e2.'()';
+    }}
+
+    my @e1e2;
+    if($SET_N == 5) {
+        @e1e2 = (
+            '01', '02', '03',
+            '12', '13',
+            '23',
+            '34', '24', '14', '04'
+        );
+    }
+    if($SET_N == 6) {
+        @e1e2 = (
+            '01', '02', '03', '04',
+            '12', '13', '14',
+            '23', '24',
+            '34',
+            '45', '35', '25', '15', '05'
+        );
+    }
+    
+    foreach my $ee (@e1e2) {
+    # for(my $e1=0; $e1<$SET_N; $e1++) {
+    # for(my $e2=$e1+1; $e2<$SET_N; $e2++) {
+    my $e1 = substr($ee, 0, 1);
+    my $e2 = substr($ee, 1, 1);
 
     for(my $e3=0; $e3<$SET_N; $e3++) {
     next if $e3 == $e2 || $e3 == $e1;
@@ -98,8 +127,8 @@ if(1) {
             push @labelorder, $e1.$e2.'('.$e3.$e4.$e5.')';
             push @labelorder, $e1.$e2.'('.$e3.$e4.')';
             push @labelorder, $e1.$e2.'('.$e3.')';
-            push @labelorder, $e1.$e2.'('.$e4.')';
             push @labelorder, $e1.$e2.'('.')';
+            push @labelorder, $e1.$e2.'('.$e4.')';
             push @labelorder, $e1.$e2.'('.$e3.$e5.')';
             push @labelorder, $e1.$e2.'('.$e5.')';
             push @labelorder, $e1.$e2.'('.$e4.$e5.')';
@@ -112,8 +141,8 @@ if(1) {
             push @labelorder, $e1.$e2.'('.$e3.$e4.$e5.')';
             push @labelorder, $e1.$e2.'('.$e3.$e4.')';
             push @labelorder, $e1.$e2.'('.$e3.')';
-            push @labelorder, $e1.$e2.'('.$e4.')';
             push @labelorder, $e1.$e2.'('.')';
+            push @labelorder, $e1.$e2.'('.$e4.')';
             push @labelorder, $e1.$e2.'('.$e3.$e5.')';
             push @labelorder, $e1.$e2.'('.$e5.')';
             push @labelorder, $e1.$e2.'('.$e4.$e5.')';
@@ -128,7 +157,8 @@ if(1) {
 
             push @labelorder, $e1.$e2.'('.$e4.$e5.$e6.')';
         }
-    }}}}}}
+    }}}}}
+    #}
 
     # print join("\n", @labelorder);
     my @NEW;
@@ -136,14 +166,15 @@ if(1) {
         my $found = 0;
         foreach my $ad (@AXIOMS) {
             if($ad->{'short_label'} eq $label) {
-                die "already used" if $ad->{'_used_'};
-                $ad->{'_used_'} = 1;
-                push @NEW, $ad;
+                if(! $ad->{'_used_'}) {
+                    $ad->{'_used_'} = 1;
+                    push @NEW, $ad;
+                }
                 $found = 1;
                 last;
             }
         }
-        die "not found" unless $found;
+        die "not found [$label]" unless $found;
     }
     @AXIOMS = @NEW;
 }

@@ -352,15 +352,15 @@ for line in sys.stdin:
     # print(f"::{STATE}::{line}", end="")
     
     if STATE=="filebegin":
-        if re.search(r"SLICER_STARTING", line):
+        if re.search(r"\bSLICER_STARTING\b", line):
             SLICER_RUNS += 1
-            m = re.search(r"VARS=([0-9]+)", line)
+            m = re.search(r"\bVARS=([0-9]+)", line)
             VARS=int(m.group(1))
             
-            m = re.search(r"AXIOMS=([0-9]+)", line)
+            m = re.search(r"\bAXIOMS=([0-9]+)", line)
             AXIOMS=int(m.group(1))
             
-            m = re.search(r"SET_N=([0-9]+)", line)
+            m = re.search(r"\bSET_N=([0-9]+)", line)
             FILE_SET_N=int(m.group(1))
             assert SET_N == FILE_SET_N
             
@@ -370,13 +370,13 @@ for line in sys.stdin:
             continue
 
     if STATE=="filebegin2":
-        m = re.search(r"(vary_axiom=|Last but one axiom: )(.*)$", line)
+        m = re.search(r"(\bvary_axiom=|Last but one axiom: )(.*)$", line)
         if m:
             VARY_AXIOM = int(m.group(2))
             STATE="init"
     
     if STATE=="init":
-        m = re.search(r"initial_axioms=(.*)$", line)
+        m = re.search(r"\binitial_axioms=(.*)$", line)
         if m:
             init_axioms = m.group(1).split(',')[:-1]
             assert len(init_axioms) == VARS
@@ -387,7 +387,7 @@ for line in sys.stdin:
             STATE="initends"
             continue
         
-        if re.search(r"NO_INITIAL_AXIOMS", line):
+        if re.search(r"\bNO_INITIAL_AXIOMS\b", line):
             EXPERIENCES.append({
                 'vary_axiom': VARY_AXIOM,
                 'no_initial': True
@@ -401,10 +401,10 @@ for line in sys.stdin:
             continue
         
     if STATE=="axiombegins":
-        m = re.search(r"will_apply_axiom=([0-9]+)", line)
+        m = re.search(r"\bwill_apply_axiom=([0-9]+)", line)
         if m:
             NEW_AXIOM=int(m.group(1))
-            m = re.search(r"will_process_pairs=([0-9]+)", line)
+            m = re.search(r"\bwill_process_pairs=([0-9]+)", line)
             RAY_PAIRS = int(m.group(1))
             EXPERIENCES.append({
                 'initial_axioms': [x for x in INITIAL_AXIOMS],
@@ -416,7 +416,7 @@ for line in sys.stdin:
             STATE="axiomheader"
             continue
         
-        m = re.search(r"total_elapsed_time=([0-9\.]+)", line)
+        m = re.search(r"\btotal_elapsed_time=([0-9\.]+)", line)
         if m:
             EXPERIENCES[-1]['total_time'] = float(m.group(1))
             INITIAL_AXIOMS = []
@@ -425,23 +425,23 @@ for line in sys.stdin:
             continue
         
     if STATE=="axiomheader":
-        if re.search(r"TOOMANYPAIRS", line):
+        if re.search(r"\bTOOMANYPAIRS\b", line):
             EXPERIENCES[-1]['too_many'] = 1
             INITIAL_AXIOMS = []
             AXIOM_SET = []
             STATE='filebegin'
             continue
         
-        m = re.search(r"applying_axiom=([0-9]+)", line)
+        m = re.search(r"\bapplying_axiom=([0-9]+)", line)
         if m:
             assert NEW_AXIOM == int(m.group(1))
-            m = re.search(r"prev_total_rays=([0-9]+)", line)
+            m = re.search(r"\bprev_total_rays=([0-9]+)", line)
             PREV_RAYS = int(m.group(1))
             EXPERIENCES[-1]['prev_rays'] = PREV_RAYS
             STATE='axiombody'
             
     if STATE=='axiombody':
-        m = re.search(r"applied_axiom=([0-9]+)", line)
+        m = re.search(r"\bapplied_axiom=([0-9]+)", line)
         if m:
             assert NEW_AXIOM == int(m.group(1))
             m = re.search(r"\btotal_rays=([0-9]+)", line)
