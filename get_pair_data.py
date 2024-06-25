@@ -6,7 +6,6 @@
 
 import sys
 import re
-import json
 
 OUT_STEP = int(sys.argv[1])
 SET_N = int(sys.argv[2])

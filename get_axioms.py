@@ -6,8 +6,8 @@
 
 import sys
 
-SET_N = int(sys.argv[1]) # number of elements in the base set
-ADD_IDENTITY = (len(sys.argv) >=3 and sys.argv[2] == 'i')
+SET_N = 1 # number of elements in the base set
+ADD_IDENTITY = False
 TIGHT = True  # whether to consider tight matroids only
 
 # TODO Remove permutation-related functions
@@ -186,6 +186,16 @@ def same_expression(vec1, vec2):
         if vec2[i] != v1:
             return False
     return True
+
+
+def dot(vec1, vec2):
+    """Return the dot product of two vectors"""
+    if len(vec1) != len(vec2):
+        raise ValueError("length error")
+    d = 0
+    for i, v1 in enumerate(vec1):
+        d += v1 * vec2[i]
+    return d
 
 
 def expression2str(vec):
@@ -389,4 +399,6 @@ def axiom_data():
     
 
 if __name__ == "__main__":
+    SET_N = int(sys.argv[1]) # number of elements in the base set
+    ADD_IDENTITY = (len(sys.argv) >=3 and sys.argv[2] == 'i')
     print_c_code()

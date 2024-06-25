@@ -708,10 +708,12 @@ void slicer(int vary_axiom) {
 void test_solver(void) {
     // test the solver on a specific case
     // axioms to solve
+    // TODO This case overflows the solver
     char *face_bm = "000000000000001000000000000000101010001000010010000000000000001001000000100000000000011110010011000000000000001001000000111001101000010101000110100001011000000000000000000000100101100111111011000010010000000001101101010000000010011100010010";
     int new_axiom = 14;
     assert(SET_N==6, "set_n");
     AXIOM_LOOP(a) {
+        // TODO
         if(a == new_axiom || face_bm[a] == '1') {
         }
     }
