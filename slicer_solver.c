@@ -73,6 +73,7 @@ static inline int so_solve_impl(
 ) {
     // Solve the matrix
     // Returns:
+    // -2: overflow
     // -1: 1 freedom but there's a mixture of sings for the coordinates
     // 0: 0 freedoms
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
@@ -89,6 +90,7 @@ static inline int so_solve_early_impl(
 ) {
     // Solve the matrix
     // Returns:
+    // -2: overflow
     // -1: 1 freedom but there's a mixture of sings for the coordinates
     // 0: 0 or >1 freedoms
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
@@ -133,7 +135,7 @@ static inline int so_solve_early_impl(
         // Subtract
         SO_ROWS_LOOP(a) {
             if(a != max_ix && so_matrix[a][var_ix] != 0) {
-                solve_one(so_matrix[a], so_matrix[max_ix], var_ix);
+                if(solve_one(so_matrix[a], so_matrix[max_ix], var_ix)) { return -2; }
             }
         }
         

@@ -17,8 +17,6 @@
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 #define DUMP_DATA // whether to dump data after each step. Use axioms?.c as reference
-// #define ALGEBRAIC_TEST // If defined, use algebraic test
-#define COMBINATORIAL_TEST // If defined, use combinatorial test. DO NOT USE BOTH!
 // #define INIT_AXIOMS_TEST // Read fixed axioms from a special file (defined in Makefile)
 // #define INIT_AXIOMS_ONLY // Return after trying to select initial axioms (defined in Makefile)
 
@@ -71,8 +69,8 @@
 // Loop through all axioms
 #define AXIOM_LOOP(i) for(int i=0; i<AXIOMS; i++)
 
-// Simplify vectors if a number is above
-#define SIMPLIFY_ABOVE 1024
+// Simplify vectors if a number is above this. Assume 4-byte int
+#define SIMPLIFY_ABOVE (128*256)
 
 #define NUM_THREADS 6
 
@@ -211,8 +209,8 @@ void *check_pairs(void *my_thread_num) {
     T_RAYIX new_rays = 0;
     T_RAYIX2 pairs_checked = 0;
     T_RAYIX2 skip_bit_count = 0;
-    T_RAYIX2 skip_mask = 0;
     T_RAYIX2 skip_test = 0;
+    T_RAYIX2 test_fallback = 0;
 
     gettimeofday(&prev_time, NULL);
     double prev_elapsed_time = 0;
@@ -276,7 +274,36 @@ void *check_pairs(void *my_thread_num) {
                 continue;
             }
             
-            #ifdef COMBINATORIAL_TEST
+            int test_type = 0; // 0=algebraic 1=combinatorial
+            
+            // Start with algebraic which can be faster
+            if(1) {
+                // Algebraic test
+                // Solve the common axioms + the new one; see if we get a ray
+                printf("Algebraic test\n"); // DEBUG
+                so_init_matrix(thread_num);
+                AXIOM_LOOP(a) {
+                    if(bitmap_read(face_bm, a)) {
+                        so_add_to_matrix(thread_num, axioms[a]);
+                        printf("Adding axiom #%d to solver ", a); print_vec(axioms[a]); printf("\n"); // DEBUG
+                    }
+                }
+                so_add_to_matrix(thread_num, axioms[axiom_ix]);
+                printf("Adding the new axiom #%d to solver ", axiom_ix); print_vec(axioms[axiom_ix]); printf("\n"); // DEBUG
+                int f = so_solve_early(thread_num);
+                if(f == -2) { // overflow; use combinatorial test
+                    test_type = 1;
+                    test_fallback++;
+                } else {
+                    if(f != 1) {
+                        printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
+                        skip_test++;
+                        continue;
+                    }
+                }
+            }
+            
+            if(test_type == 1) {
                 // Combinatorial test
                 // Next, ensure other there is no other ray that is on all the common faces.
                 printf("Combinatorial test\n"); // DEBUG
@@ -310,28 +337,7 @@ void *check_pairs(void *my_thread_num) {
                     skip_test++; 
                     continue;
                 }
-            #endif
-            
-            #ifdef ALGEBRAIC_TEST
-                // Algebraic test
-                // Solve the common axioms + the new one; see if we get a ray
-                printf("Algebraic test\n"); // DEBUG
-                so_init_matrix(thread_num);
-                AXIOM_LOOP(a) {
-                    if(bitmap_read(face_bm, a)) {
-                        so_add_to_matrix(thread_num, axioms[a]);
-                        printf("Adding axiom #%d to solver ", a); print_vec(axioms[a]); printf("\n"); // DEBUG
-                    }
-                }
-                so_add_to_matrix(thread_num, axioms[axiom_ix]);
-                printf("Adding the new axiom #%d to solver ", axiom_ix); print_vec(axioms[axiom_ix]); printf("\n"); // DEBUG
-                int f = so_solve_early(thread_num);
-                if(f != 1) {
-                    printf("X: No good solution (%d)\n", f); fflush(stdout); // DEBUG
-                    skip_test++;
-                    continue;
-                }
-            #endif
+            }
             
             // --- Create new ray ---
             // We have a good case; construct the new ray
@@ -341,7 +347,12 @@ void *check_pairs(void *my_thread_num) {
             ray = rs_allocate_ray();
             
             // Calculate the coordinates
-            #ifdef COMBINATORIAL_TEST
+            if(test_type == 0) {
+                // In case of the algebraic test, the new ray (without sign) is in solution_coll[thread_num].
+                vec_cpy(ray->coords, solution_coll[thread_num]);                
+            }
+            else {
+                // In case of combinatorial test
                 // new_ray := alpha*ray_pos + beta*ray_neg
                 // where alpha, beta > 0
                 //   and dot(new_ray, new_axiom) == 0
@@ -353,11 +364,7 @@ void *check_pairs(void *my_thread_num) {
                 simplify(ray->coords);
                 printf("Ray new (from combinatorial): #%zu ", RS_STORE_RANGE-1); // DEBUG
                 print_vec(ray->coords); printf("\n"); // DEBUG
-            #endif      
-            #ifdef ALGEBRAIC_TEST
-                // In case of the algebraic test, the new ray (without sign) is in solution_coll[thread_num].
-                vec_cpy(ray->coords, solution_coll[thread_num]);                
-            #endif      
+            }
             
             // Store which faces the new ray is on.
             // We only do this for the used axioms/faces, plus the new face, which is already marked used.
@@ -395,12 +402,8 @@ void *check_pairs(void *my_thread_num) {
             }
             printf("Face check for other faces: neg_faces=%d pos_faces=%d\n", neg_faces, pos_faces); // DEBUG
             
-            #ifdef COMBINATORIAL_TEST
-                // This condition should be true as from the combinatorial test the solution should have the right sign.
-                assert(neg_faces == 0, "Other face check (neg)");                
-            #endif
-            #ifdef ALGEBRAIC_TEST
-                // In this case, we don't know the direction of the solution
+            if(test_type == 0) {
+                // If we used the algebraic test, we don't know the direction of the solution
                 if(neg_faces != 0) { // actually it cannot be negative
                     if(pos_faces != 0) { // actually it cannot be negative
                         printf("ERROR: Ray has both negative and positive dot products with faces ");
@@ -419,7 +422,12 @@ void *check_pairs(void *my_thread_num) {
                         assert(0, "Other face check (null)");
                     }
                 }
-            #endif
+            }
+            else {
+                // If we used the combinatorial test,
+                // This condition should be true as from the combinatorial test the solution should have the right sign.
+                assert(neg_faces == 0, "Other face check (neg)");
+            }
 
             printf("Set up new ray. new_rays=%zu RS_STORE_RANGE=%zu pairs_checked=%zu\n", new_rays, RS_STORE_RANGE, pairs_checked); fflush(stdout); // DEBUG
             printf("Bitmap for new ray #%zu: ", RS_STORE_RANGE-1); bitmap_print(ray->faces, AXIOMS); printf("\n"); fflush(stdout); // DEBUG
@@ -427,15 +435,15 @@ void *check_pairs(void *my_thread_num) {
         } // for ray_j ends
     } // for ray_i ends
     
-    printf("Summary - Axiom #%d (%dth %.2f%%) - new_rays=%zu pairs_checked=%zu skip_bit_count=%zu skip_mask=%zu skip_test=%zu thread=%d\n",
+    printf("Summary - Axiom #%d (%dth %.2f%%) - new_rays=%zu pairs_checked=%zu skip_bit_count=%zu skip_test=%zu test_fallback=%zu thread=%d\n",
         axiom_ix,
         num_axioms_used-1,
         ((float)(num_axioms_used-1))/((float)AXIOMS)*100.,
         new_rays, // new_rays=
         pairs_checked, // pairs_checked=
         skip_bit_count,
-        skip_mask,
         skip_test,
+        test_fallback,
         thread_num
     );
     fflush(stdout);
@@ -690,12 +698,6 @@ void slicer(int vary_axiom) {
     #endif
 
     
-    #ifdef COMBINATORIAL_TEST
-        printf("Used combinatorial test\n");
-    #endif
-    #ifdef ALGEBRAIC_TEST
-        printf("Used algebraic test\n");
-    #endif
     printf("SET_N=%d threads=%d total_elapsed_time=%.1f TOTAL_RAYS=%zu\n", SET_N, NUM_THREADS, elapsed, RS_STORE_RANGE); fflush(stdout);
     
     #ifndef VARY_EARLY_STOP

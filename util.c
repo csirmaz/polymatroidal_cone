@@ -4,10 +4,27 @@
 
 T_VEC(zero_vector);
 
+// Assertion
+void assert(int flag, char* message) {
+    if(!flag) {
+        printf("Assertion failure: %s\n", message);
+        fflush(stdout);
+        exit(1);
+    }
+}
+
+
 // Call this at the beginning of the program
 void util_init(void) {
-    VEC_LOOP(i) zero_vector[i] = 0;
+    VEC_LOOP(i) { zero_vector[i] = 0; }
+    
+    T_ELEM half = (1 << (sizeof(T_ELEM)*8 / 2));
+    if(SIMPLIFY_ABOVE < (half >> 1) || SIMPLIFY_ABOVE > half) {
+        printf("SIMPLIFY_ABOVE is suboptimal: SIMPLIFY_ABOVE=%d 'half'=%d\n", SIMPLIFY_ABOVE, half);
+    }
+    assert(SIMPLIFY_ABOVE <= half, "SIMPLIFY_ABOVE is too large");
 }
+
 
 // Return the greatest common divisor (always positive)
 T_ELEM gcd(T_ELEM a, T_ELEM b) {
@@ -49,16 +66,17 @@ int vec_eq(T_VEC(a), T_VEC(b)) {
     return 1;
 }
 
-// Simplify a vector
-void simplify(T_VEC(r)) {
+// Simplify a vector. Return if we managed to simplify it
+int simplify(T_VEC(r)) {
     T_ELEM c = gcd(r[0], r[1]);
-    if(c == 1) return;
+    if(c == 1) return 0;
     for(int i=2; i<VECLEN; i++) {
         c = gcd(c, r[i]);
-        if(c == 1) return;
+        if(c == 1) return 0;
     }
-    if(c == 0) return;
+    if(c == 0) return 0;
     VEC_LOOP(i) r[i] /= c;
+    return 1;
 }
 
 // Return the lcm for a vector
@@ -95,7 +113,8 @@ T_ELEM dot_opt(T_VEC(a), T_VEC(b)) {
 }
 
 // a := a*x - b*y such that a[var_ix]==0
-void solve_one(T_VEC(a), T_VEC(b), int var_ix) {
+// Return 1 if results are unstable
+int solve_one(T_VEC(a), T_VEC(b), int var_ix) {
     T_ELEM c = gcd(a[var_ix], b[var_ix]);
     T_ELEM af = b[var_ix] / c;
     T_ELEM bf = a[var_ix] / c;
@@ -107,16 +126,8 @@ void solve_one(T_VEC(a), T_VEC(b), int var_ix) {
         if(a[i] != 0 && (a[i] > SIMPLIFY_ABOVE || a[i] < -SIMPLIFY_ABOVE)) { to_simplify = 1; }
     }
     // print_row(a);
-    if(to_simplify) simplify(a);
-}
-
-// Assertion
-void assert(int flag, char* message) {
-    if(!flag) {
-        printf("Assertion failure: %s\n", message);
-        fflush(stdout);
-        exit(1);
-    }
+    if(to_simplify) { return 1 - simplify(a); }
+    return 0;
 }
 
 pthread_t THREADS[NUM_THREADS];
