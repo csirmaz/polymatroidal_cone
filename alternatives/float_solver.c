@@ -13,7 +13,7 @@
 #define T_FACTOR double
 // long long int  format: %lld
 // double  format: %lf
-#define ABS(f) fabs(f)
+#define IABS(f) fabs(f)
 
 // Any function modifiers, e.g. static inline
 #define FUNCPARAMS 

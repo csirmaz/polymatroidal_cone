@@ -9,10 +9,10 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define T_ELEM long long int
+#define T_IELEM long long int
 // long long int  format: %lld
 // double  format: %lf
-#define ABS(f) llabs(f)
+#define IABS(f) llabs(f)
 
 // Any function modifiers, e.g. static inline
 #define FUNCPARAMS 

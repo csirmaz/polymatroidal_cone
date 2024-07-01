@@ -1,8 +1,8 @@
 
-#define T_ELEM int
+#define T_IELEM int
 // long long int  format: %lld
 // double  format: %lf
-#define ABS(f) llabs(f)
+#define IABS(f) llabs(f)
 
 #define T_RAYIX size_t
 #define T_RAYIX2 size_t
@@ -21,6 +21,6 @@
 
 #define NUM_THREADS 1
 
-#define T_VEC(a) T_ELEM a[VECLEN]
+#define T_IVEC(a) T_ELEM a[VECLEN]
 #define VEC_LOOP(i) for(int i=0; i<VECLEN; i++)
 

@@ -29,7 +29,7 @@
 #define RS_ALLOC_BLOCK_NUM 1024
 
 struct ray_record {
-    T_VEC(coords);     // coordinates of the ray
+    T_IVEC(coords);     // coordinates of the ray
     T_BITMAP(faces);   // which faces the ray is on (stores all faces, not just the ones already used)
     char used;         // 0 if slot is unused; 1 if used
 };

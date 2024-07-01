@@ -2,7 +2,7 @@
 // Utilities
 // Utilities for integer vectors
 
-T_VEC(zero_vector);
+T_IVEC(zero_vector);
 
 // Assertion
 void assert(int flag, char* message) {
@@ -18,7 +18,7 @@ void assert(int flag, char* message) {
 void util_init(void) {
     VEC_LOOP(i) { zero_vector[i] = 0; }
     
-    T_ELEM half = (1 << (sizeof(T_ELEM)*8 / 2));
+    T_IELEM half = (1 << (sizeof(T_IELEM)*8 / 2));
     if(SIMPLIFY_ABOVE < (half >> 1) || SIMPLIFY_ABOVE > half) {
         printf("SIMPLIFY_ABOVE is suboptimal: SIMPLIFY_ABOVE=%d 'half'=%d\n", SIMPLIFY_ABOVE, half);
     }
@@ -26,11 +26,64 @@ void util_init(void) {
 }
 
 
+// Copy data from one vector to another
+void vec_icpy (T_IVEC(dest), T_IVEC(src)) {
+    memcpy(dest, src, sizeof(T_IELEM)*VECLEN);
+}
+
+void vec_fcpy (T_FVEC(dest), T_FVEC(src)) {
+    memcpy(dest, src, sizeof(T_FELEM)*VECLEN);
+}
+
+// Set a row vector to zero
+void vec_izero(T_IVEC(r)) {
+    vec_icpy (r, zero_vector);
+}
+
+// Scale a vector by a scalar
+void vec_iscale(T_IVEC(v), T_IELEM s) {
+    VEC_LOOP(i) v[i] *= s;
+}
+
+void vec_fscale(T_FVEC(v), T_FELEM s) {
+    VEC_LOOP(i) v[i] *= s;
+}
+
+// Return if two vectors are the same
+int vec_ieq(T_IVEC(a), T_IVEC(b)) {
+    VEC_LOOP(i) if(a[i] != b[i]) return 0;
+    return 1;
+}
+
+// Print a vector
+void vec_iprint(T_IVEC(r)) {
+    printf("[");
+    VEC_LOOP(i) {
+        if(i>0) printf(",");
+        printf("%2d", r[i]);
+    }
+    printf("]");
+}
+
+// Dot product of two row vectors
+T_IELEM idot(T_IVEC(a), T_IVEC(b)) {
+    T_IELEM r = 0;
+    VEC_LOOP(i) r += a[i] * b[i];
+    return r;
+}
+
+// Dot product of two row vectors - optimized for mostly 0 b vector
+T_IELEM idot_opt(T_IVEC(a), T_IVEC(b)) {
+    T_IELEM r = 0;
+    VEC_LOOP(i) if(b[i] != 0) r += a[i] * b[i];
+    return r;
+}
+
 // Return the greatest common divisor (always positive)
-T_ELEM gcd(T_ELEM a, T_ELEM b) {
-    T_ELEM tmp;
-    a = ABS(a);
-    b = ABS(b);
+T_IELEM gcd(T_IELEM a, T_IELEM b) {
+    T_IELEM tmp;
+    a = IABS(a);
+    b = IABS(b);
     while(1) {
         if (b == 0) return a;
         if (a == 0) return b;
@@ -41,34 +94,13 @@ T_ELEM gcd(T_ELEM a, T_ELEM b) {
 }
 
 // Return the least common multiple
-T_ELEM lcm(T_ELEM a, T_ELEM b) {
+T_IELEM lcm(T_IELEM a, T_IELEM b) {
     return (a / gcd(a, b)) * b;
 }
 
-// Copy data from one vector to another
-void vec_cpy(T_VEC(dest), T_VEC(src)) {
-    memcpy(dest, src, sizeof(T_ELEM)*VECLEN);
-}
-
-// Set a row vector to zero
-void vec_zero(T_VEC(r)) {
-    vec_cpy(r, zero_vector);
-}
-
-// Scale a vector by a scalar
-void vec_scale(T_VEC(v), T_ELEM s) {
-    VEC_LOOP(i) v[i] *= s;
-}
-
-// Return if two vectors are the same
-int vec_eq(T_VEC(a), T_VEC(b)) {
-    VEC_LOOP(i) if(a[i] != b[i]) return 0;
-    return 1;
-}
-
 // Simplify a vector. Return if we managed to simplify it
-int simplify(T_VEC(r)) {
-    T_ELEM c = gcd(r[0], r[1]);
+int vec_isimplify(T_IVEC(r)) {
+    T_IELEM c = gcd(r[0], r[1]);
     if(c == 1) return 0;
     for(int i=2; i<VECLEN; i++) {
         c = gcd(c, r[i]);
@@ -77,57 +109,6 @@ int simplify(T_VEC(r)) {
     if(c == 0) return 0;
     VEC_LOOP(i) r[i] /= c;
     return 1;
-}
-
-// Return the lcm for a vector
-T_ELEM lcm_vec(T_VEC(r)) {
-    T_ELEM c = lcm(r[0], r[1]);
-    for(int i=2; i<VECLEN; i++) {
-        c = lcm(c, r[i]);
-    }
-    return c;
-}
-
-// Print a vector
-void print_vec(T_VEC(r)) {
-    printf("[");
-    VEC_LOOP(i) {
-        if(i>0) printf(",");
-        printf("%2d", r[i]);
-    }
-    printf("]");
-}
-
-// Dot product of two row vectors
-T_ELEM dot(T_VEC(a), T_VEC(b)) {
-    T_ELEM r = 0;
-    VEC_LOOP(i) r += a[i] * b[i];
-    return r;
-}
-
-// Dot product of two row vectors - optimized for mostly 0 b vector
-T_ELEM dot_opt(T_VEC(a), T_VEC(b)) {
-    T_ELEM r = 0;
-    VEC_LOOP(i) if(b[i] != 0) r += a[i] * b[i];
-    return r;
-}
-
-// a := a*x - b*y such that a[var_ix]==0
-// Return 1 if results are unstable
-int solve_one(T_VEC(a), T_VEC(b), int var_ix) {
-    T_ELEM c = gcd(a[var_ix], b[var_ix]);
-    T_ELEM af = b[var_ix] / c;
-    T_ELEM bf = a[var_ix] / c;
-    // print_row(a); printf(" af=%lld\n", af);
-    // print_row(b); printf(" bf=%lld\n", bf);
-    int to_simplify = 0;
-    VEC_LOOP(i) {
-        a[i] = a[i]*af - b[i]*bf;
-        if(a[i] != 0 && (a[i] > SIMPLIFY_ABOVE || a[i] < -SIMPLIFY_ABOVE)) { to_simplify = 1; }
-    }
-    // print_row(a);
-    if(to_simplify) { return 1 - simplify(a); }
-    return 0;
 }
 
 pthread_t THREADS[NUM_THREADS];

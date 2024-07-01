@@ -12,7 +12,7 @@ while(<STDIN>) {
         $skip = 1 if $_ =~ m/\b$p\b/;
     }
     next if $skip;
-    s/#include "([^"]+)\.c"/#include "$1.strp.c"/g;
-    s/#include "data\/([^"]+)\.strp\.c"/#include "data\/$1.c"/g;
+    # s/#include "([^"]+)\.c"/#include "$1.strp.c"/g;
+    s/#include "data\/([^"]+)\.c"/#include "..\/data\/$1.c"/g;
     print;
 }

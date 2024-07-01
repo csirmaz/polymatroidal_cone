@@ -10,10 +10,10 @@
 
 #define SO_MAX_ROWS AXIOMS
 // "_coll" are collections - one for each thread
-T_VEC(so_matrix_coll[NUM_THREADS][SO_MAX_ROWS]);
+T_IVEC(so_matrix_coll[NUM_THREADS][SO_MAX_ROWS]);
 T_RAYIX so_rows_coll[NUM_THREADS]; // How many rows are used in the matrix actually
-T_VEC(solution_coll[NUM_THREADS]);
-T_VEC(solution_divisor_coll[NUM_THREADS]);
+T_IVEC(solution_coll[NUM_THREADS]);
+T_IVEC(solution_divisor_coll[NUM_THREADS]);
 
 #define SO_ROWS_FULL_LOOP(a) for(int a=0; a<SO_MAX_ROWS; a++)
 #define SO_ROWS_LOOP(a) for(int a=0; a<so_rows; a++)
@@ -36,11 +36,40 @@ int variables_solved_coll[NUM_THREADS][VARS]; // stores which variables have bee
  */
 
 
+// Return the lcm for a vector
+T_IELEM lcm_vec(T_IVEC(r)) {
+    T_IELEM c = lcm(r[0], r[1]);
+    for(int i=2; i<VECLEN; i++) {
+        c = lcm(c, r[i]);
+    }
+    return c;
+}
+
+
+// a := a*x - b*y such that a[var_ix]==0
+// Return 1 if results are unstable
+int solve_one(T_IVEC(a), T_IVEC(b), int var_ix) {
+    T_IELEM c = gcd(a[var_ix], b[var_ix]);
+    T_IELEM af = b[var_ix] / c;
+    T_IELEM bf = a[var_ix] / c;
+    // print_row(a); printf(" af=%lld\n", af);
+    // print_row(b); printf(" bf=%lld\n", bf);
+    int to_simplify = 0;
+    VEC_LOOP(i) {
+        a[i] = a[i]*af - b[i]*bf;
+        if(a[i] != 0 && (a[i] > SIMPLIFY_ABOVE || a[i] < -SIMPLIFY_ABOVE)) { to_simplify = 1; }
+    }
+    // print_row(a);
+    if(to_simplify) { return 1 - vec_isimplify (a); }
+    return 0;
+}
+
+
 void so_print_matrix(T_THREAD_NUM thread_num) {
     // Print `so_matrix`
     for(int r=0; r<so_rows_coll[thread_num]; r++) {
         printf("  | %2d ", r);
-        print_vec(so_matrix_coll[thread_num][r]);
+        vec_iprint(so_matrix_coll[thread_num][r]);
         printf(" for=%d\n", axiom_solved_for_coll[thread_num][r]);
     }
 }
@@ -56,9 +85,9 @@ void so_init_matrix(T_THREAD_NUM thread_num) {
     so_rows_coll[thread_num] = 0;
 }
 
-void so_add_to_matrix(T_THREAD_NUM thread_num, T_VEC(v)) {
+void so_add_to_matrix(T_THREAD_NUM thread_num, T_IVEC(v)) {
     // Add an expression to the matrix
-    memcpy(so_matrix_coll[thread_num][so_rows_coll[thread_num]], v, sizeof(T_ELEM)*VECLEN);
+    memcpy(so_matrix_coll[thread_num][so_rows_coll[thread_num]], v, sizeof(T_IELEM)*VECLEN);
     so_rows_coll[thread_num]++;
 }
 
@@ -67,9 +96,9 @@ static inline int so_solve_impl(
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],
     int variables_solved[VARS],
-    T_ELEM so_matrix[SO_MAX_ROWS][VECLEN],
-    T_ELEM solution[VECLEN],
-    T_ELEM solution_divisor[VECLEN]
+    T_IELEM so_matrix[SO_MAX_ROWS][VECLEN],
+    T_IELEM solution[VECLEN],
+    T_IELEM solution_divisor[VECLEN]
 ) {
     // Solve the matrix
     // Returns:
@@ -84,9 +113,9 @@ static inline int so_solve_early_impl(
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],
     int variables_solved[VARS],
-    T_ELEM so_matrix[SO_MAX_ROWS][VECLEN],
-    T_ELEM solution[VECLEN],
-    T_ELEM solution_divisor[VECLEN]    
+    T_IELEM so_matrix[SO_MAX_ROWS][VECLEN],
+    T_IELEM solution[VECLEN],
+    T_IELEM solution_divisor[VECLEN]    
 ) {
     // Solve the matrix
     // Returns:
@@ -107,11 +136,11 @@ static inline int so_solve_early_impl(
         so_print_matrix(thread_num); // SO_DEBUG
         
         // Get the abs largest coefficient for the v'th variable
-        T_ELEM max_v = 0;
+        T_IELEM max_v = 0;
         int max_ix = -1;  // index of the largest value
         SO_ROWS_LOOP(a) {
             if(axiom_solved_for[a] != -1) continue; // only look at the unsolved axioms
-            T_ELEM c = ABS(so_matrix[a][var_ix]);
+            T_IELEM c = IABS(so_matrix[a][var_ix]);
             if(max_ix == -1 || max_v < c) {
                 max_v = c;
                 max_ix = a;
@@ -186,18 +215,18 @@ static inline int so_solve_early_impl(
     solution_divisor[free_var] = 1;
     
     printf("  | Solution:  "); // SO_DEBUG
-    print_vec(solution); // SO_DEBUG
+    vec_iprint(solution); // SO_DEBUG
     printf("\n  | SolDivisor:"); // SO_DEBUG
-    print_vec(solution_divisor); // SO_DEBUG
+    vec_iprint(solution_divisor); // SO_DEBUG
     printf("\n"); // SO_DEBUG
     
-    T_ELEM c = lcm_vec(solution_divisor);
+    T_IELEM c = lcm_vec(solution_divisor);
     if(c < 0) c = -c;
     VEC_LOOP(i) { solution[i] *= c / solution_divisor[i]; }
-    simplify(solution);
+    vec_isimplify (solution);
 
     printf("  | Solution (merged): "); // SO_DEBUG
-    print_vec(solution); // SO_DEBUG
+    vec_iprint(solution); // SO_DEBUG
     printf("\n"); // SO_DEBUG
 
     return 1;

@@ -21,10 +21,12 @@
 // #define INIT_AXIOMS_ONLY // Return after trying to select initial axioms (defined in Makefile)
 
 // Type for a value in a matrix/vector
-#define T_ELEM int
+#define T_IELEM int
+#define T_FELEM double
 // long long int  format: %lld
 // double  format: %lf
-#define ABS(f) llabs(f)
+#define IABS(f) llabs(f)
+#define FABS(f) lfabs(f)
 
 // Type for ray indices
 #define T_RAYIX size_t
@@ -63,7 +65,8 @@
     
 // Length of a vector
 #define VECLEN VARS
-#define T_VEC(a) T_ELEM a[VECLEN]
+#define T_IVEC(a) T_IELEM a[VECLEN]
+#define T_FVEC(a) T_FELEM a[VECLEN]
 // Loop through variables / elements in a row vector
 #define VEC_LOOP(i) for(int i=0; i<VECLEN; i++)
 // Loop through all axioms
@@ -100,7 +103,7 @@ T_RAYIX2 new_axiom_ray_pairs(int axiom_ix) {
 
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) {
         // Note: due to the garbage collector, there are no unused rays
-        T_ELEM d = dot_opt(rs_get_ray(i)->coords, axioms[axiom_ix]);
+        T_IELEM d = idot_opt (rs_get_ray(i)->coords, axioms[axiom_ix]);
         if(d > 0) { // positive side
             pos_count++;
         }
@@ -153,7 +156,7 @@ void check_bitmaps(void) {
                 assert(bitmap_read(ray->faces, a) == 0, "check_bitmaps: unused bit");
             }
             else {
-                T_ELEM d = dot(ray->coords, axioms[a]);
+                T_IELEM d = idot (ray->coords, axioms[a]);
                 assert(d >= 0, "check_bitmaps: inside");
                 assert(bitmap_read(ray->faces, a) == (d == 0), "check_bitmaps: correlates with bitmap");
             }
@@ -172,7 +175,7 @@ T_RAYIX2 mark_rays(int axiom_ix) {
         // Note: due to the garbage collector, there are no unused rays
         ray = rs_get_ray(i);
 
-        T_ELEM d = dot_opt(ray->coords, axioms[axiom_ix]);
+        T_IELEM d = idot_opt (ray->coords, axioms[axiom_ix]);
         if(d > 0) { // positive side
             pos_count++;
             ray->used = U_POS;
@@ -254,9 +257,9 @@ void *check_pairs(void *my_thread_num) {
             bitmap_cpy_and(face_bm, ray_pos->faces, ray_neg->faces);
 
             printf("Ray pos: %zu ", ray_i); // DEBUG
-            print_vec(ray_pos->coords); // DEBUG
+            vec_iprint (ray_pos->coords); // DEBUG
             printf("\nRay neg: %zu ", ray_j); // DEBUG
-            print_vec(ray_neg->coords); // DEBUG
+            vec_iprint (ray_neg->coords); // DEBUG
             printf("\nRay pos: %3zu ", ray_i); // DEBUG
             bitmap_print(ray_pos->faces, AXIOMS); // DEBUG
             printf("\nRay neg: %3zu ", ray_j); // DEBUG
@@ -285,11 +288,13 @@ void *check_pairs(void *my_thread_num) {
                 AXIOM_LOOP(a) {
                     if(bitmap_read(face_bm, a)) {
                         so_add_to_matrix(thread_num, axioms[a]);
-                        printf("Adding axiom #%d to solver ", a); print_vec(axioms[a]); printf("\n"); // DEBUG
+                        printf("Adding axiom #%d to solver ", a); 
+                        vec_iprint (axioms[a]); printf("\n"); // DEBUG
                     }
                 }
                 so_add_to_matrix(thread_num, axioms[axiom_ix]);
-                printf("Adding the new axiom #%d to solver ", axiom_ix); print_vec(axioms[axiom_ix]); printf("\n"); // DEBUG
+                printf("Adding the new axiom #%d to solver ", axiom_ix); 
+                vec_iprint (axioms[axiom_ix]); printf("\n"); // DEBUG
                 int f = so_solve_early(thread_num);
                 if(f == -2) { // overflow; use combinatorial test
                     test_type = 1;
@@ -349,7 +354,7 @@ void *check_pairs(void *my_thread_num) {
             // Calculate the coordinates
             if(test_type == 0) {
                 // In case of the algebraic test, the new ray (without sign) is in solution_coll[thread_num].
-                vec_cpy(ray->coords, solution_coll[thread_num]);                
+                vec_icpy (ray->coords, solution_coll[thread_num]);                
             }
             else {
                 // In case of combinatorial test
@@ -358,12 +363,12 @@ void *check_pairs(void *my_thread_num) {
                 //   and dot(new_ray, new_axiom) == 0
                 //       alpha*dot(ray_pos,new_axiom) + beta*dot(ray_neg,new_axiom) == 0
                 //    so:
-                T_ELEM alpha = 0 - dot_opt(ray_neg->coords, axioms[axiom_ix]);
-                T_ELEM beta = dot_opt(ray_pos->coords, axioms[axiom_ix]);
+                T_IELEM alpha = 0 - idot_opt (ray_neg->coords, axioms[axiom_ix]);
+                T_IELEM beta = idot_opt (ray_pos->coords, axioms[axiom_ix]);
                 VEC_LOOP(i) ray->coords[i] = alpha*ray_pos->coords[i] + beta*ray_neg->coords[i];
                 simplify(ray->coords);
                 printf("Ray new (from combinatorial): #%zu ", RS_STORE_RANGE-1); // DEBUG
-                print_vec(ray->coords); printf("\n"); // DEBUG
+                vec_iprint (ray->coords); printf("\n"); // DEBUG
             }
             
             // Store which faces the new ray is on.
@@ -376,11 +381,13 @@ void *check_pairs(void *my_thread_num) {
                 if(a == axiom_ix || bitmap_read(face_bm, a)) {
                     // We know the ray is on these faces
                     #ifdef FULL_FACE_CHECK
-                        T_ELEM d = dot_opt(ray->coords, axioms[a]);
+                        T_IELEM d = idot_opt (ray->coords, axioms[a]);
                         printf("Checking against known face %d, dot=%d\n", a, d); fflush(stdout); // DEBUG
                         if(d != 0) {
-                            printf("ERROR Ray is not on expected face.\nAxiom %d: ", a); print_vec(axioms[a]); printf("\n");
-                            printf("Ray: "); print_vec(ray->coords); printf("\n");
+                            printf("ERROR Ray is not on expected face.\nAxiom %d: ", a); 
+                        vec_iprint (axioms[a]); printf("\n");
+                            printf("Ray: "); 
+                        vec_iprint (ray->coords); printf("\n");
                             printf("RS_STORE_RANGE=%zu axiom_ix=%d\n", RS_STORE_RANGE, axiom_ix);
                             printf("face_bm="); bitmap_print(face_bm, AXIOMS); printf("\n");
                             assert(0, "Full face check, known");
@@ -389,7 +396,7 @@ void *check_pairs(void *my_thread_num) {
                     bitmap_set(ray->faces, a);
                 }
                 else {
-                    T_ELEM d = dot_opt(ray->coords, axioms[a]);
+                    T_IELEM d = idot_opt (ray->coords, axioms[a]);
                     printf("Checking against other face %d, dot=%d\n", a, d); fflush(stdout); // DEBUG
                     if(d < 0){ 
                         neg_faces++; 
@@ -407,16 +414,16 @@ void *check_pairs(void *my_thread_num) {
                 if(neg_faces != 0) { // actually it cannot be negative
                     if(pos_faces != 0) { // actually it cannot be negative
                         printf("ERROR: Ray has both negative and positive dot products with faces ");
-                        print_vec(ray->coords); printf("\n");
+                        vec_iprint (ray->coords); printf("\n");
                         printf("RS_STORE_RANGE=%zu axiom_ix=%d\n", RS_STORE_RANGE, axiom_ix);
                         printf("face_bm="); bitmap_print(face_bm, AXIOMS); printf("\n");
                         assert(0, "Other face check (both)");
                     }
-                    vec_scale(ray->coords, -1);
+                    vec_iscale (ray->coords, -1);
                 } else { // neg_faces == 0
                     if(pos_faces == 0) {
                         printf("ERROR: Ray is on all known faces ");
-                        print_vec(ray->coords);
+                        vec_iprint (ray->coords);
                         printf(" RS_STORE_RANGE=%zu axiom_ix=%d\n", RS_STORE_RANGE, axiom_ix);
                         printf("face_bm="); bitmap_print(face_bm, AXIOMS); printf("\n");
                         assert(0, "Other face check (null)");
@@ -461,7 +468,7 @@ void apply_axiom(int axiom_ix) {
         ((float)num_axioms_used)/((float)AXIOMS)*100.,
         RS_STORE_RANGE
     );
-    print_vec(axioms[axiom_ix]); printf("\n"); // DEBUG
+    vec_iprint (axioms[axiom_ix]); printf("\n"); // DEBUG
     fflush(stdout);
 
     axioms_used[axiom_ix] = 1;
@@ -482,7 +489,7 @@ void apply_axiom(int axiom_ix) {
     for(T_RAYIX i=0; i<RS_STORE_RANGE; i++) { // after garbage collection, these are the used rays
         struct ray_record *ray = rs_get_ray(i);
         if(!bitmap_read(ray->faces, axiom_ix)) {
-            if(dot_opt(ray->coords, axioms[axiom_ix]) == 0) { 
+            if( idot_opt (ray->coords, axioms[axiom_ix]) == 0) { 
                 bitmap_set(ray->faces, axiom_ix);
             }
         }
@@ -598,20 +605,20 @@ void slicer(int vary_axiom) {
         }
         
         // If the ray is not inside the remaining axiom, flip it
-        T_ELEM d = dot_opt(solution_coll[0], axioms[miss_axiom]);
+        T_IELEM d = idot_opt (solution_coll[0], axioms[miss_axiom]);
         assert(d != 0, "Init axioms ray indep");
-        if(d < 0) vec_scale(solution_coll[0], -1);
+        if(d < 0) vec_iscale (solution_coll[0], -1);
         
         // Add the initial ray
         struct ray_record *ray = rs_allocate_ray();
-        vec_cpy(ray->coords, solution_coll[0]);
+        vec_icpy (ray->coords, solution_coll[0]);
 
         // Create the bitmap
         // We only fill in the bits for the axioms/faces used
         bitmap_zero(ray->faces);
         AXIOM_LOOP (a) {
             if(!axioms_used[a]) continue;
-            T_ELEM d = dot_opt(axioms[a], ray->coords);
+            T_IELEM d = idot_opt (axioms[a], ray->coords);
             if(a == miss_axiom) {
                 assert(d > 0, "Init ray facecheck");
             } else {
@@ -624,7 +631,7 @@ void slicer(int vary_axiom) {
         }
 
         printf("Initialized ray vector:"); // DEBUG
-        print_vec(ray->coords); // DEBUG
+        vec_iprint (ray->coords); // DEBUG
         printf(" bitmap: "); // DEBUG
         bitmap_print (ray->faces, AXIOMS); // DEBUG
         printf("\n"); // DEBUG
