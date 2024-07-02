@@ -3,6 +3,7 @@
 // Utilities for integer vectors
 
 T_IVEC(zero_vector);
+T_FVEC(zero_vector_f);
 
 // Assertion
 void assert(int flag, char* message) {
@@ -16,7 +17,7 @@ void assert(int flag, char* message) {
 
 // Call this at the beginning of the program
 void util_init(void) {
-    VEC_LOOP(i) { zero_vector[i] = 0; }
+    VEC_LOOP(i) { zero_vector[i] = 0; zero_vector_f[i] = 0; }
     
     T_IELEM half = (1 << (sizeof(T_IELEM)*8 / 2));
     if(SIMPLIFY_ABOVE < (half >> 1) || SIMPLIFY_ABOVE > half) {
@@ -37,7 +38,11 @@ void vec_fcpy (T_FVEC(dest), T_FVEC(src)) {
 
 // Set a row vector to zero
 void vec_izero(T_IVEC(r)) {
-    vec_icpy (r, zero_vector);
+    vec_icpy(r, zero_vector);
+}
+
+void vec_fzero(T_FVEC(r)) {
+    vec_fcpy(r, zero_vector_f);
 }
 
 // Scale a vector by a scalar
@@ -55,12 +60,26 @@ int vec_ieq(T_IVEC(a), T_IVEC(b)) {
     return 1;
 }
 
+int vec_feq(T_FVEC(a), T_FVEC(b)) {
+    VEC_LOOP(i) if(FABS(a[i] - b[i]) > EPSILON) return 0;
+    return 1;
+}
+
 // Print a vector
 void vec_iprint(T_IVEC(r)) {
     printf("[");
     VEC_LOOP(i) {
         if(i>0) printf(",");
         printf("%2d", r[i]);
+    }
+    printf("]");
+}
+
+void vec_fprint(T_FVEC(r)) {
+    printf("[");
+    VEC_LOOP(i) {
+        if(i>0) printf(",");
+        printf("%.2f", r[i]);
     }
     printf("]");
 }
@@ -72,9 +91,21 @@ T_IELEM idot(T_IVEC(a), T_IVEC(b)) {
     return r;
 }
 
+T_FELEM fdot(T_FVEC(a), T_FVEC(b)) {
+    T_FELEM r = 0;
+    VEC_LOOP(i) r += a[i] * b[i];
+    return r;
+}
+
 // Dot product of two row vectors - optimized for mostly 0 b vector
 T_IELEM idot_opt(T_IVEC(a), T_IVEC(b)) {
     T_IELEM r = 0;
+    VEC_LOOP(i) if(b[i] != 0) r += a[i] * b[i];
+    return r;
+}
+
+T_FELEM fdot_opt(T_FVEC(a), T_FVEC(b)) {
+    T_FELEM r = 0;
     VEC_LOOP(i) if(b[i] != 0) r += a[i] * b[i];
     return r;
 }
@@ -96,6 +127,15 @@ T_IELEM gcd(T_IELEM a, T_IELEM b) {
 // Return the least common multiple
 T_IELEM lcm(T_IELEM a, T_IELEM b) {
     return (a / gcd(a, b)) * b;
+}
+
+// Return the lcm for a vector
+T_IELEM lcm_vec(T_IVEC(r)) {
+    T_IELEM c = lcm(r[0], r[1]);
+    for(int i=2; i<VECLEN; i++) {
+        c = lcm(c, r[i]);
+    }
+    return c;
 }
 
 // Simplify a vector. Return if we managed to simplify it

@@ -25,14 +25,17 @@
 #define T_FELEM double
 // long long int  format: %lld
 // double  format: %lf
+// https://www.man7.org/linux/man-pages/man3/fabs.3.html
 #define IABS(f) llabs(f)
-#define FABS(f) lfabs(f)
+#define FABS(f) fabs(f)
 
 // Type for ray indices
 #define T_RAYIX size_t
 // Type for ray index squares
 #define T_RAYIX2 size_t
 #define T_THREAD_NUM int
+
+#define EPSILON (1e-8)
 
 #if AXIOMS_FILE == 4
     #include "data/axioms4.c"
@@ -80,8 +83,10 @@
 #include "util.c"
 #include "ray_store.c"
 #include "slicer_solver.c"
+#include "slicer_fsolver.c"
 #define SO_EARLYSTOP
 #include "slicer_solver.c"
+#include "slicer_fsolver.c"
 
 int axioms_used[AXIOMS]; // Which axioms have already been used (bool, 0|1; sometimes index)
 int num_axioms_used = 0;
@@ -354,7 +359,7 @@ void *check_pairs(void *my_thread_num) {
             // Calculate the coordinates
             if(test_type == 0) {
                 // In case of the algebraic test, the new ray (without sign) is in solution_coll[thread_num].
-                vec_icpy (ray->coords, solution_coll[thread_num]);                
+                vec_icpy (ray->coords, so_solution_coll[thread_num]);                
             }
             else {
                 // In case of combinatorial test
@@ -607,11 +612,11 @@ void slicer(int vary_axiom) {
         // If the ray is not inside the remaining axiom, flip it
         T_IELEM d = idot_opt (solution_coll[0], axioms[miss_axiom]);
         assert(d != 0, "Init axioms ray indep");
-        if(d < 0) vec_iscale (solution_coll[0], -1);
+        if(d < 0) vec_iscale ( so_solution_coll[0], -1);
         
         // Add the initial ray
         struct ray_record *ray = rs_allocate_ray();
-        vec_icpy (ray->coords, solution_coll[0]);
+        vec_icpy (ray->coords, so_solution_coll[0]);
 
         // Create the bitmap
         // We only fill in the bits for the axioms/faces used
@@ -744,7 +749,8 @@ int main(void) {
 
         main_init();
         util_init();
-        so_init();    
+        so_init();
+        sof_init();
         rs_init(AXIOMS); // total number of faces
         slicer(vary_axiom);
     #ifdef DO_VARY_AXIOMS

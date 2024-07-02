@@ -1,5 +1,5 @@
 
-// Solve a collection of linear equations without a constant using integers.
+// Solve a collection of linear equations without a constant using floats.
 // Determine the freedom (D-rank), and if it is 1, return a vector (if possible) that satisfies
 // all equations and has at least one positive coordinate.
 
@@ -17,23 +17,22 @@
 #ifndef SO_EARLYSTOP
 
 // "_coll" are collections - one for each thread
-T_IVEC(so_matrix_coll[NUM_THREADS][SO_MAX_ROWS]);
-T_RAYIX so_rows_coll[NUM_THREADS]; // How many rows are used in the matrix actually
-T_IVEC(so_solution_coll[NUM_THREADS]);
-T_IVEC(so_solution_divisor_coll[NUM_THREADS]);
+T_FVEC(sof_matrix_coll[NUM_THREADS][SO_MAX_ROWS]);
+T_RAYIX sof_rows_coll[NUM_THREADS]; // How many rows are used in the matrix actually
+T_FVEC(sof_solution_coll[NUM_THREADS]);
 
-int so_axiom_solved_for_coll[NUM_THREADS][SO_MAX_ROWS]; // stores which axiom is stored for which variable
-int so_axiom_solved_for_init[SO_MAX_ROWS];
+int sof_axiom_solved_for_coll[NUM_THREADS][SO_MAX_ROWS]; // stores which axiom is stored for which variable
+int sof_axiom_solved_for_init[SO_MAX_ROWS];
 
-int so_variables_solved_coll[NUM_THREADS][VARS]; // stores which variables have been solved (bool, 1|0)
+int sof_variables_solved_coll[NUM_THREADS][VARS]; // stores which variables have been solved (bool, 1|0)
 
 /*
  * USAGE
- *  so_init();
+ *  sof_init();
  *  LOOP {
- *     so_init_matrix();
- *     LOOP so_add_to_matrix(vector);
- *     int freedoms = so_solve();
+ *     sof_init_matrix();
+ *     LOOP sof_add_to_matrix(vector);
+ *     int freedoms = sof_solve();
  *     if(freedoms == 1) { READ solution; }
  *  }
  */
@@ -41,7 +40,7 @@ int so_variables_solved_coll[NUM_THREADS][VARS]; // stores which variables have 
 
 // a := a*x - b*y such that a[var_ix]==0
 // Return 1 if results are unstable
-int so_solve_one(T_IVEC(a), T_IVEC(b), int var_ix) {
+int sof_solve_one(T_IVEC(a), T_IVEC(b), int var_ix) {
     T_IELEM c = gcd(a[var_ix], b[var_ix]);
     T_IELEM af = b[var_ix] / c;
     T_IELEM bf = a[var_ix] / c;
@@ -58,42 +57,41 @@ int so_solve_one(T_IVEC(a), T_IVEC(b), int var_ix) {
 }
 
 
-void so_print_matrix(T_THREAD_NUM thread_num) {
-    // Print `so_matrix`
-    for(int r=0; r<so_rows_coll[thread_num]; r++) {
+void sof_print_matrix(T_THREAD_NUM thread_num) {
+    // Print `sof_matrix`
+    for(int r=0; r<sof_rows_coll[thread_num]; r++) {
         printf("  | %2d ", r);
-        vec_iprint(so_matrix_coll[thread_num][r]);
-        printf(" for=%d\n", so_axiom_solved_for_coll[thread_num][r]);
+        vec_fprint(sof_matrix_coll[thread_num][r]);
+        printf(" for=%d\n", sof_axiom_solved_for_coll[thread_num][r]);
     }
 }
 
-void so_init(void) {
+void sof_init(void) {
     // Call this once at the beginning
-    SO_ROWS_FULL_LOOP(i) so_axiom_solved_for_init[i] = -1;
+    SO_ROWS_FULL_LOOP(i) sof_axiom_solved_for_init[i] = -1;
     // VEC_LOOP(i) variables_solved_init[i] = 0;
 }
 
-void so_init_matrix(T_THREAD_NUM thread_num) { 
+void sof_init_matrix(T_THREAD_NUM thread_num) { 
     // Initialize the matrix for injecting expressions
-    so_rows_coll[thread_num] = 0;
+    sof_rows_coll[thread_num] = 0;
 }
 
-void so_add_to_matrix(T_THREAD_NUM thread_num, T_IVEC(v)) {
+void sof_add_to_matrix(T_THREAD_NUM thread_num, T_FVEC(v)) {
     // Add an expression to the matrix
-    memcpy(so_matrix_coll[thread_num][so_rows_coll[thread_num]], v, sizeof(T_IELEM)*VECLEN);
-    so_rows_coll[thread_num]++;
+    memcpy(sof_matrix_coll[thread_num][sof_rows_coll[thread_num]], v, sizeof(T_FELEM)*VECLEN);
+    sof_rows_coll[thread_num]++;
 }
 
-static inline int so_solve_impl(
+static inline int sof_solve_impl(
     T_THREAD_NUM thread_num,
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],
     int variables_solved[VARS],
-    T_IELEM so_matrix[SO_MAX_ROWS][VECLEN],
-    T_IELEM solution[VECLEN],
-    T_IELEM solution_divisor[VECLEN]
+    T_FELEM sof_matrix[SO_MAX_ROWS][VECLEN],
+    T_FELEM solution[VECLEN]
 ) {
-    // Solve the matrix
+    // Solve the matrix (float)
     // Returns:
     // -2: overflow
     // -1: 1 freedom but there's a mixture of sings for the coordinates
@@ -101,16 +99,15 @@ static inline int so_solve_impl(
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
     // 2 and above: many freedoms
 #else
-static inline int so_solve_early_impl(
+static inline int sof_solve_early_impl(
     T_THREAD_NUM thread_num,
     T_RAYIX so_rows,
     int axiom_solved_for[SO_MAX_ROWS],
     int variables_solved[VARS],
-    T_IELEM so_matrix[SO_MAX_ROWS][VECLEN],
-    T_IELEM solution[VECLEN],
-    T_IELEM solution_divisor[VECLEN]    
+    T_FELEM sof_matrix[SO_MAX_ROWS][VECLEN],
+    T_FELEM solution[VECLEN]
 ) {
-    // Solve the matrix
+    // Solve the matrix (float)
     // Returns:
     // -2: overflow
     // -1: 1 freedom but there's a mixture of sings for the coordinates
@@ -120,7 +117,7 @@ static inline int so_solve_early_impl(
     
     int freedoms = 0;
 
-    memcpy(axiom_solved_for, so_axiom_solved_for_init, sizeof(int)*SO_MAX_ROWS); // Initialize to [-1,-1,...]
+    memcpy(axiom_solved_for, sof_axiom_solved_for_init, sizeof(int)*SO_MAX_ROWS); // Initialize to [-1,-1,...]
     // memcpy(variables_solved, variables_solved_init, sizeof(int)*VARS); // Initialize to [0,0,...]
     bzero(variables_solved, sizeof(int)*VARS); // Initialize to [0,0,...]
    
@@ -133,7 +130,7 @@ static inline int so_solve_early_impl(
         int max_ix = -1;  // index of the largest value
         SO_ROWS_LOOP(a) {
             if(axiom_solved_for[a] != -1) continue; // only look at the unsolved axioms
-            T_IELEM c = IABS(so_matrix[a][var_ix]);
+            T_IELEM c = IABS( sof_matrix[a][var_ix]);
             if(max_ix == -1 || max_v < c) {
                 max_v = c;
                 max_ix = a;
@@ -156,8 +153,8 @@ static inline int so_solve_early_impl(
         
         // Subtract
         SO_ROWS_LOOP(a) {
-            if(a != max_ix && so_matrix[a][var_ix] != 0) {
-                if(so_solve_one(so_matrix[a], so_matrix[max_ix], var_ix)) { return -2; }
+            if(a != max_ix && sof_matrix[a][var_ix] != 0) {
+                if(so_solve_one(sof_matrix[a], sof_matrix[max_ix], var_ix)) { return -2; }
             }
         }
         
@@ -199,8 +196,8 @@ static inline int so_solve_early_impl(
     SO_ROWS_LOOP(a) {
         int ix = axiom_solved_for[a];
         if(ix == -1) continue;
-        solution[ix] = -so_matrix[a][free_var];
-        solution_divisor[ix] = so_matrix[a][ix];
+        solution[ix] = -sof_matrix[a][free_var];
+        solution_divisor[ix] = sof_matrix[a][ix];
         assert(solution_divisor[ix] != 0, "solution div 0");
     }
 
@@ -226,38 +223,36 @@ static inline int so_solve_early_impl(
 }
 
 #ifndef SO_EARLYSTOP
-int so_solve(T_THREAD_NUM thread_num) {
+int sof_solve(T_THREAD_NUM thread_num) {
     // Solve the matrix
     // Returns:
     // -1: 1 freedom but there's a mixture of sings for the coordinates
     // 0: 0 freedoms
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
     // 2 and above: many freedoms
-    return so_solve_impl(
+    return sof_solve_impl(
         thread_num,
-        so_rows_coll[thread_num],
-               so_axiom_solved_for_coll[thread_num],
-               so_variables_solved_coll[thread_num],
-        so_matrix_coll[thread_num],
-               so_solution_coll[thread_num],
-               so_solution_divisor_coll[thread_num]
+        sof_rows_coll[thread_num],
+        sof_axiom_solved_for_coll[thread_num],
+        sof_variables_solved_coll[thread_num],
+        sof_matrix_coll[thread_num],
+        sof_solution_coll[thread_num]
     );
 }
 #else
-int so_solve_early(T_THREAD_NUM thread_num) {
+int sof_solve_early(T_THREAD_NUM thread_num) {
     // Solve the matrix
     // Returns:
     // -1: 1 freedom but there's a mixture of sings for the coordinates
     // 0: 0 or >1 freedoms
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
-    return so_solve_early_impl(
+    return sof_solve_early_impl(
         thread_num,
-        so_rows_coll[thread_num],
-               so_axiom_solved_for_coll[thread_num],
-               so_variables_solved_coll[thread_num],
-        so_matrix_coll[thread_num],
-               so_solution_coll[thread_num],
-               so_solution_divisor_coll[thread_num]
+        sof_rows_coll[thread_num],
+        sof_axiom_solved_for_coll[thread_num],
+        sof_variables_solved_coll[thread_num],
+        sof_matrix_coll[thread_num],
+        sof_solution_coll[thread_num]
     );
 }
 #endif
