@@ -54,6 +54,17 @@ void vec_fscale(T_FVEC(v), T_FELEM s) {
     VEC_LOOP(i) v[i] *= s;
 }
 
+// Return if two numbers are the same
+int f_eq(T_FELEM a, T_FELEM b) {
+    return (FABS(a - b) < EPSILON);
+}
+
+// Return if a number is zero
+int f_is_zero(T_FELEM a) { return (FABS(a) < EPSILON); }
+
+// Return if a number if nonzero
+int f_is_nonzero(T_FELEM a) { return (FABS(a) >= EPSILON); }
+
 // Return if two vectors are the same
 int vec_ieq(T_IVEC(a), T_IVEC(b)) {
     VEC_LOOP(i) if(a[i] != b[i]) return 0;

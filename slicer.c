@@ -17,8 +17,10 @@
 #define FULL_FACE_CHECK // whether to check new rays against axioms they were derived from (slower if enabled)
 // #define CHECK_BITMAPS // whether to keep checking bitmaps against dot products after each step
 #define DUMP_DATA // whether to dump data after each step. Use axioms?.c as reference
-// #define INIT_AXIOMS_TEST // Read fixed axioms from a special file (defined in Makefile)
-// #define INIT_AXIOMS_ONLY // Return after trying to select initial axioms (defined in Makefile)
+#define ALGEBRAIC_TEST // whether to use algebraic or combinatorial test
+
+// #define INIT_AXIOMS_TEST // Read fixed axioms from a special file (macro defined in Makefile)
+// #define INIT_AXIOMS_ONLY // Return after trying to select initial axioms (macro defined in Makefile)
 
 // Type for a value in a matrix/vector
 #define T_IELEM int
@@ -262,9 +264,9 @@ void *check_pairs(void *my_thread_num) {
             bitmap_cpy_and(face_bm, ray_pos->faces, ray_neg->faces);
 
             printf("Ray pos: %zu ", ray_i); // DEBUG
-            vec_iprint (ray_pos->coords); // DEBUG
+            vec_iprint(ray_pos->coords); // DEBUG
             printf("\nRay neg: %zu ", ray_j); // DEBUG
-            vec_iprint (ray_neg->coords); // DEBUG
+            vec_iprint(ray_neg->coords); // DEBUG
             printf("\nRay pos: %3zu ", ray_i); // DEBUG
             bitmap_print(ray_pos->faces, AXIOMS); // DEBUG
             printf("\nRay neg: %3zu ", ray_j); // DEBUG
@@ -282,11 +284,9 @@ void *check_pairs(void *my_thread_num) {
                 continue;
             }
             
-            int test_type = 0; // 0=algebraic 1=combinatorial
-            
-            // Start with algebraic which can be faster
-            if(1) {
-                // Algebraic test
+            #ifdef ALGEBRAIC_TEST
+
+            // Algebraic test
                 // Solve the common axioms + the new one; see if we get a ray
                 printf("Algebraic test\n"); // DEBUG
                 so_init_matrix(thread_num);
@@ -311,9 +311,9 @@ void *check_pairs(void *my_thread_num) {
                         continue;
                     }
                 }
-            }
+                
+            #else
             
-            if(test_type == 1) {
                 // Combinatorial test
                 // Next, ensure other there is no other ray that is on all the common faces.
                 printf("Combinatorial test\n"); // DEBUG
@@ -347,7 +347,8 @@ void *check_pairs(void *my_thread_num) {
                     skip_test++; 
                     continue;
                 }
-            }
+                
+            #endif
             
             // --- Create new ray ---
             // We have a good case; construct the new ray
@@ -357,11 +358,10 @@ void *check_pairs(void *my_thread_num) {
             ray = rs_allocate_ray();
             
             // Calculate the coordinates
-            if(test_type == 0) {
+            #ifdef ALGEBRAIC_TEST
                 // In case of the algebraic test, the new ray (without sign) is in solution_coll[thread_num].
                 vec_icpy (ray->coords, so_solution_coll[thread_num]);                
-            }
-            else {
+            #else
                 // In case of combinatorial test
                 // new_ray := alpha*ray_pos + beta*ray_neg
                 // where alpha, beta > 0
@@ -374,7 +374,7 @@ void *check_pairs(void *my_thread_num) {
                 simplify(ray->coords);
                 printf("Ray new (from combinatorial): #%zu ", RS_STORE_RANGE-1); // DEBUG
                 vec_iprint (ray->coords); printf("\n"); // DEBUG
-            }
+            #endif
             
             // Store which faces the new ray is on.
             // We only do this for the used axioms/faces, plus the new face, which is already marked used.
@@ -413,8 +413,8 @@ void *check_pairs(void *my_thread_num) {
                 }
             }
             printf("Face check for other faces: neg_faces=%d pos_faces=%d\n", neg_faces, pos_faces); // DEBUG
-            
-            if(test_type == 0) {
+
+            #ifdef ALGEBRAIC_TEST            
                 // If we used the algebraic test, we don't know the direction of the solution
                 if(neg_faces != 0) { // actually it cannot be negative
                     if(pos_faces != 0) { // actually it cannot be negative
@@ -434,12 +434,11 @@ void *check_pairs(void *my_thread_num) {
                         assert(0, "Other face check (null)");
                     }
                 }
-            }
-            else {
+            #else
                 // If we used the combinatorial test,
                 // This condition should be true as from the combinatorial test the solution should have the right sign.
                 assert(neg_faces == 0, "Other face check (neg)");
-            }
+            #endif
 
             printf("Set up new ray. new_rays=%zu RS_STORE_RANGE=%zu pairs_checked=%zu\n", new_rays, RS_STORE_RANGE, pairs_checked); fflush(stdout); // DEBUG
             printf("Bitmap for new ray #%zu: ", RS_STORE_RANGE-1); bitmap_print(ray->faces, AXIOMS); printf("\n"); fflush(stdout); // DEBUG
@@ -556,7 +555,7 @@ void slicer(int vary_axiom) {
             
             // Try them out with the solver to see if they are independent
             so_init_matrix(0);
-            AXIOM_LOOP(a) if(axioms_used[a]) so_add_to_matrix(0, axioms[a]);
+            AXIOM_LOOP(a) if(axioms_used[a]) so_assign_f_to_matrix(0, axioms[a]);
             assert(so_rows_coll[0] == num_axioms_used, "Axiom init num");
             int f = so_solve(0);
             printf("-> freedoms=%d\n", f); // DEBUG
@@ -597,7 +596,7 @@ void slicer(int vary_axiom) {
             if(axioms_used[a] == var_ix+1) { // Remember we used indices+1, not bool
                 miss_axiom = a;
             } else if(axioms_used[a] != 0) {
-                so_add_to_matrix(0, axioms[a]);
+                so_assign_f_to_matrix(0, axioms[a]);
             }
         }
         printf("Ray #%d to miss face %d, added %zu axioms\n", var_ix, miss_axiom, so_rows_coll[0]); // DEBUG
@@ -610,7 +609,7 @@ void slicer(int vary_axiom) {
         }
         
         // If the ray is not inside the remaining axiom, flip it
-        T_IELEM d = idot_opt (solution_coll[0], axioms[miss_axiom]);
+        T_IELEM d = idot_opt(so_solution_coll[0], axioms[miss_axiom]);
         assert(d != 0, "Init axioms ray indep");
         if(d < 0) vec_iscale ( so_solution_coll[0], -1);
         

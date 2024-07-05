@@ -38,24 +38,13 @@ int sof_variables_solved_coll[NUM_THREADS][VARS]; // stores which variables have
  */
 
 
-// a := a*x - b*y such that a[var_ix]==0
-// Return 1 if results are unstable
-int sof_solve_one(T_IVEC(a), T_IVEC(b), int var_ix) {
-    T_IELEM c = gcd(a[var_ix], b[var_ix]);
-    T_IELEM af = b[var_ix] / c;
-    T_IELEM bf = a[var_ix] / c;
-    // print_row(a); printf(" af=%lld\n", af);
-    // print_row(b); printf(" bf=%lld\n", bf);
-    int to_simplify = 0;
+// a := a - b*f such that a[var_ix]==0
+void sof_solve_one(T_FVEC(a), T_FVEC(b), int var_ix) {
+    T_FELEM bf = a[var_ix] / b[var_ix];
     VEC_LOOP(i) {
-        a[i] = a[i]*af - b[i]*bf;
-        if(a[i] != 0 && (a[i] > SIMPLIFY_ABOVE || a[i] < -SIMPLIFY_ABOVE)) { to_simplify = 1; }
+        a[i] -= b[i]*bf;
     }
-    // print_row(a);
-    if(to_simplify) { return 1 - vec_isimplify (a); }
-    return 0;
 }
-
 
 void sof_print_matrix(T_THREAD_NUM thread_num) {
     // Print `sof_matrix`
@@ -93,7 +82,6 @@ static inline int sof_solve_impl(
 ) {
     // Solve the matrix (float)
     // Returns:
-    // -2: overflow
     // -1: 1 freedom but there's a mixture of sings for the coordinates
     // 0: 0 freedoms
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
@@ -109,7 +97,6 @@ static inline int sof_solve_early_impl(
 ) {
     // Solve the matrix (float)
     // Returns:
-    // -2: overflow
     // -1: 1 freedom but there's a mixture of sings for the coordinates
     // 0: 0 or >1 freedoms
     // 1: good (1 freedom & all positive coordinates); solution is in `solution`
@@ -126,19 +113,19 @@ static inline int sof_solve_early_impl(
         so_print_matrix(thread_num); // SO_DEBUG
         
         // Get the abs largest coefficient for the v'th variable
-        T_IELEM max_v = 0;
+        T_FELEM max_v = 0;
         int max_ix = -1;  // index of the largest value
         SO_ROWS_LOOP(a) {
             if(axiom_solved_for[a] != -1) continue; // only look at the unsolved axioms
-            T_IELEM c = IABS( sof_matrix[a][var_ix]);
+            T_FELEM c = FABS(sof_matrix[a][var_ix]);
             if(max_ix == -1 || max_v < c) {
                 max_v = c;
                 max_ix = a;
             }
         }
-        printf("  | Largest coefficient (abs) %d at axiom %d\n", max_v, max_ix); // SO_DEBUG
+        printf("  | Largest coefficient (abs) %f at axiom %d\n", max_v, max_ix); // SO_DEBUG
 
-        if(max_v == 0) {
+        if(f_is_zero(max_v)) {
             // No non-0 coefficients
             freedoms++;
             printf("  | No non-0 coefficients, now %d freedoms\n", freedoms); // SO_DEBUG
@@ -153,20 +140,19 @@ static inline int sof_solve_early_impl(
         
         // Subtract
         SO_ROWS_LOOP(a) {
-            if(a != max_ix && sof_matrix[a][var_ix] != 0) {
-                if(so_solve_one(sof_matrix[a], sof_matrix[max_ix], var_ix)) { return -2; }
+            if(a != max_ix && f_is_nonzero(sof_matrix[a][var_ix])) {
+                sof_solve_one(sof_matrix[a], sof_matrix[max_ix], var_ix);
             }
         }
         
         axiom_solved_for[max_ix] = var_ix;
         variables_solved[var_ix] = 1;
-        // solved++;
     } // end VEC_LOOP(var_ix)
     
     // Note that we do get here if the system is overspecified and in reality has no solution
     // However, we want this system to have 1 degree of freedom anyway
     printf("  | Result: freedoms=%d\n  | Final:\n", freedoms); // SO_DEBUG
-    so_print_matrix(thread_num); // SO_DEBUG
+    sof_print_matrix(thread_num); // SO_DEBUG
     printf("  | Axioms solved for: ["); // SO_DEBUG
     SO_ROWS_LOOP(i) printf("%d,", axiom_solved_for[i]); // SO_DEBUG
     printf("]\n"); // SO_DEBUG
@@ -196,29 +182,16 @@ static inline int sof_solve_early_impl(
     SO_ROWS_LOOP(a) {
         int ix = axiom_solved_for[a];
         if(ix == -1) continue;
-        solution[ix] = -sof_matrix[a][free_var];
-        solution_divisor[ix] = sof_matrix[a][ix];
-        assert(solution_divisor[ix] != 0, "solution div 0");
+        assert(f_is_nonzero(sof_matrix[a][ix]), "solution div 0");
+        solution[ix] = -sof_matrix[a][free_var] / sof_matrix[a][ix];
     }
 
     solution[free_var] = 1;
-    solution_divisor[free_var] = 1;
     
     printf("  | Solution:  "); // SO_DEBUG
-    vec_iprint(solution); // SO_DEBUG
-    printf("\n  | SolDivisor:"); // SO_DEBUG
-    vec_iprint(solution_divisor); // SO_DEBUG
+    vec_fprint(solution); // SO_DEBUG
     printf("\n"); // SO_DEBUG
     
-    T_IELEM c = lcm_vec(solution_divisor);
-    if(c < 0) c = -c;
-    VEC_LOOP(i) { solution[i] *= c / solution_divisor[i]; }
-    vec_isimplify (solution);
-
-    printf("  | Solution (merged): "); // SO_DEBUG
-    vec_iprint(solution); // SO_DEBUG
-    printf("\n"); // SO_DEBUG
-
     return 1;
 }
 

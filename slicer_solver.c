@@ -53,7 +53,7 @@ int so_solve_one(T_IVEC(a), T_IVEC(b), int var_ix) {
         if(a[i] != 0 && (a[i] > SIMPLIFY_ABOVE || a[i] < -SIMPLIFY_ABOVE)) { to_simplify = 1; }
     }
     // print_row(a);
-    if(to_simplify) { return 1 - vec_isimplify (a); }
+    if(to_simplify) { return 1 - vec_isimplify(a); }
     return 0;
 }
 
@@ -82,6 +82,12 @@ void so_add_to_matrix(T_THREAD_NUM thread_num, T_IVEC(v)) {
     // Add an expression to the matrix
     memcpy(so_matrix_coll[thread_num][so_rows_coll[thread_num]], v, sizeof(T_IELEM)*VECLEN);
     so_rows_coll[thread_num]++;
+}
+
+void so_assign_f_to_matrix(T_THREAD_NUM thread_num, T_FVEC(v)) {
+    // Add an expression to the (int) matrix from float
+    VEC_LOOP(i) so_matrix_coll[thread_num][so_rows_coll[thread_num]][i] = v[i];
+    so_rows_coll[thread_num]++;    
 }
 
 static inline int so_solve_impl(

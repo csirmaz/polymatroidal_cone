@@ -312,13 +312,13 @@ def print_c_code():
     print(f'#define VARS {VARS}')
     out = []
     for i, e in enumerate(axioms):
-        out.append('{'+','.join([str(x) for x in e]) + '} /* ' + axiom_to_string(i, e) + '*/')
+        out.append('{'+','.join([f"{x}." for x in e]) + '} /* ' + axiom_to_string(i, e) + '*/')
     if ADD_IDENTITY:
         for i in range(VARS):
             onehot = [0 for x in range(VARS)]
             onehot[i] = 1
-            out.append('{'+','.join([str(x) for x in onehot]) + '} /* identity */')
-    print('T_ELEM axioms[AXIOMS][VARS] = {')
+            out.append('{'+','.join([f"{x}." for x in onehot]) + '} /* identity */')
+    print('T_FELEM axioms[AXIOMS][VARS] = {')
     print(',\n'.join(out))
     print('};')
     
