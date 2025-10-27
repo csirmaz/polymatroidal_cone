@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     partial_results = (MTYPE***)malloc(param_k * sizeof(MTYPE**));
     if(partial_results == NULL) die("oom");
     for(int k=0; k<=param_k; k++) {
-        partial_results[k] = (MTYPE**)malloc((1<<(k+1)) * sizeof(MTYPE*));
+        partial_results[k] = (MTYPE**)malloc((1<<((MTYPE)k+1)) * sizeof(MTYPE*));
         if(partial_results[k] == NULL) die("oom");
         for(MTYPE b=0; b<(1<<((MTYPE)k+1)); b++) { // all possible combinations in this diagonal
             partial_results[k][b] = (MTYPE*)malloc(3 * sizeof(MTYPE));
