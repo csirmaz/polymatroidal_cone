@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define MAX_K 6
 #define MTYPE unsigned long
 
 MTYPE*** partial_results;  // partial results
@@ -37,8 +36,8 @@ void get_result(
      *    - If the i'th point in the diagonal k is chosen, in diagonal k-1 we need to choose the i'th and (i-1)'th points (except for -1 or k+1).
      *    - So the new mask is the current mask except for the first bit OR the current mask except the last bit
      */
-    for(int b=0; b<(1<<(k+1)); b++) { // all possible combinations in this diagonal
-        if(b & mask == mask) { // the required points are chosen
+    for(MTYPE b=0; b<(1<<((MTYPE)k+1)); b++) { // all possible combinations in this diagonal
+        if((b & mask) == mask) { // the required points are chosen
             MTYPE new_sum[3];
             new_sum[0] = prev_sum[0] + partial_results[k][b][0];
             new_sum[1] = prev_sum[1] + partial_results[k][b][1];
@@ -49,8 +48,7 @@ void get_result(
             }
             else {
                 // Create the mask for the lower diagonal
-                MTYPE new_mask = b & ((1<<(k))-1); // chop off the top bit
-                new_mask |= b>>1;
+                MTYPE new_mask = ((b & ((1<<((MTYPE)k))-1)) | (b>>1));
                 get_result(k-1, new_mask, new_sum);
             }
         }
@@ -78,7 +76,6 @@ int main(int argc, char *argv[]) {
     if(argc != 2) { die("Usage: $0 k"); }
     int param_k;
     if(sscanf(argv[1], "%d", &param_k) != 1) { die("Cannot read k"); }
-    if(param_k > MAX_K) { die("k too big"); }
     
     tests();
     
@@ -88,7 +85,7 @@ int main(int argc, char *argv[]) {
     for(int k=0; k<=param_k; k++) {
         partial_results[k] = (MTYPE**)malloc((1<<(k+1)) * sizeof(MTYPE*));
         if(partial_results[k] == NULL) die("oom");
-        for(int b=0; b<(1<<(k+1)); b++) { // all possible combinations in this diagonal
+        for(MTYPE b=0; b<(1<<((MTYPE)k+1)); b++) { // all possible combinations in this diagonal
             partial_results[k][b] = (MTYPE*)malloc(3 * sizeof(MTYPE));
             if(partial_results[k][b] == NULL) die("oom");
         }
@@ -98,11 +95,11 @@ int main(int argc, char *argv[]) {
     // partial_results[k] corresponds to data at (i,j) where i+j=k
     // partial_results[k][b] stores the sum of triads where out of the k+1 (i,k-i) points those are chosen where b has a 1 bit
     for(int k=0; k<=param_k; k++) {
-        for(int b=0; b<(1<<(k+1)); b++) { // all possible combinations in this diagonal
-            printf("k=%d b=%d\n", k, b);
+        for(MTYPE b=0; b<(1<<((MTYPE)k+1)); b++) { // all possible combinations in this diagonal
+            // printf("k=%d b=%d\n", k, b);
             MTYPE sum[3] = {0,0,0};
             for(int i=0; i<k+1; i++) { // decompose the combination
-                if(b & (1<<i)) {
+                if(b & (1<<(MTYPE)i)) {
                     MTYPE binom = choose(k,i);
                     sum[0] += binom;   // 1 * choose(i+j,i)
                     sum[1] += binom*i; // i * choose(i+j,i)
