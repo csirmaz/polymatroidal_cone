@@ -27,7 +27,8 @@ MTYPE choose(int a, int b) {
 void get_result(
         int k, // which diagonal are we in; k=i+j
         MTYPE mask, // has those bits set that we need to have filled in in this diagonal
-        MTYPE prev_sum[3] // the sum so far from previous (outside) diagonals
+        MTYPE prev_sum[3], // the sum so far from previous (outside) diagonals
+        int nonzero_layer // the topmost nonzero layer
 ) {
     /* Calculate the complete sum recursively starting at the outermost/topmost diagonal (k==param_k).
      * - Loop through all possible choices of points in this diagonal (b)
@@ -42,14 +43,16 @@ void get_result(
             new_sum[0] = prev_sum[0] + partial_results[k][b][0];
             new_sum[1] = prev_sum[1] + partial_results[k][b][1];
             new_sum[2] = prev_sum[2] + partial_results[k][b][2];
+
+            if(nonzero_layer == -1 && b != 0) nonzero_layer = k;
             
             if(k == 0) { // we reached the bottommost diagonal, so stop
-                printf("Sum: %ld, %ld, %ld\n", new_sum[0], new_sum[1], new_sum[2]);
+                printf("Sum: %ld, %ld, %ld (%d)\n", new_sum[0], new_sum[1], new_sum[2], nonzero_layer);
             }
             else {
                 // Create the mask for the lower diagonal
                 MTYPE new_mask = ((b & ((1<<((MTYPE)k))-1)) | (b>>1));
-                get_result(k-1, new_mask, new_sum);
+                get_result(k-1, new_mask, new_sum, nonzero_layer);
             }
         }
     }
@@ -136,7 +139,7 @@ int main(int argc, char *argv[]) {
     
     printf("Now calculate results from the top\n");
     MTYPE tmp_sum[3] = {0,0,0};
-    get_result(param_k, 0, tmp_sum);
+    get_result(param_k, 0, tmp_sum, -1);
     
     printf("END\n");
 }
