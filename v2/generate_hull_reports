@@ -1,0 +1,6 @@
+#!/usr/bin/perl
+
+system("gcc -lm triads.c -o triads");
+for(my $i=2; $i<11; $i++) {
+    system("./triads $i | python convexhull.py > reports/hull$i.txt");
+}
