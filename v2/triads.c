@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define MTYPE unsigned long
+#define MTYPE long
+#define CACHE_BINOM_TO 100
 
+MTYPE** binom_cache;
 MTYPE*** partial_results;  // partial results
 /*
  * To every point (i,j) where i>=0 j>=0 we assing the values [1*choose(i+j,i), i*choose(i+j,i), j*choose(i+j,i)]
@@ -18,10 +20,23 @@ void die(char *m) {
     exit(1);
 }
 
-MTYPE choose(int a, int b) {
+MTYPE choose(int a, int b);
+
+MTYPE choose_impl(int a, int b) {
     if(a<0 || b<0 || a<b) return 0;
     if(a==b || b==0) return 1;
     return choose(a-1, b-1) + choose(a-1, b);
+}
+
+MTYPE choose(int a, int b) {
+    if(a < CACHE_BINOM_TO && b < CACHE_BINOM_TO) {
+        MTYPE r = binom_cache[a][b];
+        if(r != -1) return r;
+        r = choose_impl(a, b);
+        binom_cache[a][b] = r;
+        return r;
+    }
+    return choose_impl(a, b);
 }
 
 void get_result(
@@ -72,7 +87,7 @@ void tests(void) {
     assert(choose(2,2) == 1);
     assert(choose(3,2) == 3);
     assert(choose(4,2) == 6);
-    assert(choose(6,6) == 1); // Test7
+    assert(choose(6,6) == 1);
 }
 
 int main(int argc, char *argv[]) {
@@ -80,9 +95,8 @@ int main(int argc, char *argv[]) {
     int param_k;
     if(sscanf(argv[1], "%d", &param_k) != 1) { die("Cannot read k"); }
     
-    tests();
-    
     // Allocate memory
+    printf("Allocating partial_results\n"); fflush(stdout);
     partial_results = (MTYPE***)malloc(param_k * sizeof(MTYPE**));
     if(partial_results == NULL) die("oom");
     for(int k=0; k<=param_k; k++) {
@@ -94,7 +108,22 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    printf("Calculate partial results\n");
+    printf("Allocating binom_cache\n"); fflush(stdout);
+    binom_cache = (MTYPE**)malloc(CACHE_BINOM_TO * sizeof(MTYPE*));
+    if(binom_cache == NULL) die("oom");
+    for(int i=0; i<CACHE_BINOM_TO; i++) {
+        binom_cache[i] = (MTYPE*)malloc(CACHE_BINOM_TO * sizeof(MTYPE));
+        if(binom_cache[i] == NULL) die("oom");
+        for(int j=0; j<CACHE_BINOM_TO; j++) {
+            binom_cache[i][j] = -1;
+        }
+    }
+    assert(binom_cache[0][0] == -1);
+
+    printf("Running tests\n"); fflush(stdout);
+    tests();
+
+    printf("Calculate partial results\n"); fflush(stdout);
     // partial_results[k] corresponds to data at (i,j) where i+j=k
     // partial_results[k][b] stores the sum of triads where out of the k+1 (i,k-i) points those are chosen where b has a 1 bit
     for(int k=0; k<=param_k; k++) {
@@ -120,7 +149,7 @@ int main(int argc, char *argv[]) {
     assert(partial_results[0][0][2] == 0);
     assert(partial_results[0][1][0] == 1);
     assert(partial_results[0][1][1] == 0);
-    assert(partial_results[0][1][2] == 0); // Test13
+    assert(partial_results[0][1][2] == 0);
 
     if(param_k >= 1) {
     assert(partial_results[1][0][0] == 0);
