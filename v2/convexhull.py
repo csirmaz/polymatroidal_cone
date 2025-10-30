@@ -27,6 +27,17 @@ colors = {
     6: [.5,0,0],
 }
 
+def check_necessary_condition(desc):
+    """Based on the string descriptor, check the necessary condition of being a vertex"""
+    starters = 0
+    enders = 0
+    parts = 0
+    for part in desc.split('|'):
+        if re.match(r'^[Ym]*_*$', part): starters += 1
+        if re.match(r'^_*[Ym]*$', part): enders += 1
+        parts += 1
+    return ((starters == parts) or (enders == parts))
+
 points = []
 descriptors = []
 
@@ -39,7 +50,7 @@ for line in sys.stdin:
         itr = int(match.group(4))
         desc = match.group(5)
         points.append([x,y,z])        
-        descriptors.append(f"({itr:2.0f}) <{desc}>")
+        descriptors.append(f"({itr:2.0f}) <{desc}> {'NC' if check_necessary_condition(desc) else ''}")
         #small_spheres.append(Sphere(small_r).move([x,y,z]))
         #c = colors[itr]
         #big_spheres.append(Sphere(big_r).move([x,y,z]).color(*c))
