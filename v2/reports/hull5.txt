@@ -1,431 +1,431 @@
 VERTICES OF THE CONVEX HULL
-[   0,    0,    0] (-1) <______|_____|____|___|__|_>
-[   1,    0,    0] ( 0) <______|_____|____|___|__|Y>
-[   2,    0,    1] ( 1) <______|_____|____|___|Y_|m>
-[   2,    1,    0] ( 1) <______|_____|____|___|_Y|m>
-[   3,    1,    1] ( 1) <______|_____|____|___|YY|m>
-[   3,    0,    3] ( 2) <______|_____|____|Y__|m_|m>
-[   4,    1,    3] ( 2) <______|_____|____|Y__|mY|m>
-[   6,    3,    5] ( 2) <______|_____|____|YY_|mm|m>
-[   3,    3,    0] ( 2) <______|_____|____|__Y|_m|m>
-[   4,    3,    1] ( 2) <______|_____|____|__Y|Ym|m>
-[   6,    5,    3] ( 2) <______|_____|____|_YY|mm|m>
-[   7,    5,    5] ( 2) <______|_____|____|YYY|mm|m>
-[   4,    0,    6] ( 3) <______|_____|Y___|m__|m_|m>
-[   5,    1,    6] ( 3) <______|_____|Y___|m__|mY|m>
-[   7,    3,    8] ( 3) <______|_____|Y___|mY_|mm|m>
-[   8,    5,    8] ( 3) <______|_____|Y___|mYY|mm|m>
-[  11,    8,   14] ( 3) <______|_____|YY__|mmY|mm|m>
-[  14,   14,   17] ( 3) <______|_____|YYY_|mmm|mm|m>
-[   4,    6,    0] ( 3) <______|_____|___Y|__m|_m|m>
-[   5,    6,    1] ( 3) <______|_____|___Y|__m|Ym|m>
-[   7,    8,    3] ( 3) <______|_____|___Y|_Ym|mm|m>
-[   8,    8,    5] ( 3) <______|_____|___Y|YYm|mm|m>
-[  11,   14,    8] ( 3) <______|_____|__YY|Ymm|mm|m>
-[  14,   17,   14] ( 3) <______|_____|_YYY|mmm|mm|m>
-[  15,   17,   17] ( 3) <______|_____|YYYY|mmm|mm|m>
-[   5,    0,   10] ( 4) <______|Y____|m___|m__|m_|m>
-[   6,    1,   10] ( 4) <______|Y____|m___|m__|mY|m>
-[   8,    3,   12] ( 4) <______|Y____|m___|mY_|mm|m>
-[  11,    6,   18] ( 4) <______|Y____|mY__|mm_|mm|m>
-[  12,    8,   18] ( 4) <______|Y____|mY__|mmY|mm|m>
-[  15,   14,   21] ( 4) <______|Y____|mYY_|mmm|mm|m>
-[  16,   17,   21] ( 4) <______|Y____|mYYY|mmm|mm|m>
-[  19,   18,   33] ( 4) <______|YY___|mmY_|mmm|mm|m>
-[  20,   21,   33] ( 4) <______|YY___|mmYY|mmm|mm|m>
-[  26,   33,   45] ( 4) <______|YYY__|mmmY|mmm|mm|m>
-[  30,   45,   49] ( 4) <______|YYYY_|mmmm|mmm|mm|m>
-[   5,   10,    0] ( 4) <______|____Y|___m|__m|_m|m>
-[   6,   10,    1] ( 4) <______|____Y|___m|__m|Ym|m>
-[   8,   12,    3] ( 4) <______|____Y|___m|_Ym|mm|m>
-[  11,   18,    6] ( 4) <______|____Y|__Ym|_mm|mm|m>
-[  12,   18,    8] ( 4) <______|____Y|__Ym|Ymm|mm|m>
-[  15,   21,   14] ( 4) <______|____Y|_YYm|mmm|mm|m>
-[  16,   21,   17] ( 4) <______|____Y|YYYm|mmm|mm|m>
-[  19,   33,   18] ( 4) <______|___YY|_Ymm|mmm|mm|m>
-[  20,   33,   21] ( 4) <______|___YY|YYmm|mmm|mm|m>
-[  26,   45,   33] ( 4) <______|__YYY|Ymmm|mmm|mm|m>
-[  30,   49,   45] ( 4) <______|_YYYY|mmmm|mmm|mm|m>
-[  31,   49,   49] ( 4) <______|YYYYY|mmmm|mmm|mm|m>
-[   6,    0,   15] ( 5) <Y_____|m____|m___|m__|m_|m>
-[   7,    1,   15] ( 5) <Y_____|m____|m___|m__|mY|m>
-[   9,    3,   17] ( 5) <Y_____|m____|m___|mY_|mm|m>
-[  12,    6,   23] ( 5) <Y_____|m____|mY__|mm_|mm|m>
-[  13,    8,   23] ( 5) <Y_____|m____|mY__|mmY|mm|m>
-[  16,   10,   35] ( 5) <Y_____|mY___|mm__|mm_|mm|m>
-[  17,   12,   35] ( 5) <Y_____|mY___|mm__|mmY|mm|m>
-[  20,   18,   38] ( 5) <Y_____|mY___|mmY_|mmm|mm|m>
-[  21,   21,   38] ( 5) <Y_____|mY___|mmYY|mmm|mm|m>
-[  27,   33,   50] ( 5) <Y_____|mYY__|mmmY|mmm|mm|m>
-[  31,   45,   54] ( 5) <Y_____|mYYY_|mmmm|mmm|mm|m>
-[  32,   49,   54] ( 5) <Y_____|mYYYY|mmmm|mmm|mm|m>
-[  21,   15,   55] ( 5) <YY____|mm___|mm__|mm_|mm|m>
-[  22,   17,   55] ( 5) <YY____|mm___|mm__|mmY|mm|m>
-[  25,   23,   58] ( 5) <YY____|mm___|mmY_|mmm|mm|m>
-[  31,   35,   70] ( 5) <YY____|mmY__|mmm_|mmm|mm|m>
-[  32,   38,   70] ( 5) <YY____|mmY__|mmmY|mmm|mm|m>
-[  36,   50,   74] ( 5) <YY____|mmYY_|mmmm|mmm|mm|m>
-[  37,   54,   74] ( 5) <YY____|mmYYY|mmmm|mmm|mm|m>
-[  41,   55,  100] ( 5) <YYY___|mmm__|mmm_|mmm|mm|m>
-[  42,   58,  100] ( 5) <YYY___|mmm__|mmmY|mmm|mm|m>
-[  46,   70,  104] ( 5) <YYY___|mmmY_|mmmm|mmm|mm|m>
-[  47,   74,  104] ( 5) <YYY___|mmmYY|mmmm|mmm|mm|m>
-[  56,  100,  124] ( 5) <YYYY__|mmmm_|mmmm|mmm|mm|m>
-[  57,  104,  124] ( 5) <YYYY__|mmmmY|mmmm|mmm|mm|m>
-[  62,  124,  129] ( 5) <YYYYY_|mmmmm|mmmm|mmm|mm|m>
-[   6,   15,    0] ( 5) <_____Y|____m|___m|__m|_m|m>
-[   7,   15,    1] ( 5) <_____Y|____m|___m|__m|Ym|m>
-[   9,   17,    3] ( 5) <_____Y|____m|___m|_Ym|mm|m>
-[  12,   23,    6] ( 5) <_____Y|____m|__Ym|_mm|mm|m>
-[  13,   23,    8] ( 5) <_____Y|____m|__Ym|Ymm|mm|m>
-[  16,   35,   10] ( 5) <_____Y|___Ym|__mm|_mm|mm|m>
-[  17,   35,   12] ( 5) <_____Y|___Ym|__mm|Ymm|mm|m>
-[  20,   38,   18] ( 5) <_____Y|___Ym|_Ymm|mmm|mm|m>
-[  21,   38,   21] ( 5) <_____Y|___Ym|YYmm|mmm|mm|m>
-[  27,   50,   33] ( 5) <_____Y|__YYm|Ymmm|mmm|mm|m>
-[  31,   54,   45] ( 5) <_____Y|_YYYm|mmmm|mmm|mm|m>
-[  32,   54,   49] ( 5) <_____Y|YYYYm|mmmm|mmm|mm|m>
-[  21,   55,   15] ( 5) <____YY|___mm|__mm|_mm|mm|m>
-[  22,   55,   17] ( 5) <____YY|___mm|__mm|Ymm|mm|m>
-[  25,   58,   23] ( 5) <____YY|___mm|_Ymm|mmm|mm|m>
-[  31,   70,   35] ( 5) <____YY|__Ymm|_mmm|mmm|mm|m>
-[  32,   70,   38] ( 5) <____YY|__Ymm|Ymmm|mmm|mm|m>
-[  36,   74,   50] ( 5) <____YY|_YYmm|mmmm|mmm|mm|m>
-[  37,   74,   54] ( 5) <____YY|YYYmm|mmmm|mmm|mm|m>
-[  41,  100,   55] ( 5) <___YYY|__mmm|_mmm|mmm|mm|m>
-[  42,  100,   58] ( 5) <___YYY|__mmm|Ymmm|mmm|mm|m>
-[  46,  104,   70] ( 5) <___YYY|_Ymmm|mmmm|mmm|mm|m>
-[  47,  104,   74] ( 5) <___YYY|YYmmm|mmmm|mmm|mm|m>
-[  56,  124,  100] ( 5) <__YYYY|_mmmm|mmmm|mmm|mm|m>
-[  57,  124,  104] ( 5) <__YYYY|Ymmmm|mmmm|mmm|mm|m>
-[  62,  129,  124] ( 5) <_YYYYY|mmmmm|mmmm|mmm|mm|m>
-[  63,  129,  129] ( 5) <YYYYYY|mmmmm|mmmm|mmm|mm|m>
+[   0,    0,    0] (-1) <______|_____|____|___|__|_> NC
+[   1,    0,    0] ( 0) <______|_____|____|___|__|Y> NC
+[   2,    0,    1] ( 1) <______|_____|____|___|Y_|m> NC
+[   2,    1,    0] ( 1) <______|_____|____|___|_Y|m> NC
+[   3,    1,    1] ( 1) <______|_____|____|___|YY|m> NC
+[   3,    0,    3] ( 2) <______|_____|____|Y__|m_|m> NC
+[   4,    1,    3] ( 2) <______|_____|____|Y__|mY|m> NC
+[   6,    3,    5] ( 2) <______|_____|____|YY_|mm|m> NC
+[   3,    3,    0] ( 2) <______|_____|____|__Y|_m|m> NC
+[   4,    3,    1] ( 2) <______|_____|____|__Y|Ym|m> NC
+[   6,    5,    3] ( 2) <______|_____|____|_YY|mm|m> NC
+[   7,    5,    5] ( 2) <______|_____|____|YYY|mm|m> NC
+[   4,    0,    6] ( 3) <______|_____|Y___|m__|m_|m> NC
+[   5,    1,    6] ( 3) <______|_____|Y___|m__|mY|m> NC
+[   7,    3,    8] ( 3) <______|_____|Y___|mY_|mm|m> NC
+[   8,    5,    8] ( 3) <______|_____|Y___|mYY|mm|m> NC
+[  11,    8,   14] ( 3) <______|_____|YY__|mmY|mm|m> NC
+[  14,   14,   17] ( 3) <______|_____|YYY_|mmm|mm|m> NC
+[   4,    6,    0] ( 3) <______|_____|___Y|__m|_m|m> NC
+[   5,    6,    1] ( 3) <______|_____|___Y|__m|Ym|m> NC
+[   7,    8,    3] ( 3) <______|_____|___Y|_Ym|mm|m> NC
+[   8,    8,    5] ( 3) <______|_____|___Y|YYm|mm|m> NC
+[  11,   14,    8] ( 3) <______|_____|__YY|Ymm|mm|m> NC
+[  14,   17,   14] ( 3) <______|_____|_YYY|mmm|mm|m> NC
+[  15,   17,   17] ( 3) <______|_____|YYYY|mmm|mm|m> NC
+[   5,    0,   10] ( 4) <______|Y____|m___|m__|m_|m> NC
+[   6,    1,   10] ( 4) <______|Y____|m___|m__|mY|m> NC
+[   8,    3,   12] ( 4) <______|Y____|m___|mY_|mm|m> NC
+[  11,    6,   18] ( 4) <______|Y____|mY__|mm_|mm|m> NC
+[  12,    8,   18] ( 4) <______|Y____|mY__|mmY|mm|m> NC
+[  15,   14,   21] ( 4) <______|Y____|mYY_|mmm|mm|m> NC
+[  16,   17,   21] ( 4) <______|Y____|mYYY|mmm|mm|m> NC
+[  19,   18,   33] ( 4) <______|YY___|mmY_|mmm|mm|m> NC
+[  20,   21,   33] ( 4) <______|YY___|mmYY|mmm|mm|m> NC
+[  26,   33,   45] ( 4) <______|YYY__|mmmY|mmm|mm|m> NC
+[  30,   45,   49] ( 4) <______|YYYY_|mmmm|mmm|mm|m> NC
+[   5,   10,    0] ( 4) <______|____Y|___m|__m|_m|m> NC
+[   6,   10,    1] ( 4) <______|____Y|___m|__m|Ym|m> NC
+[   8,   12,    3] ( 4) <______|____Y|___m|_Ym|mm|m> NC
+[  11,   18,    6] ( 4) <______|____Y|__Ym|_mm|mm|m> NC
+[  12,   18,    8] ( 4) <______|____Y|__Ym|Ymm|mm|m> NC
+[  15,   21,   14] ( 4) <______|____Y|_YYm|mmm|mm|m> NC
+[  16,   21,   17] ( 4) <______|____Y|YYYm|mmm|mm|m> NC
+[  19,   33,   18] ( 4) <______|___YY|_Ymm|mmm|mm|m> NC
+[  20,   33,   21] ( 4) <______|___YY|YYmm|mmm|mm|m> NC
+[  26,   45,   33] ( 4) <______|__YYY|Ymmm|mmm|mm|m> NC
+[  30,   49,   45] ( 4) <______|_YYYY|mmmm|mmm|mm|m> NC
+[  31,   49,   49] ( 4) <______|YYYYY|mmmm|mmm|mm|m> NC
+[   6,    0,   15] ( 5) <Y_____|m____|m___|m__|m_|m> NC
+[   7,    1,   15] ( 5) <Y_____|m____|m___|m__|mY|m> NC
+[   9,    3,   17] ( 5) <Y_____|m____|m___|mY_|mm|m> NC
+[  12,    6,   23] ( 5) <Y_____|m____|mY__|mm_|mm|m> NC
+[  13,    8,   23] ( 5) <Y_____|m____|mY__|mmY|mm|m> NC
+[  16,   10,   35] ( 5) <Y_____|mY___|mm__|mm_|mm|m> NC
+[  17,   12,   35] ( 5) <Y_____|mY___|mm__|mmY|mm|m> NC
+[  20,   18,   38] ( 5) <Y_____|mY___|mmY_|mmm|mm|m> NC
+[  21,   21,   38] ( 5) <Y_____|mY___|mmYY|mmm|mm|m> NC
+[  27,   33,   50] ( 5) <Y_____|mYY__|mmmY|mmm|mm|m> NC
+[  31,   45,   54] ( 5) <Y_____|mYYY_|mmmm|mmm|mm|m> NC
+[  32,   49,   54] ( 5) <Y_____|mYYYY|mmmm|mmm|mm|m> NC
+[  21,   15,   55] ( 5) <YY____|mm___|mm__|mm_|mm|m> NC
+[  22,   17,   55] ( 5) <YY____|mm___|mm__|mmY|mm|m> NC
+[  25,   23,   58] ( 5) <YY____|mm___|mmY_|mmm|mm|m> NC
+[  31,   35,   70] ( 5) <YY____|mmY__|mmm_|mmm|mm|m> NC
+[  32,   38,   70] ( 5) <YY____|mmY__|mmmY|mmm|mm|m> NC
+[  36,   50,   74] ( 5) <YY____|mmYY_|mmmm|mmm|mm|m> NC
+[  37,   54,   74] ( 5) <YY____|mmYYY|mmmm|mmm|mm|m> NC
+[  41,   55,  100] ( 5) <YYY___|mmm__|mmm_|mmm|mm|m> NC
+[  42,   58,  100] ( 5) <YYY___|mmm__|mmmY|mmm|mm|m> NC
+[  46,   70,  104] ( 5) <YYY___|mmmY_|mmmm|mmm|mm|m> NC
+[  47,   74,  104] ( 5) <YYY___|mmmYY|mmmm|mmm|mm|m> NC
+[  56,  100,  124] ( 5) <YYYY__|mmmm_|mmmm|mmm|mm|m> NC
+[  57,  104,  124] ( 5) <YYYY__|mmmmY|mmmm|mmm|mm|m> NC
+[  62,  124,  129] ( 5) <YYYYY_|mmmmm|mmmm|mmm|mm|m> NC
+[   6,   15,    0] ( 5) <_____Y|____m|___m|__m|_m|m> NC
+[   7,   15,    1] ( 5) <_____Y|____m|___m|__m|Ym|m> NC
+[   9,   17,    3] ( 5) <_____Y|____m|___m|_Ym|mm|m> NC
+[  12,   23,    6] ( 5) <_____Y|____m|__Ym|_mm|mm|m> NC
+[  13,   23,    8] ( 5) <_____Y|____m|__Ym|Ymm|mm|m> NC
+[  16,   35,   10] ( 5) <_____Y|___Ym|__mm|_mm|mm|m> NC
+[  17,   35,   12] ( 5) <_____Y|___Ym|__mm|Ymm|mm|m> NC
+[  20,   38,   18] ( 5) <_____Y|___Ym|_Ymm|mmm|mm|m> NC
+[  21,   38,   21] ( 5) <_____Y|___Ym|YYmm|mmm|mm|m> NC
+[  27,   50,   33] ( 5) <_____Y|__YYm|Ymmm|mmm|mm|m> NC
+[  31,   54,   45] ( 5) <_____Y|_YYYm|mmmm|mmm|mm|m> NC
+[  32,   54,   49] ( 5) <_____Y|YYYYm|mmmm|mmm|mm|m> NC
+[  21,   55,   15] ( 5) <____YY|___mm|__mm|_mm|mm|m> NC
+[  22,   55,   17] ( 5) <____YY|___mm|__mm|Ymm|mm|m> NC
+[  25,   58,   23] ( 5) <____YY|___mm|_Ymm|mmm|mm|m> NC
+[  31,   70,   35] ( 5) <____YY|__Ymm|_mmm|mmm|mm|m> NC
+[  32,   70,   38] ( 5) <____YY|__Ymm|Ymmm|mmm|mm|m> NC
+[  36,   74,   50] ( 5) <____YY|_YYmm|mmmm|mmm|mm|m> NC
+[  37,   74,   54] ( 5) <____YY|YYYmm|mmmm|mmm|mm|m> NC
+[  41,  100,   55] ( 5) <___YYY|__mmm|_mmm|mmm|mm|m> NC
+[  42,  100,   58] ( 5) <___YYY|__mmm|Ymmm|mmm|mm|m> NC
+[  46,  104,   70] ( 5) <___YYY|_Ymmm|mmmm|mmm|mm|m> NC
+[  47,  104,   74] ( 5) <___YYY|YYmmm|mmmm|mmm|mm|m> NC
+[  56,  124,  100] ( 5) <__YYYY|_mmmm|mmmm|mmm|mm|m> NC
+[  57,  124,  104] ( 5) <__YYYY|Ymmmm|mmmm|mmm|mm|m> NC
+[  62,  129,  124] ( 5) <_YYYYY|mmmmm|mmmm|mmm|mm|m> NC
+[  63,  129,  129] ( 5) <YYYYYY|mmmmm|mmmm|mmm|mm|m> NC
 POINTS THAT ARE NOT VERTICES
-[   5,    3,    3] ( 2) <______|_____|____|_Y_|mm|m>
-[   5,    3,    3] ( 2) <______|_____|____|Y_Y|mm|m>
-[   6,    3,    6] ( 3) <______|_____|Y___|m_Y|mm|m>
-[   9,    6,   11] ( 3) <______|_____|_Y__|mm_|mm|m>
-[  10,    8,   11] ( 3) <______|_____|_Y__|mmY|mm|m>
-[  10,    6,   14] ( 3) <______|_____|YY__|mm_|mm|m>
-[   9,   11,    6] ( 3) <______|_____|__Y_|_mm|mm|m>
-[  10,   11,    8] ( 3) <______|_____|__Y_|Ymm|mm|m>
-[  11,   11,   11] ( 3) <______|_____|Y_Y_|mmm|mm|m>
-[  13,   14,   14] ( 3) <______|_____|_YY_|mmm|mm|m>
-[   6,    6,    3] ( 3) <______|_____|___Y|Y_m|mm|m>
-[   7,    6,    6] ( 3) <______|_____|Y__Y|m_m|mm|m>
-[   9,    8,    8] ( 3) <______|_____|Y__Y|mYm|mm|m>
-[  11,   11,   11] ( 3) <______|_____|_Y_Y|mmm|mm|m>
-[  12,   11,   14] ( 3) <______|_____|YY_Y|mmm|mm|m>
-[  10,   14,    6] ( 3) <______|_____|__YY|_mm|mm|m>
-[  12,   14,   11] ( 3) <______|_____|Y_YY|mmm|mm|m>
-[   7,    3,   10] ( 4) <______|Y____|m___|m_Y|mm|m>
-[   9,    5,   12] ( 4) <______|Y____|m___|mYY|mm|m>
-[  12,   11,   15] ( 4) <______|Y____|m_Y_|mmm|mm|m>
-[   8,    6,   10] ( 4) <______|Y____|m__Y|m_m|mm|m>
-[  10,    8,   12] ( 4) <______|Y____|m__Y|mYm|mm|m>
-[  13,   11,   18] ( 4) <______|Y____|mY_Y|mmm|mm|m>
-[  13,   14,   15] ( 4) <______|Y____|m_YY|mmm|mm|m>
-[  14,   10,   26] ( 4) <______|_Y___|mm__|mm_|mm|m>
-[  15,   12,   26] ( 4) <______|_Y___|mm__|mmY|mm|m>
-[  18,   18,   29] ( 4) <______|_Y___|mmY_|mmm|mm|m>
-[  16,   15,   26] ( 4) <______|_Y___|mm_Y|mmm|mm|m>
-[  19,   21,   29] ( 4) <______|_Y___|mmYY|mmm|mm|m>
-[  15,   10,   30] ( 4) <______|YY___|mm__|mm_|mm|m>
-[  16,   12,   30] ( 4) <______|YY___|mm__|mmY|mm|m>
-[  17,   15,   30] ( 4) <______|YY___|mm_Y|mmm|mm|m>
-[  19,   26,   26] ( 4) <______|__Y__|_mm_|mmm|mm|m>
-[  20,   26,   29] ( 4) <______|__Y__|Ymm_|mmm|mm|m>
-[  20,   29,   26] ( 4) <______|__Y__|_mmY|mmm|mm|m>
-[  21,   29,   29] ( 4) <______|__Y__|YmmY|mmm|mm|m>
-[  21,   26,   33] ( 4) <______|Y_Y__|mmm_|mmm|mm|m>
-[  22,   29,   33] ( 4) <______|Y_Y__|mmmY|mmm|mm|m>
-[  24,   30,   41] ( 4) <______|_YY__|mmm_|mmm|mm|m>
-[  25,   33,   41] ( 4) <______|_YY__|mmmY|mmm|mm|m>
-[  25,   30,   45] ( 4) <______|YYY__|mmm_|mmm|mm|m>
-[  14,   26,   10] ( 4) <______|___Y_|__mm|_mm|mm|m>
-[  15,   26,   12] ( 4) <______|___Y_|__mm|Ymm|mm|m>
-[  16,   26,   15] ( 4) <______|___Y_|Y_mm|mmm|mm|m>
-[  18,   29,   18] ( 4) <______|___Y_|_Ymm|mmm|mm|m>
-[  19,   29,   21] ( 4) <______|___Y_|YYmm|mmm|mm|m>
-[  17,   26,   19] ( 4) <______|Y__Y_|m_mm|mmm|mm|m>
-[  20,   29,   25] ( 4) <______|Y__Y_|mYmm|mmm|mm|m>
-[  23,   33,   33] ( 4) <______|_Y_Y_|mmmm|mmm|mm|m>
-[  24,   33,   37] ( 4) <______|YY_Y_|mmmm|mmm|mm|m>
-[  24,   41,   30] ( 4) <______|__YY_|_mmm|mmm|mm|m>
-[  25,   41,   33] ( 4) <______|__YY_|Ymmm|mmm|mm|m>
-[  26,   41,   37] ( 4) <______|Y_YY_|mmmm|mmm|mm|m>
-[  29,   45,   45] ( 4) <______|_YYY_|mmmm|mmm|mm|m>
-[   7,   10,    3] ( 4) <______|____Y|___m|Y_m|mm|m>
-[   9,   12,    5] ( 4) <______|____Y|___m|YYm|mm|m>
-[   8,   10,    6] ( 4) <______|____Y|Y__m|m_m|mm|m>
-[  10,   12,    8] ( 4) <______|____Y|Y__m|mYm|mm|m>
-[  12,   15,   11] ( 4) <______|____Y|_Y_m|mmm|mm|m>
-[  13,   15,   14] ( 4) <______|____Y|YY_m|mmm|mm|m>
-[  13,   18,   11] ( 4) <______|____Y|Y_Ym|mmm|mm|m>
-[   9,   10,   10] ( 4) <______|Y___Y|m__m|m_m|mm|m>
-[  11,   12,   12] ( 4) <______|Y___Y|m__m|mYm|mm|m>
-[  14,   15,   18] ( 4) <______|Y___Y|mY_m|mmm|mm|m>
-[  14,   18,   15] ( 4) <______|Y___Y|m_Ym|mmm|mm|m>
-[  17,   21,   21] ( 4) <______|Y___Y|mYYm|mmm|mm|m>
-[  17,   19,   26] ( 4) <______|_Y__Y|mm_m|mmm|mm|m>
-[  20,   25,   29] ( 4) <______|_Y__Y|mmYm|mmm|mm|m>
-[  18,   19,   30] ( 4) <______|YY__Y|mm_m|mmm|mm|m>
-[  21,   25,   33] ( 4) <______|YY__Y|mmYm|mmm|mm|m>
-[  21,   33,   26] ( 4) <______|__Y_Y|_mmm|mmm|mm|m>
-[  22,   33,   29] ( 4) <______|__Y_Y|Ymmm|mmm|mm|m>
-[  23,   33,   33] ( 4) <______|Y_Y_Y|mmmm|mmm|mm|m>
-[  26,   37,   41] ( 4) <______|_YY_Y|mmmm|mmm|mm|m>
-[  27,   37,   45] ( 4) <______|YYY_Y|mmmm|mmm|mm|m>
-[  15,   30,   10] ( 4) <______|___YY|__mm|_mm|mm|m>
-[  16,   30,   12] ( 4) <______|___YY|__mm|Ymm|mm|m>
-[  17,   30,   15] ( 4) <______|___YY|Y_mm|mmm|mm|m>
-[  18,   30,   19] ( 4) <______|Y__YY|m_mm|mmm|mm|m>
-[  21,   33,   25] ( 4) <______|Y__YY|mYmm|mmm|mm|m>
-[  24,   37,   33] ( 4) <______|_Y_YY|mmmm|mmm|mm|m>
-[  25,   37,   37] ( 4) <______|YY_YY|mmmm|mmm|mm|m>
-[  25,   45,   30] ( 4) <______|__YYY|_mmm|mmm|mm|m>
-[  27,   45,   37] ( 4) <______|Y_YYY|mmmm|mmm|mm|m>
-[   8,    3,   15] ( 5) <Y_____|m____|m___|m_Y|mm|m>
-[  10,    5,   17] ( 5) <Y_____|m____|m___|mYY|mm|m>
-[  13,   11,   20] ( 5) <Y_____|m____|m_Y_|mmm|mm|m>
-[  16,   14,   26] ( 5) <Y_____|m____|mYY_|mmm|mm|m>
-[   9,    6,   15] ( 5) <Y_____|m____|m__Y|m_m|mm|m>
-[  11,    8,   17] ( 5) <Y_____|m____|m__Y|mYm|mm|m>
-[  14,   11,   23] ( 5) <Y_____|m____|mY_Y|mmm|mm|m>
-[  14,   14,   20] ( 5) <Y_____|m____|m_YY|mmm|mm|m>
-[  17,   17,   26] ( 5) <Y_____|m____|mYYY|mmm|mm|m>
-[  18,   15,   35] ( 5) <Y_____|mY___|mm_Y|mmm|mm|m>
-[  22,   26,   38] ( 5) <Y_____|m_Y__|mmm_|mmm|mm|m>
-[  23,   29,   38] ( 5) <Y_____|m_Y__|mmmY|mmm|mm|m>
-[  26,   30,   50] ( 5) <Y_____|mYY__|mmm_|mmm|mm|m>
-[  18,   26,   24] ( 5) <Y_____|m__Y_|m_mm|mmm|mm|m>
-[  21,   29,   30] ( 5) <Y_____|m__Y_|mYmm|mmm|mm|m>
-[  25,   33,   42] ( 5) <Y_____|mY_Y_|mmmm|mmm|mm|m>
-[  27,   41,   42] ( 5) <Y_____|m_YY_|mmmm|mmm|mm|m>
-[  10,   10,   15] ( 5) <Y_____|m___Y|m__m|m_m|mm|m>
-[  12,   12,   17] ( 5) <Y_____|m___Y|m__m|mYm|mm|m>
-[  15,   15,   23] ( 5) <Y_____|m___Y|mY_m|mmm|mm|m>
-[  15,   18,   20] ( 5) <Y_____|m___Y|m_Ym|mmm|mm|m>
-[  18,   21,   26] ( 5) <Y_____|m___Y|mYYm|mmm|mm|m>
-[  19,   19,   35] ( 5) <Y_____|mY__Y|mm_m|mmm|mm|m>
-[  22,   25,   38] ( 5) <Y_____|mY__Y|mmYm|mmm|mm|m>
-[  24,   33,   38] ( 5) <Y_____|m_Y_Y|mmmm|mmm|mm|m>
-[  28,   37,   50] ( 5) <Y_____|mYY_Y|mmmm|mmm|mm|m>
-[  19,   30,   24] ( 5) <Y_____|m__YY|m_mm|mmm|mm|m>
-[  22,   33,   30] ( 5) <Y_____|m__YY|mYmm|mmm|mm|m>
-[  26,   37,   42] ( 5) <Y_____|mY_YY|mmmm|mmm|mm|m>
-[  28,   45,   42] ( 5) <Y_____|m_YYY|mmmm|mmm|mm|m>
-[  20,   15,   50] ( 5) <_Y____|mm___|mm__|mm_|mm|m>
-[  21,   17,   50] ( 5) <_Y____|mm___|mm__|mmY|mm|m>
-[  24,   23,   53] ( 5) <_Y____|mm___|mmY_|mmm|mm|m>
-[  22,   20,   50] ( 5) <_Y____|mm___|mm_Y|mmm|mm|m>
-[  25,   26,   53] ( 5) <_Y____|mm___|mmYY|mmm|mm|m>
-[  30,   35,   65] ( 5) <_Y____|mmY__|mmm_|mmm|mm|m>
-[  31,   38,   65] ( 5) <_Y____|mmY__|mmmY|mmm|mm|m>
-[  29,   38,   57] ( 5) <_Y____|mm_Y_|mmmm|mmm|mm|m>
-[  35,   50,   69] ( 5) <_Y____|mmYY_|mmmm|mmm|mm|m>
-[  23,   24,   50] ( 5) <_Y____|mm__Y|mm_m|mmm|mm|m>
-[  26,   30,   53] ( 5) <_Y____|mm__Y|mmYm|mmm|mm|m>
-[  32,   42,   65] ( 5) <_Y____|mmY_Y|mmmm|mmm|mm|m>
-[  30,   42,   57] ( 5) <_Y____|mm_YY|mmmm|mmm|mm|m>
-[  36,   54,   69] ( 5) <_Y____|mmYYY|mmmm|mmm|mm|m>
-[  23,   20,   55] ( 5) <YY____|mm___|mm_Y|mmm|mm|m>
-[  26,   26,   58] ( 5) <YY____|mm___|mmYY|mmm|mm|m>
-[  30,   38,   62] ( 5) <YY____|mm_Y_|mmmm|mmm|mm|m>
-[  24,   24,   55] ( 5) <YY____|mm__Y|mm_m|mmm|mm|m>
-[  27,   30,   58] ( 5) <YY____|mm__Y|mmYm|mmm|mm|m>
-[  33,   42,   70] ( 5) <YY____|mmY_Y|mmmm|mmm|mm|m>
-[  31,   42,   62] ( 5) <YY____|mm_YY|mmmm|mmm|mm|m>
-[  34,   50,   71] ( 5) <__Y___|_mm__|mmm_|mmm|mm|m>
-[  35,   53,   71] ( 5) <__Y___|_mm__|mmmY|mmm|mm|m>
-[  35,   50,   75] ( 5) <__Y___|Ymm__|mmm_|mmm|mm|m>
-[  36,   53,   75] ( 5) <__Y___|Ymm__|mmmY|mmm|mm|m>
-[  39,   65,   75] ( 5) <__Y___|_mmY_|mmmm|mmm|mm|m>
-[  40,   65,   79] ( 5) <__Y___|YmmY_|mmmm|mmm|mm|m>
-[  36,   57,   71] ( 5) <__Y___|_mm_Y|mmmm|mmm|mm|m>
-[  37,   57,   75] ( 5) <__Y___|Ymm_Y|mmmm|mmm|mm|m>
-[  40,   69,   75] ( 5) <__Y___|_mmYY|mmmm|mmm|mm|m>
-[  41,   69,   79] ( 5) <__Y___|YmmYY|mmmm|mmm|mm|m>
-[  36,   50,   80] ( 5) <Y_Y___|mmm__|mmm_|mmm|mm|m>
-[  37,   53,   80] ( 5) <Y_Y___|mmm__|mmmY|mmm|mm|m>
-[  41,   65,   84] ( 5) <Y_Y___|mmmY_|mmmm|mmm|mm|m>
-[  38,   57,   80] ( 5) <Y_Y___|mmm_Y|mmmm|mmm|mm|m>
-[  42,   69,   84] ( 5) <Y_Y___|mmmYY|mmmm|mmm|mm|m>
-[  40,   55,   95] ( 5) <_YY___|mmm__|mmm_|mmm|mm|m>
-[  41,   58,   95] ( 5) <_YY___|mmm__|mmmY|mmm|mm|m>
-[  45,   70,   99] ( 5) <_YY___|mmmY_|mmmm|mmm|mm|m>
-[  42,   62,   95] ( 5) <_YY___|mmm_Y|mmmm|mmm|mm|m>
-[  46,   74,   99] ( 5) <_YY___|mmmYY|mmmm|mmm|mm|m>
-[  43,   62,  100] ( 5) <YYY___|mmm_Y|mmmm|mmm|mm|m>
-[  34,   71,   50] ( 5) <___Y__|__mm_|_mmm|mmm|mm|m>
-[  35,   71,   53] ( 5) <___Y__|__mm_|Ymmm|mmm|mm|m>
-[  36,   71,   57] ( 5) <___Y__|Y_mm_|mmmm|mmm|mm|m>
-[  39,   75,   65] ( 5) <___Y__|_Ymm_|mmmm|mmm|mm|m>
-[  40,   75,   69] ( 5) <___Y__|YYmm_|mmmm|mmm|mm|m>
-[  35,   75,   50] ( 5) <___Y__|__mmY|_mmm|mmm|mm|m>
-[  36,   75,   53] ( 5) <___Y__|__mmY|Ymmm|mmm|mm|m>
-[  37,   75,   57] ( 5) <___Y__|Y_mmY|mmmm|mmm|mm|m>
-[  40,   79,   65] ( 5) <___Y__|_YmmY|mmmm|mmm|mm|m>
-[  41,   79,   69] ( 5) <___Y__|YYmmY|mmmm|mmm|mm|m>
-[  37,   71,   62] ( 5) <Y__Y__|m_mm_|mmmm|mmm|mm|m>
-[  41,   75,   74] ( 5) <Y__Y__|mYmm_|mmmm|mmm|mm|m>
-[  38,   75,   62] ( 5) <Y__Y__|m_mmY|mmmm|mmm|mm|m>
-[  42,   79,   74] ( 5) <Y__Y__|mYmmY|mmmm|mmm|mm|m>
-[  45,   80,   89] ( 5) <_Y_Y__|mmmm_|mmmm|mmm|mm|m>
-[  46,   84,   89] ( 5) <_Y_Y__|mmmmY|mmmm|mmm|mm|m>
-[  46,   80,   94] ( 5) <YY_Y__|mmmm_|mmmm|mmm|mm|m>
-[  47,   84,   94] ( 5) <YY_Y__|mmmmY|mmmm|mmm|mm|m>
-[  49,   95,   95] ( 5) <__YY__|_mmm_|mmmm|mmm|mm|m>
-[  50,   95,   99] ( 5) <__YY__|Ymmm_|mmmm|mmm|mm|m>
-[  50,   99,   95] ( 5) <__YY__|_mmmY|mmmm|mmm|mm|m>
-[  51,   99,   99] ( 5) <__YY__|YmmmY|mmmm|mmm|mm|m>
-[  51,   95,  104] ( 5) <Y_YY__|mmmm_|mmmm|mmm|mm|m>
-[  52,   99,  104] ( 5) <Y_YY__|mmmmY|mmmm|mmm|mm|m>
-[  55,  100,  119] ( 5) <_YYY__|mmmm_|mmmm|mmm|mm|m>
-[  56,  104,  119] ( 5) <_YYY__|mmmmY|mmmm|mmm|mm|m>
-[  20,   50,   15] ( 5) <____Y_|___mm|__mm|_mm|mm|m>
-[  21,   50,   17] ( 5) <____Y_|___mm|__mm|Ymm|mm|m>
-[  22,   50,   20] ( 5) <____Y_|___mm|Y_mm|mmm|mm|m>
-[  24,   53,   23] ( 5) <____Y_|___mm|_Ymm|mmm|mm|m>
-[  25,   53,   26] ( 5) <____Y_|___mm|YYmm|mmm|mm|m>
-[  23,   50,   24] ( 5) <____Y_|Y__mm|m_mm|mmm|mm|m>
-[  26,   53,   30] ( 5) <____Y_|Y__mm|mYmm|mmm|mm|m>
-[  29,   57,   38] ( 5) <____Y_|_Y_mm|mmmm|mmm|mm|m>
-[  30,   57,   42] ( 5) <____Y_|YY_mm|mmmm|mmm|mm|m>
-[  30,   65,   35] ( 5) <____Y_|__Ymm|_mmm|mmm|mm|m>
-[  31,   65,   38] ( 5) <____Y_|__Ymm|Ymmm|mmm|mm|m>
-[  32,   65,   42] ( 5) <____Y_|Y_Ymm|mmmm|mmm|mm|m>
-[  35,   69,   50] ( 5) <____Y_|_YYmm|mmmm|mmm|mm|m>
-[  36,   69,   54] ( 5) <____Y_|YYYmm|mmmm|mmm|mm|m>
-[  24,   50,   29] ( 5) <Y___Y_|m__mm|m_mm|mmm|mm|m>
-[  27,   53,   35] ( 5) <Y___Y_|m__mm|mYmm|mmm|mm|m>
-[  31,   57,   47] ( 5) <Y___Y_|mY_mm|mmmm|mmm|mm|m>
-[  33,   65,   47] ( 5) <Y___Y_|m_Ymm|mmmm|mmm|mm|m>
-[  37,   69,   59] ( 5) <Y___Y_|mYYmm|mmmm|mmm|mm|m>
-[  35,   62,   62] ( 5) <_Y__Y_|mm_mm|mmmm|mmm|mm|m>
-[  41,   74,   74] ( 5) <_Y__Y_|mmYmm|mmmm|mmm|mm|m>
-[  36,   62,   67] ( 5) <YY__Y_|mm_mm|mmmm|mmm|mm|m>
-[  42,   74,   79] ( 5) <YY__Y_|mmYmm|mmmm|mmm|mm|m>
-[  45,   89,   80] ( 5) <__Y_Y_|_mmmm|mmmm|mmm|mm|m>
-[  46,   89,   84] ( 5) <__Y_Y_|Ymmmm|mmmm|mmm|mm|m>
-[  47,   89,   89] ( 5) <Y_Y_Y_|mmmmm|mmmm|mmm|mm|m>
-[  51,   94,  104] ( 5) <_YY_Y_|mmmmm|mmmm|mmm|mm|m>
-[  52,   94,  109] ( 5) <YYY_Y_|mmmmm|mmmm|mmm|mm|m>
-[  40,   95,   55] ( 5) <___YY_|__mmm|_mmm|mmm|mm|m>
-[  41,   95,   58] ( 5) <___YY_|__mmm|Ymmm|mmm|mm|m>
-[  42,   95,   62] ( 5) <___YY_|Y_mmm|mmmm|mmm|mm|m>
-[  45,   99,   70] ( 5) <___YY_|_Ymmm|mmmm|mmm|mm|m>
-[  46,   99,   74] ( 5) <___YY_|YYmmm|mmmm|mmm|mm|m>
-[  43,   95,   67] ( 5) <Y__YY_|m_mmm|mmmm|mmm|mm|m>
-[  47,   99,   79] ( 5) <Y__YY_|mYmmm|mmmm|mmm|mm|m>
-[  51,  104,   94] ( 5) <_Y_YY_|mmmmm|mmmm|mmm|mm|m>
-[  52,  104,   99] ( 5) <YY_YY_|mmmmm|mmmm|mmm|mm|m>
-[  55,  119,  100] ( 5) <__YYY_|_mmmm|mmmm|mmm|mm|m>
-[  56,  119,  104] ( 5) <__YYY_|Ymmmm|mmmm|mmm|mm|m>
-[  57,  119,  109] ( 5) <Y_YYY_|mmmmm|mmmm|mmm|mm|m>
-[  61,  124,  124] ( 5) <_YYYY_|mmmmm|mmmm|mmm|mm|m>
-[   8,   15,    3] ( 5) <_____Y|____m|___m|Y_m|mm|m>
-[  10,   17,    5] ( 5) <_____Y|____m|___m|YYm|mm|m>
-[   9,   15,    6] ( 5) <_____Y|____m|Y__m|m_m|mm|m>
-[  11,   17,    8] ( 5) <_____Y|____m|Y__m|mYm|mm|m>
-[  13,   20,   11] ( 5) <_____Y|____m|_Y_m|mmm|mm|m>
-[  14,   20,   14] ( 5) <_____Y|____m|YY_m|mmm|mm|m>
-[  14,   23,   11] ( 5) <_____Y|____m|Y_Ym|mmm|mm|m>
-[  16,   26,   14] ( 5) <_____Y|____m|_YYm|mmm|mm|m>
-[  17,   26,   17] ( 5) <_____Y|____m|YYYm|mmm|mm|m>
-[  10,   15,   10] ( 5) <_____Y|Y___m|m__m|m_m|mm|m>
-[  12,   17,   12] ( 5) <_____Y|Y___m|m__m|mYm|mm|m>
-[  15,   20,   18] ( 5) <_____Y|Y___m|mY_m|mmm|mm|m>
-[  15,   23,   15] ( 5) <_____Y|Y___m|m_Ym|mmm|mm|m>
-[  18,   26,   21] ( 5) <_____Y|Y___m|mYYm|mmm|mm|m>
-[  18,   24,   26] ( 5) <_____Y|_Y__m|mm_m|mmm|mm|m>
-[  21,   30,   29] ( 5) <_____Y|_Y__m|mmYm|mmm|mm|m>
-[  19,   24,   30] ( 5) <_____Y|YY__m|mm_m|mmm|mm|m>
-[  22,   30,   33] ( 5) <_____Y|YY__m|mmYm|mmm|mm|m>
-[  22,   38,   26] ( 5) <_____Y|__Y_m|_mmm|mmm|mm|m>
-[  23,   38,   29] ( 5) <_____Y|__Y_m|Ymmm|mmm|mm|m>
-[  24,   38,   33] ( 5) <_____Y|Y_Y_m|mmmm|mmm|mm|m>
-[  27,   42,   41] ( 5) <_____Y|_YY_m|mmmm|mmm|mm|m>
-[  28,   42,   45] ( 5) <_____Y|YYY_m|mmmm|mmm|mm|m>
-[  18,   35,   15] ( 5) <_____Y|___Ym|Y_mm|mmm|mm|m>
-[  19,   35,   19] ( 5) <_____Y|Y__Ym|m_mm|mmm|mm|m>
-[  22,   38,   25] ( 5) <_____Y|Y__Ym|mYmm|mmm|mm|m>
-[  25,   42,   33] ( 5) <_____Y|_Y_Ym|mmmm|mmm|mm|m>
-[  26,   42,   37] ( 5) <_____Y|YY_Ym|mmmm|mmm|mm|m>
-[  26,   50,   30] ( 5) <_____Y|__YYm|_mmm|mmm|mm|m>
-[  28,   50,   37] ( 5) <_____Y|Y_YYm|mmmm|mmm|mm|m>
-[  11,   15,   15] ( 5) <Y____Y|m___m|m__m|m_m|mm|m>
-[  13,   17,   17] ( 5) <Y____Y|m___m|m__m|mYm|mm|m>
-[  16,   20,   23] ( 5) <Y____Y|m___m|mY_m|mmm|mm|m>
-[  16,   23,   20] ( 5) <Y____Y|m___m|m_Ym|mmm|mm|m>
-[  19,   26,   26] ( 5) <Y____Y|m___m|mYYm|mmm|mm|m>
-[  20,   24,   35] ( 5) <Y____Y|mY__m|mm_m|mmm|mm|m>
-[  23,   30,   38] ( 5) <Y____Y|mY__m|mmYm|mmm|mm|m>
-[  25,   38,   38] ( 5) <Y____Y|m_Y_m|mmmm|mmm|mm|m>
-[  29,   42,   50] ( 5) <Y____Y|mYY_m|mmmm|mmm|mm|m>
-[  20,   35,   24] ( 5) <Y____Y|m__Ym|m_mm|mmm|mm|m>
-[  23,   38,   30] ( 5) <Y____Y|m__Ym|mYmm|mmm|mm|m>
-[  27,   42,   42] ( 5) <Y____Y|mY_Ym|mmmm|mmm|mm|m>
-[  29,   50,   42] ( 5) <Y____Y|m_YYm|mmmm|mmm|mm|m>
-[  33,   54,   54] ( 5) <Y____Y|mYYYm|mmmm|mmm|mm|m>
-[  24,   29,   50] ( 5) <_Y___Y|mm__m|mm_m|mmm|mm|m>
-[  27,   35,   53] ( 5) <_Y___Y|mm__m|mmYm|mmm|mm|m>
-[  33,   47,   65] ( 5) <_Y___Y|mmY_m|mmmm|mmm|mm|m>
-[  31,   47,   57] ( 5) <_Y___Y|mm_Ym|mmmm|mmm|mm|m>
-[  37,   59,   69] ( 5) <_Y___Y|mmYYm|mmmm|mmm|mm|m>
-[  25,   29,   55] ( 5) <YY___Y|mm__m|mm_m|mmm|mm|m>
-[  28,   35,   58] ( 5) <YY___Y|mm__m|mmYm|mmm|mm|m>
-[  34,   47,   70] ( 5) <YY___Y|mmY_m|mmmm|mmm|mm|m>
-[  32,   47,   62] ( 5) <YY___Y|mm_Ym|mmmm|mmm|mm|m>
-[  38,   59,   74] ( 5) <YY___Y|mmYYm|mmmm|mmm|mm|m>
-[  37,   62,   71] ( 5) <__Y__Y|_mm_m|mmmm|mmm|mm|m>
-[  38,   62,   75] ( 5) <__Y__Y|Ymm_m|mmmm|mmm|mm|m>
-[  41,   74,   75] ( 5) <__Y__Y|_mmYm|mmmm|mmm|mm|m>
-[  42,   74,   79] ( 5) <__Y__Y|YmmYm|mmmm|mmm|mm|m>
-[  39,   62,   80] ( 5) <Y_Y__Y|mmm_m|mmmm|mmm|mm|m>
-[  43,   74,   84] ( 5) <Y_Y__Y|mmmYm|mmmm|mmm|mm|m>
-[  43,   67,   95] ( 5) <_YY__Y|mmm_m|mmmm|mmm|mm|m>
-[  47,   79,   99] ( 5) <_YY__Y|mmmYm|mmmm|mmm|mm|m>
-[  44,   67,  100] ( 5) <YYY__Y|mmm_m|mmmm|mmm|mm|m>
-[  48,   79,  104] ( 5) <YYY__Y|mmmYm|mmmm|mmm|mm|m>
-[  36,   80,   50] ( 5) <___Y_Y|__mmm|_mmm|mmm|mm|m>
-[  37,   80,   53] ( 5) <___Y_Y|__mmm|Ymmm|mmm|mm|m>
-[  38,   80,   57] ( 5) <___Y_Y|Y_mmm|mmmm|mmm|mm|m>
-[  41,   84,   65] ( 5) <___Y_Y|_Ymmm|mmmm|mmm|mm|m>
-[  42,   84,   69] ( 5) <___Y_Y|YYmmm|mmmm|mmm|mm|m>
-[  39,   80,   62] ( 5) <Y__Y_Y|m_mmm|mmmm|mmm|mm|m>
-[  43,   84,   74] ( 5) <Y__Y_Y|mYmmm|mmmm|mmm|mm|m>
-[  47,   89,   89] ( 5) <_Y_Y_Y|mmmmm|mmmm|mmm|mm|m>
-[  48,   89,   94] ( 5) <YY_Y_Y|mmmmm|mmmm|mmm|mm|m>
-[  51,  104,   95] ( 5) <__YY_Y|_mmmm|mmmm|mmm|mm|m>
-[  52,  104,   99] ( 5) <__YY_Y|Ymmmm|mmmm|mmm|mm|m>
-[  53,  104,  104] ( 5) <Y_YY_Y|mmmmm|mmmm|mmm|mm|m>
-[  57,  109,  119] ( 5) <_YYY_Y|mmmmm|mmmm|mmm|mm|m>
-[  58,  109,  124] ( 5) <YYYY_Y|mmmmm|mmmm|mmm|mm|m>
-[  23,   55,   20] ( 5) <____YY|___mm|Y_mm|mmm|mm|m>
-[  26,   58,   26] ( 5) <____YY|___mm|YYmm|mmm|mm|m>
-[  24,   55,   24] ( 5) <____YY|Y__mm|m_mm|mmm|mm|m>
-[  27,   58,   30] ( 5) <____YY|Y__mm|mYmm|mmm|mm|m>
-[  30,   62,   38] ( 5) <____YY|_Y_mm|mmmm|mmm|mm|m>
-[  31,   62,   42] ( 5) <____YY|YY_mm|mmmm|mmm|mm|m>
-[  33,   70,   42] ( 5) <____YY|Y_Ymm|mmmm|mmm|mm|m>
-[  25,   55,   29] ( 5) <Y___YY|m__mm|m_mm|mmm|mm|m>
-[  28,   58,   35] ( 5) <Y___YY|m__mm|mYmm|mmm|mm|m>
-[  32,   62,   47] ( 5) <Y___YY|mY_mm|mmmm|mmm|mm|m>
-[  34,   70,   47] ( 5) <Y___YY|m_Ymm|mmmm|mmm|mm|m>
-[  38,   74,   59] ( 5) <Y___YY|mYYmm|mmmm|mmm|mm|m>
-[  36,   67,   62] ( 5) <_Y__YY|mm_mm|mmmm|mmm|mm|m>
-[  42,   79,   74] ( 5) <_Y__YY|mmYmm|mmmm|mmm|mm|m>
-[  37,   67,   67] ( 5) <YY__YY|mm_mm|mmmm|mmm|mm|m>
-[  43,   79,   79] ( 5) <YY__YY|mmYmm|mmmm|mmm|mm|m>
-[  46,   94,   80] ( 5) <__Y_YY|_mmmm|mmmm|mmm|mm|m>
-[  47,   94,   84] ( 5) <__Y_YY|Ymmmm|mmmm|mmm|mm|m>
-[  48,   94,   89] ( 5) <Y_Y_YY|mmmmm|mmmm|mmm|mm|m>
-[  52,   99,  104] ( 5) <_YY_YY|mmmmm|mmmm|mmm|mm|m>
-[  53,   99,  109] ( 5) <YYY_YY|mmmmm|mmmm|mmm|mm|m>
-[  43,  100,   62] ( 5) <___YYY|Y_mmm|mmmm|mmm|mm|m>
-[  44,  100,   67] ( 5) <Y__YYY|m_mmm|mmmm|mmm|mm|m>
-[  48,  104,   79] ( 5) <Y__YYY|mYmmm|mmmm|mmm|mm|m>
-[  52,  109,   94] ( 5) <_Y_YYY|mmmmm|mmmm|mmm|mm|m>
-[  53,  109,   99] ( 5) <YY_YYY|mmmmm|mmmm|mmm|mm|m>
-[  58,  124,  109] ( 5) <Y_YYYY|mmmmm|mmmm|mmm|mm|m>
+[   5,    3,    3] ( 2) <______|_____|____|_Y_|mm|m> 
+[   5,    3,    3] ( 2) <______|_____|____|Y_Y|mm|m> 
+[   6,    3,    6] ( 3) <______|_____|Y___|m_Y|mm|m> 
+[   9,    6,   11] ( 3) <______|_____|_Y__|mm_|mm|m> 
+[  10,    8,   11] ( 3) <______|_____|_Y__|mmY|mm|m> 
+[  10,    6,   14] ( 3) <______|_____|YY__|mm_|mm|m> NC
+[   9,   11,    6] ( 3) <______|_____|__Y_|_mm|mm|m> 
+[  10,   11,    8] ( 3) <______|_____|__Y_|Ymm|mm|m> 
+[  11,   11,   11] ( 3) <______|_____|Y_Y_|mmm|mm|m> 
+[  13,   14,   14] ( 3) <______|_____|_YY_|mmm|mm|m> 
+[   6,    6,    3] ( 3) <______|_____|___Y|Y_m|mm|m> 
+[   7,    6,    6] ( 3) <______|_____|Y__Y|m_m|mm|m> 
+[   9,    8,    8] ( 3) <______|_____|Y__Y|mYm|mm|m> 
+[  11,   11,   11] ( 3) <______|_____|_Y_Y|mmm|mm|m> 
+[  12,   11,   14] ( 3) <______|_____|YY_Y|mmm|mm|m> 
+[  10,   14,    6] ( 3) <______|_____|__YY|_mm|mm|m> NC
+[  12,   14,   11] ( 3) <______|_____|Y_YY|mmm|mm|m> 
+[   7,    3,   10] ( 4) <______|Y____|m___|m_Y|mm|m> 
+[   9,    5,   12] ( 4) <______|Y____|m___|mYY|mm|m> NC
+[  12,   11,   15] ( 4) <______|Y____|m_Y_|mmm|mm|m> 
+[   8,    6,   10] ( 4) <______|Y____|m__Y|m_m|mm|m> 
+[  10,    8,   12] ( 4) <______|Y____|m__Y|mYm|mm|m> 
+[  13,   11,   18] ( 4) <______|Y____|mY_Y|mmm|mm|m> 
+[  13,   14,   15] ( 4) <______|Y____|m_YY|mmm|mm|m> 
+[  14,   10,   26] ( 4) <______|_Y___|mm__|mm_|mm|m> 
+[  15,   12,   26] ( 4) <______|_Y___|mm__|mmY|mm|m> 
+[  18,   18,   29] ( 4) <______|_Y___|mmY_|mmm|mm|m> 
+[  16,   15,   26] ( 4) <______|_Y___|mm_Y|mmm|mm|m> 
+[  19,   21,   29] ( 4) <______|_Y___|mmYY|mmm|mm|m> 
+[  15,   10,   30] ( 4) <______|YY___|mm__|mm_|mm|m> NC
+[  16,   12,   30] ( 4) <______|YY___|mm__|mmY|mm|m> NC
+[  17,   15,   30] ( 4) <______|YY___|mm_Y|mmm|mm|m> 
+[  19,   26,   26] ( 4) <______|__Y__|_mm_|mmm|mm|m> 
+[  20,   26,   29] ( 4) <______|__Y__|Ymm_|mmm|mm|m> 
+[  20,   29,   26] ( 4) <______|__Y__|_mmY|mmm|mm|m> 
+[  21,   29,   29] ( 4) <______|__Y__|YmmY|mmm|mm|m> 
+[  21,   26,   33] ( 4) <______|Y_Y__|mmm_|mmm|mm|m> 
+[  22,   29,   33] ( 4) <______|Y_Y__|mmmY|mmm|mm|m> 
+[  24,   30,   41] ( 4) <______|_YY__|mmm_|mmm|mm|m> 
+[  25,   33,   41] ( 4) <______|_YY__|mmmY|mmm|mm|m> 
+[  25,   30,   45] ( 4) <______|YYY__|mmm_|mmm|mm|m> NC
+[  14,   26,   10] ( 4) <______|___Y_|__mm|_mm|mm|m> 
+[  15,   26,   12] ( 4) <______|___Y_|__mm|Ymm|mm|m> 
+[  16,   26,   15] ( 4) <______|___Y_|Y_mm|mmm|mm|m> 
+[  18,   29,   18] ( 4) <______|___Y_|_Ymm|mmm|mm|m> 
+[  19,   29,   21] ( 4) <______|___Y_|YYmm|mmm|mm|m> 
+[  17,   26,   19] ( 4) <______|Y__Y_|m_mm|mmm|mm|m> 
+[  20,   29,   25] ( 4) <______|Y__Y_|mYmm|mmm|mm|m> 
+[  23,   33,   33] ( 4) <______|_Y_Y_|mmmm|mmm|mm|m> 
+[  24,   33,   37] ( 4) <______|YY_Y_|mmmm|mmm|mm|m> 
+[  24,   41,   30] ( 4) <______|__YY_|_mmm|mmm|mm|m> 
+[  25,   41,   33] ( 4) <______|__YY_|Ymmm|mmm|mm|m> 
+[  26,   41,   37] ( 4) <______|Y_YY_|mmmm|mmm|mm|m> 
+[  29,   45,   45] ( 4) <______|_YYY_|mmmm|mmm|mm|m> 
+[   7,   10,    3] ( 4) <______|____Y|___m|Y_m|mm|m> 
+[   9,   12,    5] ( 4) <______|____Y|___m|YYm|mm|m> NC
+[   8,   10,    6] ( 4) <______|____Y|Y__m|m_m|mm|m> 
+[  10,   12,    8] ( 4) <______|____Y|Y__m|mYm|mm|m> 
+[  12,   15,   11] ( 4) <______|____Y|_Y_m|mmm|mm|m> 
+[  13,   15,   14] ( 4) <______|____Y|YY_m|mmm|mm|m> 
+[  13,   18,   11] ( 4) <______|____Y|Y_Ym|mmm|mm|m> 
+[   9,   10,   10] ( 4) <______|Y___Y|m__m|m_m|mm|m> 
+[  11,   12,   12] ( 4) <______|Y___Y|m__m|mYm|mm|m> 
+[  14,   15,   18] ( 4) <______|Y___Y|mY_m|mmm|mm|m> 
+[  14,   18,   15] ( 4) <______|Y___Y|m_Ym|mmm|mm|m> 
+[  17,   21,   21] ( 4) <______|Y___Y|mYYm|mmm|mm|m> 
+[  17,   19,   26] ( 4) <______|_Y__Y|mm_m|mmm|mm|m> 
+[  20,   25,   29] ( 4) <______|_Y__Y|mmYm|mmm|mm|m> 
+[  18,   19,   30] ( 4) <______|YY__Y|mm_m|mmm|mm|m> 
+[  21,   25,   33] ( 4) <______|YY__Y|mmYm|mmm|mm|m> 
+[  21,   33,   26] ( 4) <______|__Y_Y|_mmm|mmm|mm|m> 
+[  22,   33,   29] ( 4) <______|__Y_Y|Ymmm|mmm|mm|m> 
+[  23,   33,   33] ( 4) <______|Y_Y_Y|mmmm|mmm|mm|m> 
+[  26,   37,   41] ( 4) <______|_YY_Y|mmmm|mmm|mm|m> 
+[  27,   37,   45] ( 4) <______|YYY_Y|mmmm|mmm|mm|m> 
+[  15,   30,   10] ( 4) <______|___YY|__mm|_mm|mm|m> NC
+[  16,   30,   12] ( 4) <______|___YY|__mm|Ymm|mm|m> NC
+[  17,   30,   15] ( 4) <______|___YY|Y_mm|mmm|mm|m> 
+[  18,   30,   19] ( 4) <______|Y__YY|m_mm|mmm|mm|m> 
+[  21,   33,   25] ( 4) <______|Y__YY|mYmm|mmm|mm|m> 
+[  24,   37,   33] ( 4) <______|_Y_YY|mmmm|mmm|mm|m> 
+[  25,   37,   37] ( 4) <______|YY_YY|mmmm|mmm|mm|m> 
+[  25,   45,   30] ( 4) <______|__YYY|_mmm|mmm|mm|m> NC
+[  27,   45,   37] ( 4) <______|Y_YYY|mmmm|mmm|mm|m> 
+[   8,    3,   15] ( 5) <Y_____|m____|m___|m_Y|mm|m> 
+[  10,    5,   17] ( 5) <Y_____|m____|m___|mYY|mm|m> NC
+[  13,   11,   20] ( 5) <Y_____|m____|m_Y_|mmm|mm|m> 
+[  16,   14,   26] ( 5) <Y_____|m____|mYY_|mmm|mm|m> NC
+[   9,    6,   15] ( 5) <Y_____|m____|m__Y|m_m|mm|m> 
+[  11,    8,   17] ( 5) <Y_____|m____|m__Y|mYm|mm|m> 
+[  14,   11,   23] ( 5) <Y_____|m____|mY_Y|mmm|mm|m> 
+[  14,   14,   20] ( 5) <Y_____|m____|m_YY|mmm|mm|m> 
+[  17,   17,   26] ( 5) <Y_____|m____|mYYY|mmm|mm|m> NC
+[  18,   15,   35] ( 5) <Y_____|mY___|mm_Y|mmm|mm|m> 
+[  22,   26,   38] ( 5) <Y_____|m_Y__|mmm_|mmm|mm|m> 
+[  23,   29,   38] ( 5) <Y_____|m_Y__|mmmY|mmm|mm|m> 
+[  26,   30,   50] ( 5) <Y_____|mYY__|mmm_|mmm|mm|m> NC
+[  18,   26,   24] ( 5) <Y_____|m__Y_|m_mm|mmm|mm|m> 
+[  21,   29,   30] ( 5) <Y_____|m__Y_|mYmm|mmm|mm|m> 
+[  25,   33,   42] ( 5) <Y_____|mY_Y_|mmmm|mmm|mm|m> 
+[  27,   41,   42] ( 5) <Y_____|m_YY_|mmmm|mmm|mm|m> 
+[  10,   10,   15] ( 5) <Y_____|m___Y|m__m|m_m|mm|m> 
+[  12,   12,   17] ( 5) <Y_____|m___Y|m__m|mYm|mm|m> 
+[  15,   15,   23] ( 5) <Y_____|m___Y|mY_m|mmm|mm|m> 
+[  15,   18,   20] ( 5) <Y_____|m___Y|m_Ym|mmm|mm|m> 
+[  18,   21,   26] ( 5) <Y_____|m___Y|mYYm|mmm|mm|m> 
+[  19,   19,   35] ( 5) <Y_____|mY__Y|mm_m|mmm|mm|m> 
+[  22,   25,   38] ( 5) <Y_____|mY__Y|mmYm|mmm|mm|m> 
+[  24,   33,   38] ( 5) <Y_____|m_Y_Y|mmmm|mmm|mm|m> 
+[  28,   37,   50] ( 5) <Y_____|mYY_Y|mmmm|mmm|mm|m> 
+[  19,   30,   24] ( 5) <Y_____|m__YY|m_mm|mmm|mm|m> 
+[  22,   33,   30] ( 5) <Y_____|m__YY|mYmm|mmm|mm|m> 
+[  26,   37,   42] ( 5) <Y_____|mY_YY|mmmm|mmm|mm|m> 
+[  28,   45,   42] ( 5) <Y_____|m_YYY|mmmm|mmm|mm|m> 
+[  20,   15,   50] ( 5) <_Y____|mm___|mm__|mm_|mm|m> 
+[  21,   17,   50] ( 5) <_Y____|mm___|mm__|mmY|mm|m> 
+[  24,   23,   53] ( 5) <_Y____|mm___|mmY_|mmm|mm|m> 
+[  22,   20,   50] ( 5) <_Y____|mm___|mm_Y|mmm|mm|m> 
+[  25,   26,   53] ( 5) <_Y____|mm___|mmYY|mmm|mm|m> 
+[  30,   35,   65] ( 5) <_Y____|mmY__|mmm_|mmm|mm|m> 
+[  31,   38,   65] ( 5) <_Y____|mmY__|mmmY|mmm|mm|m> 
+[  29,   38,   57] ( 5) <_Y____|mm_Y_|mmmm|mmm|mm|m> 
+[  35,   50,   69] ( 5) <_Y____|mmYY_|mmmm|mmm|mm|m> 
+[  23,   24,   50] ( 5) <_Y____|mm__Y|mm_m|mmm|mm|m> 
+[  26,   30,   53] ( 5) <_Y____|mm__Y|mmYm|mmm|mm|m> 
+[  32,   42,   65] ( 5) <_Y____|mmY_Y|mmmm|mmm|mm|m> 
+[  30,   42,   57] ( 5) <_Y____|mm_YY|mmmm|mmm|mm|m> 
+[  36,   54,   69] ( 5) <_Y____|mmYYY|mmmm|mmm|mm|m> 
+[  23,   20,   55] ( 5) <YY____|mm___|mm_Y|mmm|mm|m> 
+[  26,   26,   58] ( 5) <YY____|mm___|mmYY|mmm|mm|m> NC
+[  30,   38,   62] ( 5) <YY____|mm_Y_|mmmm|mmm|mm|m> 
+[  24,   24,   55] ( 5) <YY____|mm__Y|mm_m|mmm|mm|m> 
+[  27,   30,   58] ( 5) <YY____|mm__Y|mmYm|mmm|mm|m> 
+[  33,   42,   70] ( 5) <YY____|mmY_Y|mmmm|mmm|mm|m> 
+[  31,   42,   62] ( 5) <YY____|mm_YY|mmmm|mmm|mm|m> 
+[  34,   50,   71] ( 5) <__Y___|_mm__|mmm_|mmm|mm|m> 
+[  35,   53,   71] ( 5) <__Y___|_mm__|mmmY|mmm|mm|m> 
+[  35,   50,   75] ( 5) <__Y___|Ymm__|mmm_|mmm|mm|m> 
+[  36,   53,   75] ( 5) <__Y___|Ymm__|mmmY|mmm|mm|m> 
+[  39,   65,   75] ( 5) <__Y___|_mmY_|mmmm|mmm|mm|m> 
+[  40,   65,   79] ( 5) <__Y___|YmmY_|mmmm|mmm|mm|m> 
+[  36,   57,   71] ( 5) <__Y___|_mm_Y|mmmm|mmm|mm|m> 
+[  37,   57,   75] ( 5) <__Y___|Ymm_Y|mmmm|mmm|mm|m> 
+[  40,   69,   75] ( 5) <__Y___|_mmYY|mmmm|mmm|mm|m> 
+[  41,   69,   79] ( 5) <__Y___|YmmYY|mmmm|mmm|mm|m> 
+[  36,   50,   80] ( 5) <Y_Y___|mmm__|mmm_|mmm|mm|m> 
+[  37,   53,   80] ( 5) <Y_Y___|mmm__|mmmY|mmm|mm|m> 
+[  41,   65,   84] ( 5) <Y_Y___|mmmY_|mmmm|mmm|mm|m> 
+[  38,   57,   80] ( 5) <Y_Y___|mmm_Y|mmmm|mmm|mm|m> 
+[  42,   69,   84] ( 5) <Y_Y___|mmmYY|mmmm|mmm|mm|m> 
+[  40,   55,   95] ( 5) <_YY___|mmm__|mmm_|mmm|mm|m> 
+[  41,   58,   95] ( 5) <_YY___|mmm__|mmmY|mmm|mm|m> 
+[  45,   70,   99] ( 5) <_YY___|mmmY_|mmmm|mmm|mm|m> 
+[  42,   62,   95] ( 5) <_YY___|mmm_Y|mmmm|mmm|mm|m> 
+[  46,   74,   99] ( 5) <_YY___|mmmYY|mmmm|mmm|mm|m> 
+[  43,   62,  100] ( 5) <YYY___|mmm_Y|mmmm|mmm|mm|m> 
+[  34,   71,   50] ( 5) <___Y__|__mm_|_mmm|mmm|mm|m> 
+[  35,   71,   53] ( 5) <___Y__|__mm_|Ymmm|mmm|mm|m> 
+[  36,   71,   57] ( 5) <___Y__|Y_mm_|mmmm|mmm|mm|m> 
+[  39,   75,   65] ( 5) <___Y__|_Ymm_|mmmm|mmm|mm|m> 
+[  40,   75,   69] ( 5) <___Y__|YYmm_|mmmm|mmm|mm|m> 
+[  35,   75,   50] ( 5) <___Y__|__mmY|_mmm|mmm|mm|m> 
+[  36,   75,   53] ( 5) <___Y__|__mmY|Ymmm|mmm|mm|m> 
+[  37,   75,   57] ( 5) <___Y__|Y_mmY|mmmm|mmm|mm|m> 
+[  40,   79,   65] ( 5) <___Y__|_YmmY|mmmm|mmm|mm|m> 
+[  41,   79,   69] ( 5) <___Y__|YYmmY|mmmm|mmm|mm|m> 
+[  37,   71,   62] ( 5) <Y__Y__|m_mm_|mmmm|mmm|mm|m> 
+[  41,   75,   74] ( 5) <Y__Y__|mYmm_|mmmm|mmm|mm|m> 
+[  38,   75,   62] ( 5) <Y__Y__|m_mmY|mmmm|mmm|mm|m> 
+[  42,   79,   74] ( 5) <Y__Y__|mYmmY|mmmm|mmm|mm|m> 
+[  45,   80,   89] ( 5) <_Y_Y__|mmmm_|mmmm|mmm|mm|m> 
+[  46,   84,   89] ( 5) <_Y_Y__|mmmmY|mmmm|mmm|mm|m> 
+[  46,   80,   94] ( 5) <YY_Y__|mmmm_|mmmm|mmm|mm|m> 
+[  47,   84,   94] ( 5) <YY_Y__|mmmmY|mmmm|mmm|mm|m> 
+[  49,   95,   95] ( 5) <__YY__|_mmm_|mmmm|mmm|mm|m> 
+[  50,   95,   99] ( 5) <__YY__|Ymmm_|mmmm|mmm|mm|m> 
+[  50,   99,   95] ( 5) <__YY__|_mmmY|mmmm|mmm|mm|m> 
+[  51,   99,   99] ( 5) <__YY__|YmmmY|mmmm|mmm|mm|m> 
+[  51,   95,  104] ( 5) <Y_YY__|mmmm_|mmmm|mmm|mm|m> 
+[  52,   99,  104] ( 5) <Y_YY__|mmmmY|mmmm|mmm|mm|m> 
+[  55,  100,  119] ( 5) <_YYY__|mmmm_|mmmm|mmm|mm|m> 
+[  56,  104,  119] ( 5) <_YYY__|mmmmY|mmmm|mmm|mm|m> 
+[  20,   50,   15] ( 5) <____Y_|___mm|__mm|_mm|mm|m> 
+[  21,   50,   17] ( 5) <____Y_|___mm|__mm|Ymm|mm|m> 
+[  22,   50,   20] ( 5) <____Y_|___mm|Y_mm|mmm|mm|m> 
+[  24,   53,   23] ( 5) <____Y_|___mm|_Ymm|mmm|mm|m> 
+[  25,   53,   26] ( 5) <____Y_|___mm|YYmm|mmm|mm|m> 
+[  23,   50,   24] ( 5) <____Y_|Y__mm|m_mm|mmm|mm|m> 
+[  26,   53,   30] ( 5) <____Y_|Y__mm|mYmm|mmm|mm|m> 
+[  29,   57,   38] ( 5) <____Y_|_Y_mm|mmmm|mmm|mm|m> 
+[  30,   57,   42] ( 5) <____Y_|YY_mm|mmmm|mmm|mm|m> 
+[  30,   65,   35] ( 5) <____Y_|__Ymm|_mmm|mmm|mm|m> 
+[  31,   65,   38] ( 5) <____Y_|__Ymm|Ymmm|mmm|mm|m> 
+[  32,   65,   42] ( 5) <____Y_|Y_Ymm|mmmm|mmm|mm|m> 
+[  35,   69,   50] ( 5) <____Y_|_YYmm|mmmm|mmm|mm|m> 
+[  36,   69,   54] ( 5) <____Y_|YYYmm|mmmm|mmm|mm|m> 
+[  24,   50,   29] ( 5) <Y___Y_|m__mm|m_mm|mmm|mm|m> 
+[  27,   53,   35] ( 5) <Y___Y_|m__mm|mYmm|mmm|mm|m> 
+[  31,   57,   47] ( 5) <Y___Y_|mY_mm|mmmm|mmm|mm|m> 
+[  33,   65,   47] ( 5) <Y___Y_|m_Ymm|mmmm|mmm|mm|m> 
+[  37,   69,   59] ( 5) <Y___Y_|mYYmm|mmmm|mmm|mm|m> 
+[  35,   62,   62] ( 5) <_Y__Y_|mm_mm|mmmm|mmm|mm|m> 
+[  41,   74,   74] ( 5) <_Y__Y_|mmYmm|mmmm|mmm|mm|m> 
+[  36,   62,   67] ( 5) <YY__Y_|mm_mm|mmmm|mmm|mm|m> 
+[  42,   74,   79] ( 5) <YY__Y_|mmYmm|mmmm|mmm|mm|m> 
+[  45,   89,   80] ( 5) <__Y_Y_|_mmmm|mmmm|mmm|mm|m> 
+[  46,   89,   84] ( 5) <__Y_Y_|Ymmmm|mmmm|mmm|mm|m> 
+[  47,   89,   89] ( 5) <Y_Y_Y_|mmmmm|mmmm|mmm|mm|m> 
+[  51,   94,  104] ( 5) <_YY_Y_|mmmmm|mmmm|mmm|mm|m> 
+[  52,   94,  109] ( 5) <YYY_Y_|mmmmm|mmmm|mmm|mm|m> 
+[  40,   95,   55] ( 5) <___YY_|__mmm|_mmm|mmm|mm|m> 
+[  41,   95,   58] ( 5) <___YY_|__mmm|Ymmm|mmm|mm|m> 
+[  42,   95,   62] ( 5) <___YY_|Y_mmm|mmmm|mmm|mm|m> 
+[  45,   99,   70] ( 5) <___YY_|_Ymmm|mmmm|mmm|mm|m> 
+[  46,   99,   74] ( 5) <___YY_|YYmmm|mmmm|mmm|mm|m> 
+[  43,   95,   67] ( 5) <Y__YY_|m_mmm|mmmm|mmm|mm|m> 
+[  47,   99,   79] ( 5) <Y__YY_|mYmmm|mmmm|mmm|mm|m> 
+[  51,  104,   94] ( 5) <_Y_YY_|mmmmm|mmmm|mmm|mm|m> 
+[  52,  104,   99] ( 5) <YY_YY_|mmmmm|mmmm|mmm|mm|m> 
+[  55,  119,  100] ( 5) <__YYY_|_mmmm|mmmm|mmm|mm|m> 
+[  56,  119,  104] ( 5) <__YYY_|Ymmmm|mmmm|mmm|mm|m> 
+[  57,  119,  109] ( 5) <Y_YYY_|mmmmm|mmmm|mmm|mm|m> 
+[  61,  124,  124] ( 5) <_YYYY_|mmmmm|mmmm|mmm|mm|m> 
+[   8,   15,    3] ( 5) <_____Y|____m|___m|Y_m|mm|m> 
+[  10,   17,    5] ( 5) <_____Y|____m|___m|YYm|mm|m> NC
+[   9,   15,    6] ( 5) <_____Y|____m|Y__m|m_m|mm|m> 
+[  11,   17,    8] ( 5) <_____Y|____m|Y__m|mYm|mm|m> 
+[  13,   20,   11] ( 5) <_____Y|____m|_Y_m|mmm|mm|m> 
+[  14,   20,   14] ( 5) <_____Y|____m|YY_m|mmm|mm|m> 
+[  14,   23,   11] ( 5) <_____Y|____m|Y_Ym|mmm|mm|m> 
+[  16,   26,   14] ( 5) <_____Y|____m|_YYm|mmm|mm|m> NC
+[  17,   26,   17] ( 5) <_____Y|____m|YYYm|mmm|mm|m> NC
+[  10,   15,   10] ( 5) <_____Y|Y___m|m__m|m_m|mm|m> 
+[  12,   17,   12] ( 5) <_____Y|Y___m|m__m|mYm|mm|m> 
+[  15,   20,   18] ( 5) <_____Y|Y___m|mY_m|mmm|mm|m> 
+[  15,   23,   15] ( 5) <_____Y|Y___m|m_Ym|mmm|mm|m> 
+[  18,   26,   21] ( 5) <_____Y|Y___m|mYYm|mmm|mm|m> 
+[  18,   24,   26] ( 5) <_____Y|_Y__m|mm_m|mmm|mm|m> 
+[  21,   30,   29] ( 5) <_____Y|_Y__m|mmYm|mmm|mm|m> 
+[  19,   24,   30] ( 5) <_____Y|YY__m|mm_m|mmm|mm|m> 
+[  22,   30,   33] ( 5) <_____Y|YY__m|mmYm|mmm|mm|m> 
+[  22,   38,   26] ( 5) <_____Y|__Y_m|_mmm|mmm|mm|m> 
+[  23,   38,   29] ( 5) <_____Y|__Y_m|Ymmm|mmm|mm|m> 
+[  24,   38,   33] ( 5) <_____Y|Y_Y_m|mmmm|mmm|mm|m> 
+[  27,   42,   41] ( 5) <_____Y|_YY_m|mmmm|mmm|mm|m> 
+[  28,   42,   45] ( 5) <_____Y|YYY_m|mmmm|mmm|mm|m> 
+[  18,   35,   15] ( 5) <_____Y|___Ym|Y_mm|mmm|mm|m> 
+[  19,   35,   19] ( 5) <_____Y|Y__Ym|m_mm|mmm|mm|m> 
+[  22,   38,   25] ( 5) <_____Y|Y__Ym|mYmm|mmm|mm|m> 
+[  25,   42,   33] ( 5) <_____Y|_Y_Ym|mmmm|mmm|mm|m> 
+[  26,   42,   37] ( 5) <_____Y|YY_Ym|mmmm|mmm|mm|m> 
+[  26,   50,   30] ( 5) <_____Y|__YYm|_mmm|mmm|mm|m> NC
+[  28,   50,   37] ( 5) <_____Y|Y_YYm|mmmm|mmm|mm|m> 
+[  11,   15,   15] ( 5) <Y____Y|m___m|m__m|m_m|mm|m> 
+[  13,   17,   17] ( 5) <Y____Y|m___m|m__m|mYm|mm|m> 
+[  16,   20,   23] ( 5) <Y____Y|m___m|mY_m|mmm|mm|m> 
+[  16,   23,   20] ( 5) <Y____Y|m___m|m_Ym|mmm|mm|m> 
+[  19,   26,   26] ( 5) <Y____Y|m___m|mYYm|mmm|mm|m> 
+[  20,   24,   35] ( 5) <Y____Y|mY__m|mm_m|mmm|mm|m> 
+[  23,   30,   38] ( 5) <Y____Y|mY__m|mmYm|mmm|mm|m> 
+[  25,   38,   38] ( 5) <Y____Y|m_Y_m|mmmm|mmm|mm|m> 
+[  29,   42,   50] ( 5) <Y____Y|mYY_m|mmmm|mmm|mm|m> 
+[  20,   35,   24] ( 5) <Y____Y|m__Ym|m_mm|mmm|mm|m> 
+[  23,   38,   30] ( 5) <Y____Y|m__Ym|mYmm|mmm|mm|m> 
+[  27,   42,   42] ( 5) <Y____Y|mY_Ym|mmmm|mmm|mm|m> 
+[  29,   50,   42] ( 5) <Y____Y|m_YYm|mmmm|mmm|mm|m> 
+[  33,   54,   54] ( 5) <Y____Y|mYYYm|mmmm|mmm|mm|m> 
+[  24,   29,   50] ( 5) <_Y___Y|mm__m|mm_m|mmm|mm|m> 
+[  27,   35,   53] ( 5) <_Y___Y|mm__m|mmYm|mmm|mm|m> 
+[  33,   47,   65] ( 5) <_Y___Y|mmY_m|mmmm|mmm|mm|m> 
+[  31,   47,   57] ( 5) <_Y___Y|mm_Ym|mmmm|mmm|mm|m> 
+[  37,   59,   69] ( 5) <_Y___Y|mmYYm|mmmm|mmm|mm|m> 
+[  25,   29,   55] ( 5) <YY___Y|mm__m|mm_m|mmm|mm|m> 
+[  28,   35,   58] ( 5) <YY___Y|mm__m|mmYm|mmm|mm|m> 
+[  34,   47,   70] ( 5) <YY___Y|mmY_m|mmmm|mmm|mm|m> 
+[  32,   47,   62] ( 5) <YY___Y|mm_Ym|mmmm|mmm|mm|m> 
+[  38,   59,   74] ( 5) <YY___Y|mmYYm|mmmm|mmm|mm|m> 
+[  37,   62,   71] ( 5) <__Y__Y|_mm_m|mmmm|mmm|mm|m> 
+[  38,   62,   75] ( 5) <__Y__Y|Ymm_m|mmmm|mmm|mm|m> 
+[  41,   74,   75] ( 5) <__Y__Y|_mmYm|mmmm|mmm|mm|m> 
+[  42,   74,   79] ( 5) <__Y__Y|YmmYm|mmmm|mmm|mm|m> 
+[  39,   62,   80] ( 5) <Y_Y__Y|mmm_m|mmmm|mmm|mm|m> 
+[  43,   74,   84] ( 5) <Y_Y__Y|mmmYm|mmmm|mmm|mm|m> 
+[  43,   67,   95] ( 5) <_YY__Y|mmm_m|mmmm|mmm|mm|m> 
+[  47,   79,   99] ( 5) <_YY__Y|mmmYm|mmmm|mmm|mm|m> 
+[  44,   67,  100] ( 5) <YYY__Y|mmm_m|mmmm|mmm|mm|m> 
+[  48,   79,  104] ( 5) <YYY__Y|mmmYm|mmmm|mmm|mm|m> 
+[  36,   80,   50] ( 5) <___Y_Y|__mmm|_mmm|mmm|mm|m> 
+[  37,   80,   53] ( 5) <___Y_Y|__mmm|Ymmm|mmm|mm|m> 
+[  38,   80,   57] ( 5) <___Y_Y|Y_mmm|mmmm|mmm|mm|m> 
+[  41,   84,   65] ( 5) <___Y_Y|_Ymmm|mmmm|mmm|mm|m> 
+[  42,   84,   69] ( 5) <___Y_Y|YYmmm|mmmm|mmm|mm|m> 
+[  39,   80,   62] ( 5) <Y__Y_Y|m_mmm|mmmm|mmm|mm|m> 
+[  43,   84,   74] ( 5) <Y__Y_Y|mYmmm|mmmm|mmm|mm|m> 
+[  47,   89,   89] ( 5) <_Y_Y_Y|mmmmm|mmmm|mmm|mm|m> 
+[  48,   89,   94] ( 5) <YY_Y_Y|mmmmm|mmmm|mmm|mm|m> 
+[  51,  104,   95] ( 5) <__YY_Y|_mmmm|mmmm|mmm|mm|m> 
+[  52,  104,   99] ( 5) <__YY_Y|Ymmmm|mmmm|mmm|mm|m> 
+[  53,  104,  104] ( 5) <Y_YY_Y|mmmmm|mmmm|mmm|mm|m> 
+[  57,  109,  119] ( 5) <_YYY_Y|mmmmm|mmmm|mmm|mm|m> 
+[  58,  109,  124] ( 5) <YYYY_Y|mmmmm|mmmm|mmm|mm|m> 
+[  23,   55,   20] ( 5) <____YY|___mm|Y_mm|mmm|mm|m> 
+[  26,   58,   26] ( 5) <____YY|___mm|YYmm|mmm|mm|m> NC
+[  24,   55,   24] ( 5) <____YY|Y__mm|m_mm|mmm|mm|m> 
+[  27,   58,   30] ( 5) <____YY|Y__mm|mYmm|mmm|mm|m> 
+[  30,   62,   38] ( 5) <____YY|_Y_mm|mmmm|mmm|mm|m> 
+[  31,   62,   42] ( 5) <____YY|YY_mm|mmmm|mmm|mm|m> 
+[  33,   70,   42] ( 5) <____YY|Y_Ymm|mmmm|mmm|mm|m> 
+[  25,   55,   29] ( 5) <Y___YY|m__mm|m_mm|mmm|mm|m> 
+[  28,   58,   35] ( 5) <Y___YY|m__mm|mYmm|mmm|mm|m> 
+[  32,   62,   47] ( 5) <Y___YY|mY_mm|mmmm|mmm|mm|m> 
+[  34,   70,   47] ( 5) <Y___YY|m_Ymm|mmmm|mmm|mm|m> 
+[  38,   74,   59] ( 5) <Y___YY|mYYmm|mmmm|mmm|mm|m> 
+[  36,   67,   62] ( 5) <_Y__YY|mm_mm|mmmm|mmm|mm|m> 
+[  42,   79,   74] ( 5) <_Y__YY|mmYmm|mmmm|mmm|mm|m> 
+[  37,   67,   67] ( 5) <YY__YY|mm_mm|mmmm|mmm|mm|m> 
+[  43,   79,   79] ( 5) <YY__YY|mmYmm|mmmm|mmm|mm|m> 
+[  46,   94,   80] ( 5) <__Y_YY|_mmmm|mmmm|mmm|mm|m> 
+[  47,   94,   84] ( 5) <__Y_YY|Ymmmm|mmmm|mmm|mm|m> 
+[  48,   94,   89] ( 5) <Y_Y_YY|mmmmm|mmmm|mmm|mm|m> 
+[  52,   99,  104] ( 5) <_YY_YY|mmmmm|mmmm|mmm|mm|m> 
+[  53,   99,  109] ( 5) <YYY_YY|mmmmm|mmmm|mmm|mm|m> 
+[  43,  100,   62] ( 5) <___YYY|Y_mmm|mmmm|mmm|mm|m> 
+[  44,  100,   67] ( 5) <Y__YYY|m_mmm|mmmm|mmm|mm|m> 
+[  48,  104,   79] ( 5) <Y__YYY|mYmmm|mmmm|mmm|mm|m> 
+[  52,  109,   94] ( 5) <_Y_YYY|mmmmm|mmmm|mmm|mm|m> 
+[  53,  109,   99] ( 5) <YY_YYY|mmmmm|mmmm|mmm|mm|m> 
+[  58,  124,  109] ( 5) <Y_YYYY|mmmmm|mmmm|mmm|mm|m> 
