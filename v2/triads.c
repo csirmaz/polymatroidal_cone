@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #define MTYPE long
-#define CACHE_BINOM_TO 100
+#define CACHE_BINOM_TO 200
 
 MTYPE** binom_cache;
 MTYPE*** partial_results;  // partial results
@@ -43,7 +44,8 @@ void get_result(
         int k, // which diagonal are we in; k=i+j
         MTYPE mask, // has those bits set that we need to have filled in in this diagonal
         MTYPE prev_sum[3], // the sum so far from previous (outside) diagonals
-        int nonzero_layer // the topmost nonzero layer
+        int nonzero_layer, // the topmost nonzero layer
+        char *describe_choices // describes the set of points chosen so far
 ) {
     /* Calculate the complete sum recursively starting at the outermost/topmost diagonal (k==param_k).
      * - Loop through all possible choices of points in this diagonal (b)
@@ -61,13 +63,29 @@ void get_result(
 
             if(nonzero_layer == -1 && b != 0) nonzero_layer = k;
             
+            // Generate a description of the choices made
+            int di = strlen(describe_choices);
+            if(di > 200) die("description too long");
+            char new_description[400];
+            if(di > 0) {
+                strcpy(new_description, describe_choices);
+                new_description[di] = '|'; 
+                di++;
+            }
+            for(int dc=0; dc<k+1; dc++) {
+                MTYPE dcb = (1<<(MTYPE)dc);
+                new_description[di] = ((mask & dcb) ? 'm' : ((b & dcb) ? 'Y' : '_'));
+                di++;
+            }
+            new_description[di] = '\0';
+            
             if(k == 0) { // we reached the bottommost diagonal, so stop
-                printf("Sum: %ld, %ld, %ld (%d)\n", new_sum[0], new_sum[1], new_sum[2], nonzero_layer);
+                printf("Sum: %ld, %ld, %ld (%d) <%s>\n", new_sum[0], new_sum[1], new_sum[2], nonzero_layer, new_description);
             }
             else {
                 // Create the mask for the lower diagonal
                 MTYPE new_mask = ((b & ((1<<((MTYPE)k))-1)) | (b>>1));
-                get_result(k-1, new_mask, new_sum, nonzero_layer);
+                get_result(k-1, new_mask, new_sum, nonzero_layer, new_description);
             }
         }
     }
@@ -168,7 +186,7 @@ int main(int argc, char *argv[]) {
     
     printf("Now calculate results from the top\n");
     MTYPE tmp_sum[3] = {0,0,0};
-    get_result(param_k, 0, tmp_sum, -1);
+    get_result(param_k, 0, tmp_sum, -1, "");
     
     printf("END\n");
 }
