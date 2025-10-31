@@ -1,5 +1,7 @@
 
 # Expects the output of triads.c on STDIN
+# Create convex hull
+# Generate report on vertices and scad
 
 import sys
 import os
@@ -38,9 +40,11 @@ def check_necessary_condition(desc):
         parts += 1
     return ((starters == parts) or (enders == parts))
 
-points = []
-descriptors = []
-nc_points = [] # indices of NC points
+points = []  # [[x,y,z], ...
+descriptors = []  # ["desc", ...
+nc_points = []  # indices of NC points
+max_y = 0
+max_z = 0
 
 for line in sys.stdin:
     match = re.search(r'^Sum: ([0-9]+), ([0-9]+), ([0-9]+) \(([\-0-9]+)\) <([^>]+)>', line)
@@ -51,14 +55,27 @@ for line in sys.stdin:
         itr = int(match.group(4))
         desc = match.group(5)
         points.append([x,y,z])
-        is_nc = check_necessary_condition(desc)
-        if is_nc: nc_points.append(len(points)-1)
+        if max_y < y: max_y = y
+        if max_z < z: max_z = z
+        if check_necessary_condition(desc): nc_points.append(len(points)-1)
         descriptors.append(f"({itr:2.0f}) <{desc}>")
         #small_spheres.append(Sphere(small_r).move([x,y,z]))
         #c = colors[itr]
         #big_spheres.append(Sphere(big_r).move([x,y,z]).color(*c))
+print("// reading points done", flush=True)
+
+# Extra points
+assert max_y == max_z
+print(f"// max = {max_y}")
+max_v = max_y*2.
+current_points = len(points)
+for pi in range(current_points):
+    p = points[pi]
+    points.append([p[0], p[1], max_v-p[1]]); descriptors.append(f"from #{pi}")
+    points.append([p[0], max_v-p[2], p[2]]); descriptors.append(f"from #{pi}")
 
 points = np.array(points)
+print("// generating points done", flush=True)
 chull = ConvexHull(points, qhull_options="Qc")
 # chull.points <n,3> coordinates
 # chull.vertices <k> indices of points that are vertices
@@ -90,7 +107,8 @@ for pi in chull.vertices:
 print("// POINTS THAT ARE NOT VERTICES")
 for pi in range(len(points)):
     if pi not in seen:
-        printpoint(pi)
+        if not descriptors[pi].startswith('from'):
+            printpoint(pi)
         
 
 ## OpenSCAD output
@@ -109,14 +127,16 @@ if False:
         for face in chull.simplices
     ]
     ohull = Polyhedron(points=[points[pi] for pi in chull.vertices], faces=new_faces)
+    # print(ohull.render_stl()); exit(0)
     print(Header("best").render())
     print(ohull.render())
     
     # Add points that are not vertices but NC (and perhaps coplanar)
-    for pi in range(len(points)):
-        if pi not in seen:
-            if pi in nc_points:
-                c = [0,.2,1]
-                if pi in coplanar: c=[1,0,0]
-                print(Sphere(big_r).move(points[pi]).color(*c).render())
+    if False:
+        for pi in range(len(points)):
+            if pi not in seen:
+                if pi in nc_points:
+                    c = [0,.2,1]
+                    if pi in coplanar: c=[1,0,0]
+                    print(Sphere(big_r).move(points[pi]).color(*c).render())
             
