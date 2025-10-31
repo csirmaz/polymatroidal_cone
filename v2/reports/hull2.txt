@@ -1,16 +1,16 @@
-VERTICES OF THE CONVEX HULL
-[   0,    0,    0] (-1) <___|__|_> NC
-[   1,    0,    0] ( 0) <___|__|Y> NC
-[   2,    0,    1] ( 1) <___|Y_|m> NC
-[   2,    1,    0] ( 1) <___|_Y|m> NC
-[   3,    1,    1] ( 1) <___|YY|m> NC
-[   3,    0,    3] ( 2) <Y__|m_|m> NC
-[   4,    1,    3] ( 2) <Y__|mY|m> NC
-[   6,    3,    5] ( 2) <YY_|mm|m> NC
-[   3,    3,    0] ( 2) <__Y|_m|m> NC
-[   4,    3,    1] ( 2) <__Y|Ym|m> NC
-[   6,    5,    3] ( 2) <_YY|mm|m> NC
-[   7,    5,    5] ( 2) <YYY|mm|m> NC
-POINTS THAT ARE NOT VERTICES
-[   5,    3,    3] ( 2) <_Y_|mm|m> 
-[   5,    3,    3] ( 2) <Y_Y|mm|m> 
+// VERTICES OF THE CONVEX HULL
+// #   0 [   0,    0,    0] (-1) <___|__|_> NC f0 f1 f2 f3 f12 f13 f18 f19 
+// #   1 [   1,    0,    0] ( 0) <___|__|Y> NC f13 f17 f18 
+// #   2 [   2,    0,    1] ( 1) <___|Y_|m> NC f10 f11 f12 f13 f16 f17 
+// #   3 [   2,    1,    0] ( 1) <___|_Y|m> NC f14 f15 f16 f17 f18 f19 
+// #   4 [   3,    1,    1] ( 1) <___|YY|m> NC f9 f10 f14 f16 
+// #   5 [   3,    0,    3] ( 2) <Y__|m_|m> NC f2 f4 f11 f12 
+// #   6 [   4,    1,    3] ( 2) <Y__|mY|m> NC f4 f8 f9 f10 f11 
+// #   8 [   6,    3,    5] ( 2) <YY_|mm|m> NC f0 f2 f4 f7 f8 
+// #   9 [   3,    3,    0] ( 2) <__Y|_m|m> NC f3 f5 f15 f19 
+// #  10 [   4,    3,    1] ( 2) <__Y|Ym|m> NC f5 f6 f7 f8 f9 f14 f15 
+// #  12 [   6,    5,    3] ( 2) <_YY|mm|m> NC f1 f3 f5 f6 
+// #  13 [   7,    5,    5] ( 2) <YYY|mm|m> NC f0 f1 f6 f7 
+// POINTS THAT ARE NOT VERTICES
+// #   7 [   5,    3,    3] ( 2) <_Y_|mm|m>   cp(f6 #10)
+// #  11 [   5,    3,    3] ( 2) <Y_Y|mm|m>   cp(f6 #10)
