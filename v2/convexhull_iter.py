@@ -1,7 +1,7 @@
 
 # Expects the output of triads.c on STDIN
-# Create convex hull
-# Generate report on vertices and scad
+# Create a convex hull for each iteration
+# Generate reports on vertices and scad
 
 import sys
 import os
@@ -76,8 +76,13 @@ def process_points():
     print(f"// VERTICES OF THE CONVEX HULL iteration={current_iteration}")
     seen = set()
     for pi in chull.vertices:
-        if not pi in extra_points:
-            assert pi in nc_points  # Check that the necessary condition applies to all vertices
+        if pi in extra_points:
+            # Check that we have added this extra point (which is a vertex)
+            # from a point which is also a vertex
+            assert extra_points[pi] in chull.vertices
+        else:
+            # Check that the necessary condition applies to all vertices
+            assert pi in nc_points  
         p = chull.points[pi]
         printpoint(pi, p, True)
         seen.add(pi)
