@@ -29,6 +29,25 @@ colors = {
     6: [.5,0,0],
 }
 
+def plot_2d(desc):
+    """2D plot of the subset of points from the bitmap"""
+    parts = desc.split('|')
+    o = ''
+    for j in range(len(parts)):
+        o += '// = '
+        for i in range(j+1):
+            real_j = len(parts) - j - 1
+            diagonal = real_j + i
+            #c=f"{real_j}{i}[{diagonal}]"
+            c = parts[len(parts) - diagonal - 1][i]
+            if c=='_':
+                o += '. '
+            else:
+                o += c+' '
+        o += "\n"
+    return o
+
+
 def check_necessary_condition(desc):
     """Based on the string descriptor, check the necessary condition of being a vertex"""
     starters = 0
@@ -42,6 +61,7 @@ def check_necessary_condition(desc):
 
 points = []  # [[x,y,z], ...
 descriptors = []  # ["desc", ...
+desc_plots = []
 nc_points = []  # indices of NC points
 max_y = 0
 max_z = 0
@@ -59,6 +79,7 @@ for line in sys.stdin:
         if max_z < z: max_z = z
         if check_necessary_condition(desc): nc_points.append(len(points)-1)
         descriptors.append(f"({itr:2.0f}) <{desc}>")
+        desc_plots.append(plot_2d(desc))
         #small_spheres.append(Sphere(small_r).move([x,y,z]))
         #c = colors[itr]
         #big_spheres.append(Sphere(big_r).move([x,y,z]).color(*c))
@@ -89,11 +110,27 @@ for ix, d in enumerate(chull.simplices): # [[p1, p2, p3], ...
 
 # Process coplanar data
 coplanar = {}
+coplanar_point = {}
+coplanar_facet = {}
 for d in chull.coplanar:
-    coplanar[d[0]] = f"cp(f{d[1]} #{d[2]})"
+    coplanar[d[0]] = f"coplanar with f{d[1]}, its closest vertex is #{d[2]}"
+    coplanar_point[d[0]] = d[2]
+    coplanar_facet[d[0]] = d[1]
 
-def printpoint(pi):
-    print(f"// #{pi:4.0f} [{points[pi][0]:4.0f}, {points[pi][1]:4.0f}, {points[pi][2]:4.0f}] {descriptors[pi]} {'NC' if pi in nc_points else ''} {' '.join(point_to_facet.get(pi, []))} {coplanar.get(pi,'')}")
+def printpoint(pi, prefix='', plot=True):
+    print(f"// {prefix} #{pi:4.0f} [{points[pi][0]:4.0f}, {points[pi][1]:4.0f}, {points[pi][2]:4.0f}] {descriptors[pi]} {'NC' if pi in nc_points else ''} {' '.join(point_to_facet.get(pi, []))} {coplanar.get(pi,'')}")
+    if pi < len(desc_plots):
+        if pi in coplanar_facet:
+            for pfv in sorted(chull.simplices[coplanar_facet[pi]]):
+                printpoint(pfv, 'coplanar v', plot=False)
+        if plot:
+            if pi in nc_points or pi in coplanar_facet:
+                print(desc_plots[pi])
+            if pi in coplanar_facet:
+                print(f"// = Coplanar with facet f{coplanar_facet[pi]} which has the following vertices:")
+                for pfv in chull.simplices[coplanar_facet[pi]]:
+                    print(f"// = coplanar facet vertex #{pfv}")
+                    print(desc_plots[pfv])
 
 print("// VERTICES OF THE CONVEX HULL")
 seen = set()
@@ -101,14 +138,14 @@ for pi in chull.vertices:
     p = chull.points[pi]
     p_org = points[pi]
     assert p[0] == p_org[0] and p[1] == p_org[1] and p[2] == p_org[2]
-    printpoint(pi)
+    printpoint(pi, 'vertex')
     seen.add(pi)
 
 print("// POINTS THAT ARE NOT VERTICES")
 for pi in range(len(points)):
     if pi not in seen:
         if not descriptors[pi].startswith('from'):
-            printpoint(pi)
+            printpoint(pi, 'not vertex')
         
 
 ## OpenSCAD output
