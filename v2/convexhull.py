@@ -13,21 +13,7 @@ sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://cod
 
 from openscad_py import Sphere, Collection, Header, Polyhedron
 
-small_spheres = []
-big_spheres = []
-zoom = 1.
-small_r = .01
-big_r = .4
-colors = {
-    -1: [0,0,0],
-    0: [0,0,1],
-    1: [1,0,0],
-    2: [0,1,0],
-    3: [0,.8,.8],
-    4: [.8,0,.8],
-    5: [.6,.6,0],
-    6: [.5,0,0],
-}
+DO_PLOTS = True
 
 def plot_2d(desc):
     """2D plot of the subset of points from the bitmap"""
@@ -69,9 +55,9 @@ max_z = 0
 for line in sys.stdin:
     match = re.search(r'^Sum: ([0-9]+), ([0-9]+), ([0-9]+) \(([\-0-9]+)\) <([^>]+)>', line)
     if match:
-        x = int(match.group(1)) * zoom
-        y = int(match.group(2)) * zoom
-        z = int(match.group(3)) * zoom
+        x = int(match.group(1))
+        y = int(match.group(2))
+        z = int(match.group(3))
         itr = int(match.group(4))
         desc = match.group(5)
         points.append([x,y,z])
@@ -79,7 +65,8 @@ for line in sys.stdin:
         if max_z < z: max_z = z
         if check_necessary_condition(desc): nc_points.append(len(points)-1)
         descriptors.append(f"({itr:2.0f}) <{desc}>")
-        desc_plots.append(plot_2d(desc))
+        if DO_PLOTS:
+            desc_plots.append(plot_2d(desc))
         #small_spheres.append(Sphere(small_r).move([x,y,z]))
         #c = colors[itr]
         #big_spheres.append(Sphere(big_r).move([x,y,z]).color(*c))
@@ -110,27 +97,14 @@ for ix, d in enumerate(chull.simplices): # [[p1, p2, p3], ...
 
 # Process coplanar data
 coplanar = {}
-coplanar_point = {}
-coplanar_facet = {}
 for d in chull.coplanar:
     coplanar[d[0]] = f"coplanar with f{d[1]}, its closest vertex is #{d[2]}"
-    coplanar_point[d[0]] = d[2]
-    coplanar_facet[d[0]] = d[1]
 
 def printpoint(pi, prefix='', plot=True):
     print(f"// {prefix} #{pi:4.0f} [{points[pi][0]:4.0f}, {points[pi][1]:4.0f}, {points[pi][2]:4.0f}] {descriptors[pi]} {'NC' if pi in nc_points else ''} {' '.join(point_to_facet.get(pi, []))} {coplanar.get(pi,'')}")
-    if pi < len(desc_plots):
-        if pi in coplanar_facet:
-            for pfv in sorted(chull.simplices[coplanar_facet[pi]]):
-                printpoint(pfv, 'coplanar v', plot=False)
-        if plot:
-            if pi in nc_points or pi in coplanar_facet:
-                print(desc_plots[pi])
-            if pi in coplanar_facet:
-                print(f"// = Coplanar with facet f{coplanar_facet[pi]} which has the following vertices:")
-                for pfv in chull.simplices[coplanar_facet[pi]]:
-                    print(f"// = coplanar facet vertex #{pfv}")
-                    print(desc_plots[pfv])
+    if DO_PLOTS and plot and pi < len(desc_plots):
+        if pi in nc_points:
+            print(desc_plots[pi], end="")
 
 print("// VERTICES OF THE CONVEX HULL")
 seen = set()
@@ -175,5 +149,5 @@ if False:
                 if pi in nc_points:
                     c = [0,.2,1]
                     if pi in coplanar: c=[1,0,0]
-                    print(Sphere(big_r).move(points[pi]).color(*c).render())
+                    print(Sphere(.3).move(points[pi]).color(*c).render())
             
