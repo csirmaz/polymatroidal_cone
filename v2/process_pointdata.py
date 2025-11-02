@@ -1,5 +1,6 @@
 
-# cat pointdata | python process_pointdata.py
+# Process the pointdata output of convexhull_iter.py
+# cat pointdata | python process_pointdata.py > processeddata
 
 
 import sys

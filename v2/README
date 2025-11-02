@@ -6,3 +6,7 @@
                 
 python process_pointdata.py < pointdata > processeddata
 
+   <- processeddata_13
+python train_model.py
+   -> model_data
+   
