@@ -71,7 +71,7 @@ def read_raw_data():
             desc = match.group(5)
             
             if current_iteration is None or current_iteration < itr:
-                if current_iteration is not None and current_iteration >= 2:
+                if current_iteration is not None:
                     # Process the points so far
                     process_points(Pobj, PrevPobj)
                     PrevPobj = Pobj
@@ -118,17 +118,40 @@ def process_points(Pobj, PrevPobj):
     if PrevPobj:
         assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrePobj iteration")
     
+    print(f"// process_points: starting with {len(Pobj.RawPoints)} points (retained+loaded), iter={Pobj.Iteration}")
+    
+    if Pobj.Iteration < 2:
+        Pobj.RetainPoints = Pobj.RawPoints
+        return
+    
     # Add extra points to create triangles
     assrt(Pobj.Global.max_y == Pobj.Global.max_z, "max y != max z")
     max_v = Pobj.Global.max_y * 2.
     
     Pobj.ExtraPointsFrom = len(Pobj.RawPoints)
     
-    # TODO OPTIMIZE - Only add 1 point
-    for pi in range(Pobj.ExtraPointsFrom):
-        p = Pobj.RawPoints[pi]
-        Pobj.RawPoints.append([p[0], p[1], max_v-p[1]])
-        Pobj.RawPoints.append([p[0], max_v-p[2], p[2]])
+    if True: # OPTIMIZED EXTRA POINTS
+        # We know for every (x,y,z) point we also have (x,z,y)
+        # (x,y,z) -> (x, y, m-y); (x, m-z, z)
+        # (x,z,y) -> (x, z, m-z); (x, m-y, y)
+        seen_yz = set()
+        for pi in range(Pobj.ExtraPointsFrom):
+            ep = Pobj.RawPoints[pi]
+            ex = ep[0]
+            ey = ep[1]
+            ez = ep[2]
+            if ey > ez: (ez, ey) = (ey, ez)
+            key = (ey, ez)
+            if key in seen_yz: continue
+            seen_yz.add(key)
+            Pobj.RawPoints.append([ex, ey, max_v-ey])
+            Pobj.RawPoints.append([ex, max_v-ey, ey])
+        del seen_yz
+    else: # ORG LOGIX
+        for pi in range(Pobj.ExtraPointsFrom):
+            p = Pobj.RawPoints[pi]
+            Pobj.RawPoints.append([p[0], p[1], max_v-p[1]])
+            Pobj.RawPoints.append([p[0], max_v-p[2], p[2]])
     
     Pobj.Hull = ConvexHull(np.array(Pobj.RawPoints), qhull_options="Qc")
     # Hull.points shape=<n,3> coordinates of all points
@@ -139,7 +162,7 @@ def process_points(Pobj, PrevPobj):
     
     # Process faces from the previous iteration
     # We have already reindexed the points to match this iteration
-    if PrevPobj:
+    if PrevPobj and hasattr(PrevPobj, 'Simplices'):
         process_faces(Pobj, PrevPobj)
     
     # Create report
