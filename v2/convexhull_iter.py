@@ -11,9 +11,9 @@ import numpy as np
 
 sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://codeberg.org/csirmaz/openscad-py
 
-from openscad_py import Sphere, Collection, Header, Polyhedron, Point
+from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
-CREATE_SCAD = False
+CREATE_SCAD = True
 
 def check_necessary_condition(desc):
     """Based on the string descriptor, check the necessary condition of being a vertex"""
@@ -38,6 +38,21 @@ extra_points = {}  # {<point index>: <org point index>
 iteration_of_points = {}  # {<point index>: <iteration number>
 
 faces_of_prev_iter = None
+scad_hull_of_prev_iter = None
+
+def get_scad_hull(chull):
+    # Convert the Qhull hull into openscad
+    point_reindex = {} # {old_index: new_index (only vertices)
+    for pinew, piold in enumerate(chull.vertices):
+        point_reindex[piold] = pinew
+    new_faces = [
+        [point_reindex[pi] for pi in face]
+        for face in chull.simplices
+    ]
+    ohull = Polyhedron(points=[chull.points[pi] for pi in chull.vertices], faces=new_faces)
+    # print(ohull.render_stl()); exit(0)
+    return ohull.render()
+
 
 def printpoint(pi, p, is_vertex):
     if pi in extra_points:
@@ -60,6 +75,7 @@ def process_faces(chull):
     # Merge faces and find real edges
     # chull - hull of the current iteration
     #    This tells us which vertex is still a vertex
+    #    Contains all points (even the dropped vertices)
     # faces_of_prev_iter - faces from the previous iteration with the new point indices
     #    Excludes faces that contained "extra" points
     
@@ -96,11 +112,23 @@ def process_faces(chull):
         f1 = r.pop()
         f2 = r.pop()
         
-        if face_normals[f1].allclose(face_normals[f2]):
+        limit = 1e-7
+        diff = face_normals[f1] - face_normals[f2]
+        if abs(diff.c[0]) < limit and abs(diff.c[1]) < limit and abs(diff.c[2]) < limit:
+            return 'non_edge'
+        diff = face_normals[f1] + face_normals[f2]
+        if abs(diff.c[0]) < limit and abs(diff.c[1]) < limit and abs(diff.c[2]) < limit:
             return 'non_edge'
         
         return 'real_edge'
+    
+    if CREATE_SCAD and scad_hull_of_prev_iter:
+        scad_file = open(f"hull{current_iteration-1}.scad", 'w')
+        scad_file.write(Header("best").render())
+        scad_file.write(scad_hull_of_prev_iter)
 
+    skipped_edges = 0
+    seen_points = set()
     for fi, face in enumerate(faces_of_prev_iter):
         for pointpair in [
             [face[0], face[1]],
@@ -108,7 +136,9 @@ def process_faces(chull):
             [face[2], face[0]]
         ]:
             status = check_edge(*pointpair)
-            if status is None or status == 'non_edge': continue
+            if status is None or status == 'non_edge':
+                skipped_edges += 1
+                continue
             is_vertex1 = pointpair[0] in chull.vertices
             is_vertex2 = pointpair[1] in chull.vertices
             if not is_vertex1: status += " (p1 will drop)"
@@ -120,9 +150,29 @@ def process_faces(chull):
             printpoint(pointpair[1], p2, is_vertex2)
             print("")
             
+            if CREATE_SCAD and scad_hull_of_prev_iter:
+                c = [.2, .2, 1.]
+                if status == 'edge_of_area': c = [.2, 1., 1.]
+                scad_file.write(Cylinder.from_ends(.1, p1, p2).color(*c).render())
+            
+        if CREATE_SCAD and scad_hull_of_prev_iter:
+            for pi in face:
+                if pi in seen_points: continue
+                seen_points.add(pi)
+                c = [.2, .2, 1.]
+                if pi not in chull.vertices: # will drop
+                    c = [1., .2, .2]
+                scad_file.write(Sphere(.4).move(chull.points[pi]).color(*c).render())
+    
+    if CREATE_SCAD and scad_hull_of_prev_iter:
+        scad_file.close()
+    
+    print(f"// skipped edges: {skipped_edges}")
+    print("")
+            
 
 def process_points():
-    global max_y, max_z, current_iteration, points, nc_points, extra_points, iteration_of_points, faces_of_prev_iter
+    global max_y, max_z, current_iteration, points, nc_points, extra_points, iteration_of_points, faces_of_prev_iter, scad_hull_of_prev_iter
     
     # Add extra points to create triangles
     assert max_y == max_z
@@ -198,7 +248,10 @@ def process_points():
                 point_reindex[face[1]],
                 point_reindex[face[2]]
             ])
-    
+
+    if CREATE_SCAD:
+        scad_hull_of_prev_iter = get_scad_hull(chull)
+
     # Set global data structures
     nc_points = nc_points_new; del nc_points_new
     iteration_of_points = iteration_of_points_new; del iteration_of_points_new
@@ -232,41 +285,7 @@ for line in sys.stdin:
 process_points()
 
 
-
-## Process facets
-#point_to_facet = {} # {pix: [f.., f..
-#for ix, d in enumerate(chull.simplices): # [[p1, p2, p3], ...
-#    for pix in d:
-#        if pix not in point_to_facet: point_to_facet[pix] = []
-#        point_to_facet[pix].append(f"f{ix}")
-
 ## Process coplanar data
 #coplanar = {}
 #for d in chull.coplanar:
 #    coplanar[d[0]] = f"coplanar with f{d[1]}, its closest vertex is #{d[2]}"
-
-
-        
-if CREATE_SCAD:
-    # Convert the Qhull hull into openscad
-    point_reindex = {} # {old_index: new_index (only vertices)
-    for pinew, piold in enumerate(chull.vertices):
-        point_reindex[piold] = pinew
-    new_faces = [
-        [point_reindex[pi] for pi in face]
-        for face in chull.simplices
-    ]
-    ohull = Polyhedron(points=[points[pi] for pi in chull.vertices], faces=new_faces)
-    # print(ohull.render_stl()); exit(0)
-    print(Header("best").render())
-    print(ohull.render())
-    
-    # Add points that are not vertices but NC (and perhaps coplanar)
-    if False:
-        for pi in range(len(points)):
-            if pi not in seen:
-                if pi in nc_points:
-                    c = [0,.2,1]
-                    if pi in coplanar: c=[1,0,0]
-                    print(Sphere(.3).move(points[pi]).color(*c).render())
-            
