@@ -1,0 +1,8 @@
+
+
+./triads 12 | python convexhull_iter.py > combined_report.txt
+                -> hull*.scad
+                -> pointdata
+                
+python process_pointdata.py < pointdata > processeddata
+
