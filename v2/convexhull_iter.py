@@ -28,7 +28,7 @@ class GlobalClass:
     pass
 
 def assrt(test, msg):
-    if not assrt:
+    if not test:
         print(f"ERROR: {msg}")
         exit(1)
 
@@ -54,9 +54,9 @@ def read_raw_data():
     globalv = GlobalClass()
     globalv.max_y = 0
     globalv.max_z = 0
-    globalv.all_point_keys = set()  # set(<point_key>
+    globalv.all_points = set()  # set(<point key>
     globalv.all_points_in_outdata = {}
-    globalv.nc_points_pk = {}  # {<point_key>: (<desc string>, <iteration>) ...   Only contains points satisfying necessary condition
+    globalv.nc_points_info = {}  # {<point_key>: [(<desc string>, <iteration>) ...   Only contains points satisfying necessary condition
     
     Pobj = None
     PrevPobj = None
@@ -83,18 +83,26 @@ def read_raw_data():
                 Pobj.RawPoints = list(PrevPobj.RetainPoints) if PrevPobj else []
                 current_iteration = itr
 
-            p = [x,y,z]
-            pkey = get_pkey(p)
-            if pkey in globalv.all_point_keys:
-                assrt(False, "point repeatedly generated")
-            globalv.all_point_keys.add(pkey)
-                
-            Pobj.RawPoints.append(p)
+            # Points CAN be repeated from different sets
+
             if globalv.max_y < y: globalv.max_y = y
             if globalv.max_z < z: globalv.max_z = z
+            p = [x,y,z]
+            pkey = get_pkey(p)
+
             if check_necessary_condition(desc):
-                # save the descriptor string but only if the necessary condition is met
-                globalv.nc_points_pk[pkey] = (desc, itr)
+                # Save the descriptor string but only if the necessary condition is met
+                if pkey not in globalv.nc_points_info:
+                    globalv.nc_points_info[pkey] = []
+                globalv.nc_points_info[pkey].append((desc, itr))
+            
+            if pkey in globalv.all_points:
+                if CREATE_POINT_DATA and pkey in globalv.all_points_in_outdata:
+                    output_point_data_msg_add(pkey=pkey, desc=desc)                    
+                # Skip repeated points
+                continue
+            globalv.all_points.add(pkey)
+            Pobj.RawPoints.append(p)
 
     # Process last iteration
     process_points(Pobj, PrevPobj)
@@ -147,7 +155,7 @@ def process_points(Pobj, PrevPobj):
             Pobj.RawPoints.append([ex, ey, max_v-ey])
             Pobj.RawPoints.append([ex, max_v-ey, ey])
         del seen_yz
-    else: # ORG LOGIX
+    else: # ORG LOGIC
         for pi in range(Pobj.ExtraPointsFrom):
             p = Pobj.RawPoints[pi]
             Pobj.RawPoints.append([p[0], p[1], max_v-p[1]])
@@ -157,7 +165,7 @@ def process_points(Pobj, PrevPobj):
     # Hull.points shape=<n,3> coordinates of all points
     # Hull.vertices shape=<k> indices of points that are vertices
     # Hull.simplices  triads of indices of points that form faces (triangulated)
-    # We have previously checked that chull.points === points (indices match)
+    # We have previously checked that Hull.points === input points (indices match)
     del Pobj.RawPoints
     
     # Process faces from the previous iteration
@@ -185,7 +193,7 @@ def process_points(Pobj, PrevPobj):
                 status = 'dropped_vertex'
                 # Check that we are only dropping vertices from the previous iteration
                 pkey = get_pkey(p)
-                assrt(Pobj.Iteration == Pobj.Global.nc_points_pk[pkey][1] + 1, 'only dropping vertex from prev iter')
+                assrt(Pobj.Iteration == Pobj.Global.nc_points_info[pkey][0][1] + 1, 'only dropping vertex from prev iter')
             else:
                 status = 'not_vertex'
         if is_extra:
@@ -193,7 +201,7 @@ def process_points(Pobj, PrevPobj):
         
         print_point(pi=pi, p=p, Pobj=Pobj, status=status)
         if CREATE_POINT_DATA and (not is_extra) and (status in ['vertex_and_previously', 'dropped_vertex', 'not_vertex']):
-            output_point_data(pi=pi, p=p, Pobj=Pobj, status=status, trace='assess_point')
+            output_point_data(pi=pi, p=p, Pobj=Pobj, status=(status if status == 'vertex_and_previously' else 'not_vertex'))
     
     print(f"// VERTICES OF THE CONVEX HULL iteration={Pobj.Iteration}")
     seen_pk = set()
@@ -202,7 +210,7 @@ def process_points(Pobj, PrevPobj):
         pkey = get_pkey(p)
         if pi < Pobj.ExtraPointsFrom:  # not an extra point
             # Check that the necessary condition (NC) applies to all vertices
-            assrt(pkey in Pobj.Global.nc_points_pk, "vertex not NC")
+            assrt(pkey in Pobj.Global.nc_points_info, "vertex not NC")
         assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=True)
         assrt(pkey not in seen_pk, "point listed as vertex multiple times")
         seen_pk.add(pkey)
@@ -212,7 +220,7 @@ def process_points(Pobj, PrevPobj):
         p = Pobj.Hull.points[pi]
         pkey = get_pkey(p)
         if pkey not in seen_pk:
-            if pkey in Pobj.Global.nc_points_pk:
+            if pkey in Pobj.Global.nc_points_info:
                 assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
     print(f"// REPORT END iteration={Pobj.Iteration}", flush=True)
@@ -245,11 +253,14 @@ def process_points(Pobj, PrevPobj):
     del Pobj.Hull
 
 
-def output_point_data_msg(*, pi, pkey, Pobj, status, trace):
-    return f"#{Pobj.Iteration}/{pi} ({pkey}) <{Pobj.Global.nc_points_pk[pkey][0]}> status={status}\n"
+def output_point_data_msg_add(*, pkey, desc):
+        point_data_file.write(f"#-1/-1 ({pkey}) <{desc}> status=additional_form\n")
 
+def output_point_data_msg(*, pi, pkey, Pobj, status):
+    for i, info in enumerate(Pobj.Global.nc_points_info[pkey]):
+        point_data_file.write(f"#{Pobj.Iteration}/{pi} ({pkey}) <{info[0]}> status={status}{'(additional_form)' if i>0 else ''}\n")
 
-def output_point_data(*, pi, p, Pobj, status, trace):
+def output_point_data(*, pi, p, Pobj, status):
     # Write point data to a file
     if not CREATE_POINT_DATA: return
     pkey = get_pkey(p)
@@ -257,11 +268,11 @@ def output_point_data(*, pi, p, Pobj, status, trace):
     if pkey in seen:
         if seen[pkey] != status:
             point_data_file.write(f"ERROR: STATUS OF POINT CHANGED FROM {seen[pkey]} TO:\n")
-            point_data_file.write(output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status, trace=trace))
+            output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status)
             assert False
         return
     seen[pkey] = status
-    point_data_file.write(output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status, trace=trace))
+    output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status)
 
 
 def print_point(*, pi, p, Pobj, status):
@@ -274,12 +285,13 @@ def print_point(*, pi, p, Pobj, status):
     assrt(pkey == pkey2, 'printpoint pi ~ p')
     
     if pi >= Pobj.ExtraPointsFrom:
-        point_iter = 'E'
-        point_desc = ''
+        info = [('', 'E')]
     else:
-        point_iter = Pobj.Global.nc_points_pk[pkey][1]
-        point_desc = Pobj.Global.nc_points_pk[pkey][0]
-    print(f"// #{Pobj.Iteration}/{pi:4.0f} [{p[0]:4.0f}, {p[1]:4.0f}, {p[2]:4.0f}] <{point_desc}> iter={point_iter} <{status}>")
+        info = Pobj.Global.nc_points_info[pkey]
+    for i, di in enumerate(info):
+        point_iter = di[1]
+        point_desc = di[0]
+        print(f"// #{Pobj.Iteration}/{pi:4.0f} [{p[0]:4.0f}, {p[1]:4.0f}, {p[2]:4.0f}] <{point_desc}> iter={point_iter} <{status}{'(additional_form)' if i>0 else ''}>")
 
 
 def process_faces(Pobj, PrevPobj):
