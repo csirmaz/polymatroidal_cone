@@ -1,7 +1,7 @@
 
-# Expects the output of triads.c on STDIN
-# Create a convex hull for each iteration
-# Generate reports on vertices and scad
+# Expects the output of triads.c on STDIN (for the maximum iteration)
+# Create a convex hull for each iteration (identified by the points returned)
+# Generate reports on vertices, edges and scad
 
 import sys
 import os
@@ -13,9 +13,29 @@ sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://cod
 
 from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
-CREATE_SCAD = True
+CREATE_SCAD = True # Whether to create an scad file for each iteration
+CREATE_POINT_DATA = True
 
-def check_necessary_condition(desc):
+
+if CREATE_POINT_DATA:
+    point_data_file = open("pointdata", "w")
+
+
+class PObjectClass:
+    pass
+
+class GlobalClass:
+    pass
+
+def assrt(test, msg):
+    if not assrt:
+        print(f"ERROR: {msg}")
+        exit(1)
+
+def get_pkey(p) -> str:
+    return f"{p[0]:.0f},{p[1]:.0f},{p[2]:.0f}"
+
+def check_necessary_condition(desc: str) -> bool:
     """Based on the string descriptor, check the necessary condition of being a vertex"""
     starters = 0
     enders = 0
@@ -26,19 +46,59 @@ def check_necessary_condition(desc):
         parts += 1
     return ((starters == parts) or (enders == parts))
 
-max_y = 0
-max_z = 0
-current_iteration = None
 
-# THESE RESET WITH EACH ITERATION:
+# Read output of triad.c
+def read_raw_data():
+    current_iteration = None
+    
+    globalv = GlobalClass()
+    globalv.max_y = 0
+    globalv.max_z = 0
+    globalv.all_point_keys = set()  # set(<point_key>
+    globalv.all_points_in_outdata = {}
+    globalv.nc_points_pk = {}  # {<point_key>: (<desc string>, <iteration>) ...   Only contains points satisfying necessary condition
+    
+    Pobj = None
+    PrevPobj = None
+    
+    for line in sys.stdin:
+        match = re.search(r'^Sum: ([0-9]+), ([0-9]+), ([0-9]+) \(([\-0-9]+)\) <([^>]+)>', line)
+        if match:
+            x = int(match.group(1))
+            y = int(match.group(2))
+            z = int(match.group(3))
+            itr = int(match.group(4))
+            desc = match.group(5)
+            
+            if current_iteration is None or current_iteration < itr:
+                if current_iteration is not None and current_iteration >= 2:
+                    # Process the points so far
+                    process_points(Pobj, PrevPobj)
+                    PrevPobj = Pobj
+                Pobj = PObjectClass()
+                Pobj.Iteration = itr
+                Pobj.Global = globalv  # object that keeps changing
+                # We MUST start with the retained points (vertices from the prev iteration) so we can check which vertex remains by index
+                # Cloning for sanity
+                Pobj.RawPoints = list(PrevPobj.RetainPoints) if PrevPobj else []
+                current_iteration = itr
 
-points = []  # [[x,y,z], ...
-nc_points = {}  # {<point index>: <description str>, ...
-extra_points = {}  # {<point index>: <org point index>
-iteration_of_points = {}  # {<point index>: <iteration number>
+            p = [x,y,z]
+            pkey = get_pkey(p)
+            if pkey in globalv.all_point_keys:
+                assrt(False, "point repeatedly generated")
+            globalv.all_point_keys.add(pkey)
+                
+            Pobj.RawPoints.append(p)
+            if globalv.max_y < y: globalv.max_y = y
+            if globalv.max_z < z: globalv.max_z = z
+            if check_necessary_condition(desc):
+                # save the descriptor string but only if the necessary condition is met
+                globalv.nc_points_pk[pkey] = (desc, itr)
 
-faces_of_prev_iter = None
-scad_hull_of_prev_iter = None
+    # Process last iteration
+    process_points(Pobj, PrevPobj)
+
 
 def get_scad_hull(chull):
     # Convert the Qhull hull into openscad
@@ -50,53 +110,175 @@ def get_scad_hull(chull):
         for face in chull.simplices
     ]
     ohull = Polyhedron(points=[chull.points[pi] for pi in chull.vertices], faces=new_faces)
-    # print(ohull.render_stl()); exit(0)
     return ohull.render()
 
 
-def printpoint(pi, p, is_vertex):
-    if pi in extra_points:
-        status = 'extra'
-    else:
-        if is_vertex:
-            status = 'vertex'
+def process_points(Pobj, PrevPobj):
+    
+    if PrevPobj:
+        assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrePobj iteration")
+    
+    # Add extra points to create triangles
+    assrt(Pobj.Global.max_y == Pobj.Global.max_z, "max y != max z")
+    max_v = Pobj.Global.max_y * 2.
+    
+    Pobj.ExtraPointsFrom = len(Pobj.RawPoints)
+    
+    # TODO OPTIMIZE - Only add 1 point
+    for pi in range(Pobj.ExtraPointsFrom):
+        p = Pobj.RawPoints[pi]
+        Pobj.RawPoints.append([p[0], p[1], max_v-p[1]])
+        Pobj.RawPoints.append([p[0], max_v-p[2], p[2]])
+    
+    Pobj.Hull = ConvexHull(np.array(Pobj.RawPoints), qhull_options="Qc")
+    # Hull.points shape=<n,3> coordinates of all points
+    # Hull.vertices shape=<k> indices of points that are vertices
+    # Hull.simplices  triads of indices of points that form faces (triangulated)
+    # We have previously checked that chull.points === points (indices match)
+    del Pobj.RawPoints
+    
+    # Process faces from the previous iteration
+    # We have already reindexed the points to match this iteration
+    if PrevPobj:
+        process_faces(Pobj, PrevPobj)
+    
+    # Create report
+    
+    def assess_point(*, pi, p, pkey, Pobj, PrevPobj, currently_vertex):
+        was_vertex = False
+        # IMPORTANT Pobj.RawPoints starts with PrevPobj.RetainPoints
+        if PrevPobj and pi < len(PrevPobj.RetainPoints):
+            was_vertex = True
+
+        is_extra = (pi >= Pobj.ExtraPointsFrom)
+
+        if currently_vertex:
+            if was_vertex:
+                status = 'vertex_and_previously'  # a final vertex?
+            else:
+                status = 'new_vertex'
         else:
-            if iteration_of_points[pi] < current_iteration:
-                # Check that we are only dropping vertices from the previous iteration
-                assert current_iteration == iteration_of_points[pi] + 1
+            if was_vertex:
                 status = 'dropped_vertex'
+                # Check that we are only dropping vertices from the previous iteration
+                pkey = get_pkey(p)
+                assrt(Pobj.Iteration == Pobj.Global.nc_points_pk[pkey][1] + 1, 'only dropping vertex from prev iter')
             else:
                 status = 'not_vertex'
-    print(f"// #{pi:4.0f} [{p[0]:4.0f}, {p[1]:4.0f}, {p[2]:4.0f}] {f'NC {nc_points[pi]}' if pi in nc_points else ''} <{status}>")
-    # {' '.join(point_to_facet.get(pi, []))} {coplanar.get(pi,'')}
-
-
-def process_faces(chull):
-    # Merge faces and find real edges
-    # chull - hull of the current iteration
-    #    This tells us which vertex is still a vertex
-    #    Contains all points (even the dropped vertices)
-    # faces_of_prev_iter - faces from the previous iteration with the new point indices
-    #    Excludes faces that contained "extra" points
+        if is_extra:
+            status += '(extra)'
+        
+        print_point(pi=pi, p=p, Pobj=Pobj, status=status)
+        if CREATE_POINT_DATA and (not is_extra) and (status in ['vertex_and_previously', 'dropped_vertex', 'not_vertex']):
+            output_point_data(pi=pi, p=p, Pobj=Pobj, status=status, trace='assess_point')
     
-    if faces_of_prev_iter is None:
+    print(f"// VERTICES OF THE CONVEX HULL iteration={Pobj.Iteration}")
+    seen_pk = set()
+    for pi in Pobj.Hull.vertices:
+        p = Pobj.Hull.points[pi]
+        pkey = get_pkey(p)
+        if pi < Pobj.ExtraPointsFrom:  # not an extra point
+            # Check that the necessary condition (NC) applies to all vertices
+            assrt(pkey in Pobj.Global.nc_points_pk, "vertex not NC")
+        assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=True)
+        assrt(pkey not in seen_pk, "point listed as vertex multiple times")
+        seen_pk.add(pkey)
+
+    print(f"// POINTS THAT ARE NOT VERTICES (but satisfy the necessary condition and/or were vertices before) iteration={Pobj.Iteration}")
+    for pi in range(len(Pobj.Hull.points)):
+        p = Pobj.Hull.points[pi]
+        pkey = get_pkey(p)
+        if pkey not in seen_pk:
+            if pkey in Pobj.Global.nc_points_pk:
+                assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
+                
+    print(f"// REPORT END iteration={Pobj.Iteration}", flush=True)
+    
+    # Initialize new input from the vertices of this hull to save space/time
+    Pobj.RetainPoints = []
+    old2new_index = {}
+    for pi in Pobj.Hull.vertices:
+        if pi < Pobj.ExtraPointsFrom:  # not extra point
+            old2new_index[pi] = len(Pobj.RetainPoints)
+            p = Pobj.Hull.points[pi]
+            Pobj.RetainPoints.append(p)
+        
+    # Store faces for processing later
+    # We do it in the next step as that's when we know which vertices stay
+    # Reindex data to index into RetainPoints
+    Pobj.Simplices = []
+    for face in Pobj.Hull.simplices:
+        face = [int(v) for v in face]
+        if max(face) < Pobj.ExtraPointsFrom:
+            Pobj.Simplices.append([
+                old2new_index[face[0]],
+                old2new_index[face[1]],
+                old2new_index[face[2]]
+            ])
+
+    if CREATE_SCAD:
+        Pobj.ScadOfHull = get_scad_hull(Pobj.Hull)
+
+    del Pobj.Hull
+
+
+def output_point_data_msg(*, pi, pkey, Pobj, status, trace):
+    return f"#{Pobj.Iteration}/{pi} ({pkey}) <{Pobj.Global.nc_points_pk[pkey][0]}> status={status}\n"
+
+
+def output_point_data(*, pi, p, Pobj, status, trace):
+    # Write point data to a file
+    if not CREATE_POINT_DATA: return
+    pkey = get_pkey(p)
+    seen = Pobj.Global.all_points_in_outdata
+    if pkey in seen:
+        if seen[pkey] != status:
+            point_data_file.write(f"ERROR: STATUS OF POINT CHANGED FROM {seen[pkey]} TO:\n")
+            point_data_file.write(output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status, trace=trace))
+            assert False
         return
-    
-    point_to_face = {}  # {<point index>: set(<face index>, ...), ...
-    for fi, face in enumerate(faces_of_prev_iter):
-        for pi in face:
-            if pi not in point_to_face: point_to_face[pi] = set()
-            point_to_face[pi].add(fi)
-    
-    face_normals = []  # [Point(), ...
-    for face in faces_of_prev_iter:
-        p1 = Point(chull.points[face[0]])
-        p2 = Point(chull.points[face[1]])
-        p3 = Point(chull.points[face[2]])
-        norm = (p2-p1).cross(p3-p2).norm()
-        face_normals.append(norm)
+    seen[pkey] = status
+    point_data_file.write(output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status, trace=trace))
 
-    seen_edges = set()
+
+def print_point(*, pi, p, Pobj, status):
+    pkey = get_pkey(p)
+    
+    if hasattr(Pobj, 'Hull'):
+        pkey2 = get_pkey(Pobj.Hull.points[pi])
+    elif hasattr(Pobj, 'RetainPoints'):
+        pkey2 = get_pkey(Pobj.RetainPoints[pi])
+    assrt(pkey == pkey2, 'printpoint pi ~ p')
+    
+    if pi >= Pobj.ExtraPointsFrom:
+        point_iter = 'E'
+        point_desc = ''
+    else:
+        point_iter = Pobj.Global.nc_points_pk[pkey][1]
+        point_desc = Pobj.Global.nc_points_pk[pkey][0]
+    print(f"// #{Pobj.Iteration}/{pi:4.0f} [{p[0]:4.0f}, {p[1]:4.0f}, {p[2]:4.0f}] <{point_desc}> iter={point_iter} <{status}>")
+
+
+def process_faces(Pobj, PrevPobj):
+    # Find real edges
+    
+    assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrevPobj iteration #2")
+    
+    PrevPobj.Point2Face = {}  # {<point index>: set(<face index>, ...), ...
+    for fi, face in enumerate(PrevPobj.Simplices):
+        for pi in face:
+            if pi not in PrevPobj.Point2Face: PrevPobj.Point2Face[pi] = set()
+            PrevPobj.Point2Face[pi].add(fi)
+    
+    PrevPobj.FaceNormals = []  # [Point(), ...
+    for face in PrevPobj.Simplices:
+        p1 = Point(PrevPobj.RetainPoints[face[0]])
+        p2 = Point(PrevPobj.RetainPoints[face[1]])
+        p3 = Point(PrevPobj.RetainPoints[face[2]])
+        norm = (p2-p1).cross(p3-p2).norm()
+        PrevPobj.FaceNormals.append(norm)
+
+    seen_edges = set()  # Set of string keys "<point index>:<point index>"
     
     def check_edge(pi1, pi2):
         key1 = f"{pi1}:{pi2}"
@@ -105,7 +287,7 @@ def process_faces(chull):
         seen_edges.add(key1)
         seen_edges.add(f"{pi2}:{pi1}")
         
-        r = point_to_face[pi1].intersection(point_to_face[pi2])
+        r = PrevPobj.Point2Face[pi1].intersection(PrevPobj.Point2Face[pi2])
         assert len(r) > 0
         if len(r) == 1: return 'edge_of_area'
         assert len(r) == 2
@@ -113,176 +295,75 @@ def process_faces(chull):
         f2 = r.pop()
         
         limit = 1e-7
-        diff = face_normals[f1] - face_normals[f2]
+        diff = PrevPobj.FaceNormals[f1] - PrevPobj.FaceNormals[f2]
         if abs(diff.c[0]) < limit and abs(diff.c[1]) < limit and abs(diff.c[2]) < limit:
             return 'non_edge'
-        diff = face_normals[f1] + face_normals[f2]
+        diff = PrevPobj.FaceNormals[f1] + PrevPobj.FaceNormals[f2]
         if abs(diff.c[0]) < limit and abs(diff.c[1]) < limit and abs(diff.c[2]) < limit:
             return 'non_edge'
         
         return 'real_edge'
     
-    if CREATE_SCAD and scad_hull_of_prev_iter:
-        scad_file = open(f"hull{current_iteration-1}.scad", 'w')
+    if CREATE_SCAD:
+        scad_file = open(f"hull{PrevPobj.Iteration}.scad", 'w')
         scad_file.write(Header("best").render())
-        scad_file.write(scad_hull_of_prev_iter)
+        scad_file.write(PrevPobj.ScadOfHull)
 
     skipped_edges = 0
-    seen_points = set()
-    for fi, face in enumerate(faces_of_prev_iter):
+    seen_points = set()  # set of <point indices>, used to add spheres to scad
+    for fi, face in enumerate(PrevPobj.Simplices):
+        # Check if still vertex in the current (next) iteration
+        # Note that we start Pobj.RawPoints with PrevPobj.RetainPoints so we can look things up by index
+        vertex_stays = [(pi in Pobj.Hull.vertices) for pi in face]
+        
         for pointpair in [
-            [face[0], face[1]],
-            [face[1], face[2]],
-            [face[2], face[0]]
+            [face[0], face[1], 0, 1],
+            [face[1], face[2], 1, 2],
+            [face[2], face[0], 2, 0]
         ]:
-            status = check_edge(*pointpair)
+            status = check_edge(pointpair[0], pointpair[1])
             if status is None or status == 'non_edge':
                 skipped_edges += 1
                 continue
-            is_vertex1 = pointpair[0] in chull.vertices
-            is_vertex2 = pointpair[1] in chull.vertices
+            # Check against the current (next) iteration
+            is_vertex1 = vertex_stays[pointpair[2]]
+            is_vertex2 = vertex_stays[pointpair[3]]
             if not is_vertex1: status += " (p1 will drop)"
             if not is_vertex2: status += " (p2 will drop)"
-            p1 = chull.points[pointpair[0]]
-            p2 = chull.points[pointpair[1]]
-            print(f"// EDGE({p1[0]:.0f},{p1[1]:.0f},{p1[2]:.0f})-({p2[0]:.0f},{p2[1]:.0f},{p2[2]:.0f}): {status} (iteration={current_iteration-1})")
-            printpoint(pointpair[0], p1, is_vertex1)
-            printpoint(pointpair[1], p2, is_vertex2)
+            p1 = PrevPobj.RetainPoints[pointpair[0]]
+            p2 = PrevPobj.RetainPoints[pointpair[1]]
+            print(f"// EDGE({p1[0]:.0f},{p1[1]:.0f},{p1[2]:.0f})-({p2[0]:.0f},{p2[1]:.0f},{p2[2]:.0f}): {status} (iteration={PrevPobj.Iteration})")
+            print_point(pi=pointpair[0], p=p1, Pobj=PrevPobj, status=('vertex_and_previously' if is_vertex1 else 'will_drop'))
+            print_point(pi=pointpair[1], p=p2, Pobj=PrevPobj, status=('vertex_and_previously' if is_vertex1 else 'will_drop'))
             print("")
             
-            if CREATE_SCAD and scad_hull_of_prev_iter:
+            if CREATE_SCAD:
                 c = [.2, .2, 1.]
                 if status == 'edge_of_area': c = [.2, 1., 1.]
                 scad_file.write(Cylinder.from_ends(.1, p1, p2).color(*c).render())
             
-        if CREATE_SCAD and scad_hull_of_prev_iter:
-            for pi in face:
+        if CREATE_SCAD:
+            for ii, pi in enumerate(face):
                 if pi in seen_points: continue
                 seen_points.add(pi)
                 c = [.2, .2, 1.]
-                if pi not in chull.vertices: # will drop
+                if not vertex_stays[ii]: # vertex is from prev iteration and is dropped in this iteration
                     c = [1., .2, .2]
-                scad_file.write(Sphere(.4).move(chull.points[pi]).color(*c).render())
-    
-    if CREATE_SCAD and scad_hull_of_prev_iter:
+                scad_file.write(Sphere(.4).move(PrevPobj.RetainPoints[pi]).color(*c).render())
+                
+    if CREATE_SCAD:
         scad_file.close()
     
     print(f"// skipped edges: {skipped_edges}")
     print("")
             
 
-def process_points():
-    global max_y, max_z, current_iteration, points, nc_points, extra_points, iteration_of_points, faces_of_prev_iter, scad_hull_of_prev_iter
-    
-    # Add extra points to create triangles
-    assert max_y == max_z
-    max_v = max_y*2.
-    current_points = len(points)
-    for pi in range(current_points):
-        p = points[pi]
-        points.append([p[0], p[1], max_v-p[1]]); extra_points[len(points)-1] = pi
-        points.append([p[0], max_v-p[2], p[2]]); extra_points[len(points)-1] = pi
-        
-    points = np.array(points)
-    
-    chull = ConvexHull(points, qhull_options="Qc")
-    # chull.points shape=<n,3> coordinates of all points
-    # chull.vertices shape=<k> indices of points that are vertices
-    # chull.simplices  triads of indices of points that form faces (triangulated)
-    # We have previously checked that chull.points === points (indices match)
-    points = None
-    
-    # Process faces from the previous iteration
-    # We have already reindexed the points to match this iteration
-    process_faces(chull)
-    
-    # Create report
-    
-    print(f"// VERTICES OF THE CONVEX HULL iteration={current_iteration}")
-    seen = set()
-    for pi in chull.vertices:
-        if pi in extra_points:
-            # Check that we have added this extra point (which is a vertex)
-            # from a point which is also a vertex
-            assert extra_points[pi] in chull.vertices
-        else:
-            # Check that the necessary condition applies to all vertices
-            assert pi in nc_points  
-        p = chull.points[pi]
-        printpoint(pi, p, True)
-        seen.add(pi)
-
-    print(f"// POINTS THAT ARE NOT VERTICES (but satisfy the necessary condition and/or were vertices before) iteration={current_iteration}")
-    for pi in range(len(chull.points)):
-        if pi not in seen:
-            if pi in nc_points:
-                printpoint(pi, p, False)
-                
-    print(f"// REPORT END iteration={current_iteration}", flush=True)
-    
-    print(f"// ! Reindexing points...")
-    
-    # Initialize new input from the vertices of this hull to save space/time
-    points = []  # global
-    nc_points_new = {}  # local
-    iteration_of_points_new = {}  # local
-    point_reindex = {}  # local, {<old point index>: <new point index>, ...
-    for pi in chull.vertices:
-        if pi not in extra_points:
-            p = chull.points[pi]
-            pi_new = len(points)
-            # print(f"//  Mapping #{pi} -> #{pi_new}")
-            point_reindex[pi] = pi_new
-            points.append(p)
-            if pi in nc_points: nc_points_new[pi_new] = nc_points[pi]
-            if pi in iteration_of_points: iteration_of_points_new[pi_new] = iteration_of_points[pi]
-        
-    # Store faces for processing later
-    # We do it in the next step as that's when we know which vertices stay
-    faces_of_prev_iter = []
-    for face in chull.simplices:
-        face = [int(v) for v in face]
-        if face[0] not in extra_points and face[1] not in extra_points and face[2] not in extra_points:
-            faces_of_prev_iter.append([
-                point_reindex[face[0]],
-                point_reindex[face[1]],
-                point_reindex[face[2]]
-            ])
-
-    if CREATE_SCAD:
-        scad_hull_of_prev_iter = get_scad_hull(chull)
-
-    # Set global data structures
-    nc_points = nc_points_new; del nc_points_new
-    iteration_of_points = iteration_of_points_new; del iteration_of_points_new
-    extra_points = {}
     
 
-for line in sys.stdin:
-    match = re.search(r'^Sum: ([0-9]+), ([0-9]+), ([0-9]+) \(([\-0-9]+)\) <([^>]+)>', line)
-    if match:
-        x = int(match.group(1))
-        y = int(match.group(2))
-        z = int(match.group(3))
-        itr = int(match.group(4))
-        desc = match.group(5)
-        
-        if current_iteration is None or current_iteration < itr:
-            if current_iteration is not None and current_iteration >= 2:
-                # Process the points so far
-                process_points()
-            current_iteration = itr
+read_raw_data()
 
-        pi_new = len(points)
-        points.append([x,y,z])
-        if max_y < y: max_y = y
-        if max_z < z: max_z = z
-        if check_necessary_condition(desc):
-            # save the descriptor string but only if the necessary condition is met
-            nc_points[pi_new] = f"<{desc}> (iter={itr})"
-            iteration_of_points[pi_new] = itr
-
-process_points()
+if CREATE_POINT_DATA:
+    point_data_file.close()
 
 
 ## Process coplanar data
