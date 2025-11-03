@@ -98,7 +98,7 @@ def read_raw_data():
             if pkey in globalv.nc_points_info:
                 globalv.nc_points_info[pkey].append((desc, itr))
                 if CREATE_POINT_DATA and pkey in globalv.all_points_in_outdata:
-                    output_point_data_msg_add(pkey=pkey, desc=desc)                    
+                    output_point_data_msg_add(pkey=pkey, desc=desc, Pobj=Pobj)                    
                 # Skip repeated points - important as we can't know which form of a duplicate qhull would keep
                 continue
                 
@@ -256,10 +256,10 @@ def process_points(Pobj, PrevPobj):
 
 
 def output_point_data_end_iter(Pobj):
-    point_data_file.write(f"--- iter={Pobj.Iteration} done")
+    point_data_file.write(f"--- iter={Pobj.Iteration} done\n")
     point_data_file.flush()
 
-def output_point_data_msg_add(*, pkey, desc):
+def output_point_data_msg_add(*, pkey, desc, Pobj):
         point_data_file.write(f"#-1/-1 ({pkey}) <{desc}> status=additional_form iter={Pobj.Iteration}\n")
 
 def output_point_data_msg(*, pi, pkey, Pobj, status):
