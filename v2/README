@@ -1,4 +1,5 @@
 
+gcc -lm triads.c -o triads
 
 ./triads 12 | python convexhull_iter.py > combined_report.txt
                 -> hull*.scad

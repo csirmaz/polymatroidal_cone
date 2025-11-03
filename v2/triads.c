@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define MTYPE long
-#define CACHE_BINOM_TO 200
+#define CACHE_BINOM_TO 400
 
 MTYPE** binom_cache;
 MTYPE*** partial_results;  // partial results
@@ -65,8 +65,8 @@ void get_result(
             
             // Generate a description of the choices made
             int di = strlen(describe_choices);
-            if(di > 200) die("description too long");
-            char new_description[400];
+            if(di > 400) die("description too long");
+            char new_description[800];
             if(di > 0) {
                 strcpy(new_description, describe_choices);
                 new_description[di] = '|'; 

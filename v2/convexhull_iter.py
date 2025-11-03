@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://cod
 
 from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
-CREATE_SCAD = True # Whether to create an scad file for each iteration
+CREATE_SCAD = False # Whether to create an scad file for each iteration
 CREATE_POINT_DATA = True
 
 
@@ -54,7 +54,6 @@ def read_raw_data():
     globalv = GlobalClass()
     globalv.max_y = 0
     globalv.max_z = 0
-    globalv.all_points = set()  # set(<point key>
     globalv.all_points_in_outdata = {}
     globalv.nc_points_info = {}  # {<point_key>: [(<desc string>, <iteration>) ...   Only contains points satisfying necessary condition
     
@@ -74,6 +73,7 @@ def read_raw_data():
                 if current_iteration is not None:
                     # Process the points so far
                     process_points(Pobj, PrevPobj)
+                    if CREATE_POINT_DATA: output_point_data_end_iter(Pobj)
                     PrevPobj = Pobj
                 Pobj = PObjectClass()
                 Pobj.Iteration = itr
@@ -84,24 +84,26 @@ def read_raw_data():
                 current_iteration = itr
 
             # Points CAN be repeated from different sets
+            
+            # We can prove that vertices must satisfy the necessary condition (NC)
+            if not check_necessary_condition(desc):
+                continue
 
             if globalv.max_y < y: globalv.max_y = y
             if globalv.max_z < z: globalv.max_z = z
             p = [x,y,z]
             pkey = get_pkey(p)
 
-            if check_necessary_condition(desc):
-                # Save the descriptor string but only if the necessary condition is met
-                if pkey not in globalv.nc_points_info:
-                    globalv.nc_points_info[pkey] = []
+            # Save the descriptor string
+            if pkey in globalv.nc_points_info:
                 globalv.nc_points_info[pkey].append((desc, itr))
-            
-            if pkey in globalv.all_points:
                 if CREATE_POINT_DATA and pkey in globalv.all_points_in_outdata:
                     output_point_data_msg_add(pkey=pkey, desc=desc)                    
-                # Skip repeated points
+                # Skip repeated points - important as we can't know which form of a duplicate qhull would keep
                 continue
-            globalv.all_points.add(pkey)
+                
+            globalv.nc_points_info[pkey] = [(desc, itr)]
+            
             Pobj.RawPoints.append(p)
 
     # Process last iteration
@@ -223,7 +225,7 @@ def process_points(Pobj, PrevPobj):
             if pkey in Pobj.Global.nc_points_info:
                 assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
-    print(f"// REPORT END iteration={Pobj.Iteration}", flush=True)
+    print(f"// REPORT END for iteration={Pobj.Iteration}", flush=True)
     
     # Initialize new input from the vertices of this hull to save space/time
     Pobj.RetainPoints = []
@@ -253,12 +255,16 @@ def process_points(Pobj, PrevPobj):
     del Pobj.Hull
 
 
+def output_point_data_end_iter(Pobj):
+    point_data_file.write(f"--- iter={Pobj.Iteration} done")
+    point_data_file.flush()
+
 def output_point_data_msg_add(*, pkey, desc):
-        point_data_file.write(f"#-1/-1 ({pkey}) <{desc}> status=additional_form\n")
+        point_data_file.write(f"#-1/-1 ({pkey}) <{desc}> status=additional_form iter={Pobj.Iteration}\n")
 
 def output_point_data_msg(*, pi, pkey, Pobj, status):
     for i, info in enumerate(Pobj.Global.nc_points_info[pkey]):
-        point_data_file.write(f"#{Pobj.Iteration}/{pi} ({pkey}) <{info[0]}> status={status}{'(additional_form)' if i>0 else ''}\n")
+        point_data_file.write(f"#{Pobj.Iteration}/{pi} ({pkey}) <{info[0]}> status={status}{'(additional_form)' if i>0 else ''} iter={Pobj.Iteration}\n")
 
 def output_point_data(*, pi, p, Pobj, status):
     # Write point data to a file
@@ -389,7 +395,7 @@ def process_faces(Pobj, PrevPobj):
     if CREATE_SCAD:
         scad_file.close()
     
-    print(f"// skipped edges: {skipped_edges}")
+    print(f"// skipped edges: {skipped_edges}", flush=True)
     print("")
             
 
