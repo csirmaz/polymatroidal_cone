@@ -23,8 +23,8 @@ for line in open(DATAFILE, 'r'):
         SIZE = int(line)
         continue
     
-    (status, filled_per_row, filled_per_col) = json.loads(line)
-    if random.randint(0,2) == 0:
+    (status, filled_per_row, filled_per_col, _) = json.loads(line)
+    if random.randint(0,10) == 0:   # train/validation split
         VALIDATION_DATA[status].append(filled_per_row + filled_per_col)
     else:
         TRAINING_DATA[status].append(filled_per_row + filled_per_col)
@@ -35,7 +35,7 @@ def get_data_batch(data):
     inputs = []
     targets = []
     for i in range(BATCH_SIZE):
-        target = random.randint(0, 1)
+        target = 1 if random.randint(0, 2) == 0 else 0  # target split
         targets.append(target)
         inputs.append(random.choice(data[target]))
     return np.array(inputs, dtype="float32"), np.array(targets)
@@ -82,7 +82,7 @@ model.fit(
     validation_data=training_data(is_training=False),
     steps_per_epoch=2000,
     validation_steps=500,
-    epochs=19,
+    epochs=200,
     # callbacks=[ScoringCallback(self)]            
 )
 
@@ -90,7 +90,7 @@ print("SAMPLE PREDICTIONS")
 x = get_data_batch(VALIDATION_DATA)
 y = model.predict_on_batch(x[0])
 for ix, row in enumerate(x[0]):
-    print(f"target={x[1][ix]} pred={'s0' if y[ix][0] > y[ix][1] else 's1'}")
+    print(f"row={row.tolist()} target={x[1][ix]} pred={'s0' if y[ix][0] > y[ix][1] else 's1'}")
 
 
 model_data = []

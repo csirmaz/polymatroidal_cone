@@ -66,7 +66,7 @@ def output(px,py,pz, desc, status):
     assert filled_per_col[-1] == 0
     assert filled_per_row[-1] == 0
     
-    print(json.dumps([status, filled_per_row[:-1], filled_per_col[:-1]]))
+    print(json.dumps([status, filled_per_row[:-1], filled_per_col[:-1], [px, py, pz, desc]]))
     
 
 for line in sys.stdin:
