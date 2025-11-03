@@ -1,0 +1,43 @@
+
+
+   filled_in_per_column           filled_in_by_row        \
+   (13 numbers)                   (13 numbers)             |
+
+   [26x13 weights]          ==    [26x13 weights]          |
+   [26 biases]              ==    [26 biases]
+   sigmoid                        sigmoid                  |
+
+   (26 numbers)                   (26 numbers)              >  encoder
+
+   [8x26 weights]           ==    [8x26 weights]           |
+   [8 biases]               ==    [8 biases]
+   softmax                        softmax                  |
+
+   (8 numbers)                    (8 numbers)              |
+   probability distr              probability distr        |
+   of categories                  of categories           /
+
+               \                /
+
+                 (16 numbers)                             \
+
+                [8x16 weights]                             |
+                [8 biases]
+                sigmoid                                    |
+
+                (8 numbers)                                |
+
+                [8x8 weights]                               >  tail
+                [8 biases]
+                sigmoid                                    |
+
+                (8 numbers)                                |
+
+                [2x8 weights]                              |
+                [2 biases]
+                softmax                                   /
+
+                (2 numbers)
+                porbability distribution
+                0th = not vertex
+                1st = vertex

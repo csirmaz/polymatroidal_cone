@@ -14,9 +14,16 @@ DATAFILE = 'processeddata_13'
 OUTFILE = 'model_data'
 SIZE = None
 BATCH_SIZE = 64
+validation_set_one_of = 1000
+steps_per_epoch = 2000
+num_epochs = 500
+
+all_samples = 0
+
+# TODO - sample equally from all iterations?
 
 TRAINING_DATA = [[], []]  # status=0, status=1
-VALIDATION_DATA = [[], []]
+VALIDATION_DATA = []
 
 for line in open(DATAFILE, 'r'):
     if SIZE is None:
@@ -24,38 +31,54 @@ for line in open(DATAFILE, 'r'):
         continue
     
     (status, filled_per_row, filled_per_col, _) = json.loads(line)
-    if random.randint(0,10) == 0:   # train/validation split
-        VALIDATION_DATA[status].append(filled_per_row + filled_per_col)
+    if random.randint(0, validation_set_one_of) == 0:   # train/validation split
+        VALIDATION_DATA.append((filled_per_row + filled_per_col, status))
     else:
         TRAINING_DATA[status].append(filled_per_row + filled_per_col)
+    all_samples += 1
 
-print(f"Training data: {len(TRAINING_DATA[0])}+{len(TRAINING_DATA[1])} Validation data: {len(VALIDATION_DATA[0])}+{len(VALIDATION_DATA[1])}")
-    
-def get_data_batch(data):
-    inputs = []
-    targets = []
-    for i in range(BATCH_SIZE):
-        target = 1 if random.randint(0, 2) == 0 else 0  # target split
-        targets.append(target)
-        inputs.append(random.choice(data[target]))
-    return np.array(inputs, dtype="float32"), np.array(targets)
+print(f"*** Training data: {len(TRAINING_DATA[0])}+{len(TRAINING_DATA[1])} Validation data: {len(VALIDATION_DATA)}")
+print(f"*** Samples: {all_samples}")
 
 
 def training_data(is_training: bool):
-    while True:
-        i, t = get_data_batch(TRAINING_DATA if is_training else VALIDATION_DATA)
-        yield i, t
+    
+    if is_training:
+        while True:
+            inputs = []
+            targets = []
+            for i in range(BATCH_SIZE):
+                target = 1 if random.randint(0, 1) == 0 else 0  # target split
+                targets.append(target)
+                inputs.append(random.choice(TRAINING_DATA[target]))
+            yield np.array(inputs, dtype="float32"), np.array(targets)
+            
+    else:
+        dix = 0
+        while True:
+            inputs = []
+            targets = []
+            for i in range(BATCH_SIZE):
+                inp, target = VALIDATION_DATA[dix]
+                targets.append(target)
+                inputs.append(inp)
+                dix += 1
+                if dix >= len(VALIDATION_DATA):
+                    # print(f"VALIDATION_DATA folded from {dix}")
+                    dix = 0
+            yield np.array(inputs, dtype="float32"), np.array(targets)
+
 
 layers = []
 input_tensor = keras.Input(shape=(SIZE*2,))
 # Split into per_row and per_col
 t1 = input_tensor[..., 0:SIZE]
 t2 = input_tensor[..., SIZE:SIZE*2]
-for i in range(3):
-    layers.append(keras.layers.Dense(SIZE, activation="leaky_relu"))
+for i in range(1):
+    layers.append(keras.layers.Dense(SIZE*2, activation="sigmoid"))
     t1 = layers[-1](t1)
     t2 = layers[-1](t2)
-layers.append(keras.layers.Dense(3))
+layers.append(keras.layers.Dense(8))
 t1 = layers[-1](t1)
 t2 = layers[-1](t2)
 
@@ -63,8 +86,8 @@ t1 = keras.layers.Softmax(axis=-1)(t1)
 t2 = keras.layers.Softmax(axis=-1)(t2)
 
 t = keras.layers.Concatenate()([t1, t2])
-for i in range(2):
-    layers.append(keras.layers.Dense(3, activation="leaky_relu"))
+for i in range(4):
+    layers.append(keras.layers.Dense(8, activation="sigmoid"))
     t = layers[-1](t)
 layers.append(keras.layers.Dense(2))
 t = layers[-1](t)
@@ -80,17 +103,17 @@ model.compile(
 model.fit(
     x=training_data(is_training=True),
     validation_data=training_data(is_training=False),
-    steps_per_epoch=2000,
+    steps_per_epoch=steps_per_epoch,
     validation_steps=500,
-    epochs=200,
+    epochs=num_epochs,
     # callbacks=[ScoringCallback(self)]            
 )
 
-print("SAMPLE PREDICTIONS")
-x = get_data_batch(VALIDATION_DATA)
-y = model.predict_on_batch(x[0])
-for ix, row in enumerate(x[0]):
-    print(f"row={row.tolist()} target={x[1][ix]} pred={'s0' if y[ix][0] > y[ix][1] else 's1'}")
+#print("SAMPLE PREDICTIONS")
+#x = get_data_batch(VALIDATION_DATA)
+#y = model.predict_on_batch(x[0])
+#for ix, row in enumerate(x[0]):
+#    print(f"row={row.tolist()} target={x[1][ix]} pred={'s0' if y[ix][0] > y[ix][1] else 's1'}")
 
 
 model_data = []

@@ -186,7 +186,7 @@ static inline int sof_solve_early_impl(
         solution[ix] = -sof_matrix[a][free_var] / sof_matrix[a][ix];
     }
 
-    solution[free_var] = 1;
+    solution[free_var] = 1.;
     
     printf("  | Solution:  "); // SO_DEBUG
     vec_fprint(solution); // SO_DEBUG
