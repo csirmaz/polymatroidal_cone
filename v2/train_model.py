@@ -29,6 +29,7 @@ for line in open(DATAFILE, 'r'):
     else:
         TRAINING_DATA[status].append(filled_per_row + filled_per_col)
 
+print(f"Training data: {len(TRAINING_DATA[0])}+{len(TRAINING_DATA[1])} Validation data: {len(VALIDATION_DATA[0])}+{len(VALIDATION_DATA[1])}")
     
 def get_data_batch(data):
     inputs = []
@@ -57,6 +58,10 @@ for i in range(3):
 layers.append(keras.layers.Dense(3))
 t1 = layers[-1](t1)
 t2 = layers[-1](t2)
+
+t1 = keras.layers.Softmax(axis=-1)(t1)
+t2 = keras.layers.Softmax(axis=-1)(t2)
+
 t = keras.layers.Concatenate()([t1, t2])
 for i in range(2):
     layers.append(keras.layers.Dense(3, activation="leaky_relu"))
@@ -77,7 +82,7 @@ model.fit(
     validation_data=training_data(is_training=False),
     steps_per_epoch=2000,
     validation_steps=500,
-    epochs=20,
+    epochs=19,
     # callbacks=[ScoringCallback(self)]            
 )
 
@@ -85,7 +90,7 @@ print("SAMPLE PREDICTIONS")
 x = get_data_batch(VALIDATION_DATA)
 y = model.predict_on_batch(x[0])
 for ix, row in enumerate(x[0]):
-    print(f"target={x[1][ix]} pred={y[ix]}")
+    print(f"target={x[1][ix]} pred={'s0' if y[ix][0] > y[ix][1] else 's1'}")
 
 
 model_data = []
