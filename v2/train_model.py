@@ -47,12 +47,19 @@ def training_data(is_training: bool):
 
 layers = []
 input_tensor = keras.Input(shape=(SIZE*2,))
-t = input_tensor
-for i in range(1):
-    layers.append(keras.layers.Dense(SIZE*2, activation="leaky_relu"))
-    t = layers[-1](t)
-for i in range(2):
+# Split into per_row and per_col
+t1 = input_tensor[..., 0:SIZE]
+t2 = input_tensor[..., SIZE:SIZE*2]
+for i in range(3):
     layers.append(keras.layers.Dense(SIZE, activation="leaky_relu"))
+    t1 = layers[-1](t1)
+    t2 = layers[-1](t2)
+layers.append(keras.layers.Dense(3))
+t1 = layers[-1](t1)
+t2 = layers[-1](t2)
+t = keras.layers.Concatenate()([t1, t2])
+for i in range(2):
+    layers.append(keras.layers.Dense(3, activation="leaky_relu"))
     t = layers[-1](t)
 layers.append(keras.layers.Dense(2))
 t = layers[-1](t)
