@@ -26,7 +26,8 @@ def output(px,py,pz, desc, status):
     diagonals = desc.split('|')
     if size is None:
         size = len(diagonals)
-        print(size)
+        # IMPORTANT We cut off the last iteration because there are no confirmed vertices there
+        print(size-1)
     else:
         assert len(diagonals) == size
     
@@ -59,7 +60,13 @@ def output(px,py,pz, desc, status):
     #print(filled_per_row)
     #print(filled_per_col)
     
-    print(json.dumps([status, filled_per_row, filled_per_col]))
+    # IMPORTANT We cut off the last iteration because there are no confirmed vertices there
+    if filled_per_col[0] == size or filled_per_row[0] == size:
+        return
+    assert filled_per_col[-1] == 0
+    assert filled_per_row[-1] == 0
+    
+    print(json.dumps([status, filled_per_row[:-1], filled_per_col[:-1]]))
     
 
 for line in sys.stdin:

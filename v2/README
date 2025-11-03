@@ -10,3 +10,6 @@ python process_pointdata.py < pointdata > processeddata
 python train_model.py
    -> model_data
    
+   <- model_data
+python interpret_model.py
+

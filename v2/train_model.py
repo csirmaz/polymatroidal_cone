@@ -51,7 +51,7 @@ t = input_tensor
 for i in range(1):
     layers.append(keras.layers.Dense(SIZE*2, activation="leaky_relu"))
     t = layers[-1](t)
-for i in range(1):
+for i in range(2):
     layers.append(keras.layers.Dense(SIZE, activation="leaky_relu"))
     t = layers[-1](t)
 layers.append(keras.layers.Dense(2))
@@ -70,7 +70,7 @@ model.fit(
     validation_data=training_data(is_training=False),
     steps_per_epoch=2000,
     validation_steps=500,
-    epochs=12,
+    epochs=20,
     # callbacks=[ScoringCallback(self)]            
 )
 
@@ -78,7 +78,7 @@ print("SAMPLE PREDICTIONS")
 x = get_data_batch(VALIDATION_DATA)
 y = model.predict_on_batch(x[0])
 for ix, row in enumerate(x[0]):
-    print(f"{row} target={x[1][ix]} pred={y[ix]}")
+    print(f"target={x[1][ix]} pred={y[ix]}")
 
 
 model_data = []
@@ -89,5 +89,5 @@ for layer in layers:
         'biases': d[1].tolist()
     })
     
-open(OUTFILE, "w").write(json.dumps(model_data))
+open(OUTFILE, "w").write(json.dumps({'size':SIZE, 'layers':model_data}))
 print("model data saved")
