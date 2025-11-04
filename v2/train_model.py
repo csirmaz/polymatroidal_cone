@@ -17,11 +17,9 @@ BATCH_SIZE = 64
 USE_VALIDATION_DATA = False
 validation_set_one_of = 10
 steps_per_epoch = 2000
-num_epochs = 35
+num_epochs = 200
 
 all_samples = 0
-
-# TODO - sample equally from all iterations?
 
 TRAINING_DATA = [[], []]  # status=0, status=1
 VALIDATION_DATA = []
@@ -52,7 +50,7 @@ def training_data(is_training: bool):
                 target = 1 if random.random() < .5 else 0  # target split
                 targets.append(target)
                 inputs.append(random.choice(TRAINING_DATA[target]))
-            yield np.array(inputs, dtype="float32"), np.array(targets)
+            yield np.array(inputs, dtype="float32"), np.array(targets, dtype="float32")
             
     else:
         dix = 0
@@ -67,7 +65,7 @@ def training_data(is_training: bool):
                 if dix >= len(VALIDATION_DATA):
                     # print(f"VALIDATION_DATA folded from {dix}")
                     dix = 0
-            yield np.array(inputs, dtype="float32"), np.array(targets)
+            yield np.array(inputs, dtype="float32"), np.array(targets, dtype="float32")
 
 
 layers = []
@@ -84,16 +82,15 @@ t1 = layers[-1](t1)
 t2 = layers[-1](t2)
 
 t = keras.layers.Concatenate()([t1, t2])
-for i in range(4):
-    layers.append(keras.layers.Dense(8, activation="sigmoid"))
+for i in range(0):
+    layers.append(keras.layers.Dense(6, activation="sigmoid"))
     t = layers[-1](t)
-layers.append(keras.layers.Dense(2))
+layers.append(keras.layers.Dense(1, activation="sigmoid"))
 t = layers[-1](t)
-t = keras.layers.Softmax(axis=-1)(t)
 
 model = keras.Model(inputs=input_tensor, outputs=t)
 model.compile(
-    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+    loss=keras.losses.BinaryCrossentropy(from_logits=False),
     optimizer=keras.optimizers.Adam(),
     metrics=["accuracy"]
 )
