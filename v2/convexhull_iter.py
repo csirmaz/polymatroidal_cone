@@ -15,10 +15,15 @@ from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
 CREATE_SCAD = False # Whether to create an scad file for each iteration
 CREATE_POINT_DATA = True
+POINT_DATA_OUTFILE = 'pointdata'
+CREATE_EDGE_FACE_DATA = True
+EDGE_FACE_DATA_OUTFILE = 'edge_face_data'
 
 
 if CREATE_POINT_DATA:
-    point_data_file = open("pointdata", "w")
+    point_data_file = open(POINT_DATA_OUTFILE, "w")
+if CREATE_EDGE_FACE_DATA:
+    edge_face_file = open(EDGE_FACE_DATA_OUTFILE, "w")
 
 
 class PObjectClass:
@@ -173,14 +178,16 @@ def process_points(Pobj, PrevPobj):
     # Process faces from the previous iteration
     # We have already reindexed the points to match this iteration
     if PrevPobj and hasattr(PrevPobj, 'Simplices'):
+        print(f"// EDGES OF THE CONVEX HULL iteration={PrevPobj.Iteration}")
         process_faces(Pobj, PrevPobj)
+        print(f"// EDGES REPORT END iteration={PrevPobj.Iteration}")
     
     # Create report
     
     def assess_point(*, pi, p, pkey, Pobj, PrevPobj, currently_vertex):
         was_vertex = False
         # IMPORTANT Pobj.RawPoints starts with PrevPobj.RetainPoints
-        if PrevPobj and pi < len(PrevPobj.RetainPoints):
+        if PrevPobj and PrevPobj.Iteration >= 2 and pi < len(PrevPobj.RetainPoints):
             was_vertex = True
 
         is_extra = (pi >= Pobj.ExtraPointsFrom)
@@ -225,7 +232,7 @@ def process_points(Pobj, PrevPobj):
             if pkey in Pobj.Global.nc_points_info:
                 assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
-    print(f"// REPORT END for iteration={Pobj.Iteration}", flush=True)
+    print(f"// VERTEX REPORT END for iteration={Pobj.Iteration}", flush=True)
     
     # Initialize new input from the vertices of this hull to save space/time
     Pobj.RetainPoints = []
@@ -306,18 +313,28 @@ def process_faces(Pobj, PrevPobj):
     assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrevPobj iteration #2")
     
     PrevPobj.Point2Face = {}  # {<point index>: set(<face index>, ...), ...
-    for fi, face in enumerate(PrevPobj.Simplices):
+    for fi, face in enumerate(PrevPobj.Simplices):  # This already excludes simplices with an "extra" point vertex
         for pi in face:
             if pi not in PrevPobj.Point2Face: PrevPobj.Point2Face[pi] = set()
             PrevPobj.Point2Face[pi].add(fi)
+            
+    def pointstr(p):
+        return f"{p[0]:.0f},{p[1]:.0f},{p[2]:.0f}"
+    
+    def pointstr2(p):
+        return f"{p.c[0]:.0f},{p.c[1]:.0f},{p.c[2]:.0f}"
+    
+    xvec = Point([1,0,0])
     
     PrevPobj.FaceNormals = []  # [Point(), ...
-    for face in PrevPobj.Simplices:
+    for fi, face in enumerate(PrevPobj.Simplices):
         p1 = Point(PrevPobj.RetainPoints[face[0]])
         p2 = Point(PrevPobj.RetainPoints[face[1]])
         p3 = Point(PrevPobj.RetainPoints[face[2]])
         norm = (p2-p1).cross(p3-p2).norm()
         PrevPobj.FaceNormals.append(norm)
+        if CREATE_EDGE_FACE_DATA:
+            edge_face_file.write(f"TRIANGLE f{fi} ({pointstr2(p1)}) ({pointstr2(p2)}) ({pointstr2(p3)}) norm={norm.render()} iter={PrevPobj.Iteration}\n")
 
     seen_edges = set()  # Set of string keys "<point index>:<point index>"
     
@@ -338,9 +355,13 @@ def process_faces(Pobj, PrevPobj):
         limit = 1e-7
         diff = PrevPobj.FaceNormals[f1] - PrevPobj.FaceNormals[f2]
         if abs(diff.c[0]) < limit and abs(diff.c[1]) < limit and abs(diff.c[2]) < limit:
+            if CREATE_EDGE_FACE_DATA:
+                edge_face_file.write(f"MERGE f{f1} f{f2}\n")
             return 'non_edge'
         diff = PrevPobj.FaceNormals[f1] + PrevPobj.FaceNormals[f2]
         if abs(diff.c[0]) < limit and abs(diff.c[1]) < limit and abs(diff.c[2]) < limit:
+            if CREATE_EDGE_FACE_DATA:
+                edge_face_file.write(f"MERGE f{f1} f{f2}\n")
             return 'non_edge'
         
         return 'real_edge'
@@ -373,10 +394,14 @@ def process_faces(Pobj, PrevPobj):
             if not is_vertex2: status += " (p2 will drop)"
             p1 = PrevPobj.RetainPoints[pointpair[0]]
             p2 = PrevPobj.RetainPoints[pointpair[1]]
-            print(f"// EDGE({p1[0]:.0f},{p1[1]:.0f},{p1[2]:.0f})-({p2[0]:.0f},{p2[1]:.0f},{p2[2]:.0f}): {status} (iteration={PrevPobj.Iteration})")
+            print(f"// EDGE({pointstr(p1)})-({pointstr(p2)}): {status} (iteration={PrevPobj.Iteration})")
             print_point(pi=pointpair[0], p=p1, Pobj=PrevPobj, status=('vertex_and_previously' if is_vertex1 else 'will_drop'))
-            print_point(pi=pointpair[1], p=p2, Pobj=PrevPobj, status=('vertex_and_previously' if is_vertex1 else 'will_drop'))
+            print_point(pi=pointpair[1], p=p2, Pobj=PrevPobj, status=('vertex_and_previously' if is_vertex2 else 'will_drop'))
             print("")
+            
+            if CREATE_EDGE_FACE_DATA:
+                if status == "real_edge" and is_vertex1 and is_vertex2:
+                    edge_face_file.write(f"REALEDGE ({pointstr(p1)}) ({pointstr(p2)}) iter={PrevPobj.Iteration}\n")
             
             if CREATE_SCAD:
                 c = [.2, .2, 1.]
@@ -394,6 +419,9 @@ def process_faces(Pobj, PrevPobj):
                 
     if CREATE_SCAD:
         scad_file.close()
+    if CREATE_EDGE_FACE_DATA:
+        edge_face_file.write(f"--- iter={PrevPobj.Iteration} done\n")
+        edge_face_file.flush()
     
     print(f"// skipped edges: {skipped_edges}", flush=True)
     print("")
@@ -405,6 +433,8 @@ read_raw_data()
 
 if CREATE_POINT_DATA:
     point_data_file.close()
+if CREATE_EDGE_FACE_DATA:
+    edge_face_file.close()
 
 
 ## Process coplanar data

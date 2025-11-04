@@ -1,0 +1,113 @@
+
+
+
+combined report
+===============
+
+// VERTICES OF THE CONVEX HULL iteration=2
+------------------------------------------
+
+Felsorolja az aktulasi konvex burok csucsait
+
+// #2/   4 [   3,    1,    1] <__________|_________|________|_______|______|_____|____|___|YY|m> iter=1 <vertex_and_previously>
+
+- "#2"      - az aktulais iteracio szama. A pont ID-je iteraciorol iteraciora valtozik
+- "/  4"    - a pont ID-je ebben az iteracioban
+- "[3,1,1]" - a pont koordinatai
+- "<___>"   - az S halmaz elemei (racspontok) atlonkent lebontva. "Y" = szabadon valasztott racspont. 
+              "m" = racspont kellett, hogy S leszallo legyen
+              Ha a pont tobbfele S-bol all elo, nem biztos, hogy mindegyik S fel van sorolva
+- "iter=1"  - melyik iteracioban jelent meg a pont
+              Ha a pont extra pont, "iter=E" jelenik meg
+- "<...>"   - statusz
+
+STATUSZOK
+
+- <vertex_and_previously> -- most egy csucs, es mar egy elozo konvex burokban is csucs volt
+- <new_vertex>            -- csucs, ebben a konvex burokban jelent meg eloszor
+- <new_vertex(extra)>     -- csucs, de a pont extra pont a harmoszogelesbol
+- (additional_form)       -- a statusz utan megjelenhet, ha egy masik S-t mar talaltunk korabban a felsorolando ponthoz
+
+
+// POINTS THAT ARE NOT VERTICES (but satisfy the necessary condition and/or were vertices before) iteration=4
+-------------------------------------------------------------------------------------------------------------
+
+Felsorolja azokat a NC (necessary condition) pontokat, amik nem csucsok
+A sorok ugyanaz, mint fent, de a statuszok:
+
+- <dropped_vertex>   -- a pont az elozo iteracioban csucs volt, most nem az
+- <not_vertex>       -- a pont ebben az iteracioban jelent meg, de nem csucs
+
+
+// EDGES OF THE CONVEX HULL iteration=3
+---------------------------------------
+
+Felsorolja az adott iteraciohoz tartozo konvex burok eleit.
+Az elso sor az elet irja le, a kovetkezo ket sor a pontokat.
+
+Peldak:
+
+// EDGE(8,8,5)-(7,5,5): real_edge (iteration=3)
+// #3/  22 [   8,    8,    5] <_________|________|_______|______|_____|___Y|YYm|mm|m> iter=3 <vertex_and_previously>
+// #3/  11 [   7,    5,    5] <_________|________|_______|______|_____|____|YYY|mm|m> iter=2 <vertex_and_previously>
+
+// EDGE(11,8,14)-(10,6,14): edge_of_area (p2 will drop) (iteration=3)
+// #3/  17 [  11,    8,   14] <_________|________|_______|______|_____|YY__|mmY|mm|m> iter=3 <vertex_and_previously>
+// #3/  16 [  10,    6,   14] <_________|________|_______|______|_____|YY__|mm_|mm|m> iter=3 <will_drop>
+
+- "EDGE(x1,y1,z1)-(x2,y2,z2)"  -- a pontok koordinatai. A ket pont sorrendje veletlenszeru
+- statusz
+    "edge_of_area"   -- az el masik oldalan nincs lap, aminek nincs extra pontja
+    "real_edge"      -- egybkent
+    "(p? will drop)" -- az el egyik pontja a kovetkezo iteracioban nem csucs
+    
+A pontok ugy vannak felsorolva, mint fent, de a statuszok:
+    "<vertex_and_previously>"   -- a pont most csucs es az marad a kovetkezo iteracioban
+    "<will_drop>"               -- a pont nem lesz csucs a kovetkezo iteracioban
+    
+
+    
+pointdata
+=========
+
+Felsorolja az NC pontokat amint lehet tudni, hogy legalabb egyszer megmaradtak mint csucsok, vagy nem csucsok.
+
+Lasd a "--- iter=? done" sorokat az iteraciok hataraira.
+
+A pontok igy vannak felsorolva:
+
+#4/26 (15,17,17) <________|_______|______|_____|YYYY|mmm|mm|m> status=vertex_and_previously iter=3
+
+- "#4"          -- a 4. iteracioban vagyunk
+- "/26"         -- a pont ID-je 26 a 4. iteracioban (minden iteracioban valtozik)
+- "(15,17,17)"  -- a pont koordinatai
+- "<___>"       -- az S halmaz elemei (racspontok) atlonkent lebontva
+- "status="     -- a statusz:
+      vertex_and_previously  -- most egy csucs, es mar egy elozo konvex burokban is csucs volt
+      not_vertex             -- a pont nem csucs (lehet, hogy csucs volt az elozo iteracioban)
+      additional_form        -- ezek a koordinatak mar voltak egyszer, de ez egy uj S halmaz, ami ugyanazt a pontot adja ki.
+                                Meg kell keresni az elozo bejegyzest a koordinatak alapjan, hogy kideruljon, a pont csucs-e.
+                                Egy adott pont minden S halmaza garantaltan fel van sorolva (az adott iteracioig).
+- "iter=3"      -- melyik iteracioban jelent meg a pont
+
+FONTOS: A N. iteracioban a kovetkezo pontok vannak felsorolva:
+- csucsok amik csucsok maradtak az N-1. iteraciobol
+- csucsok az N-1. iteraciobol amik mar nem csucsok
+- uj pontok a N. iteraciobol amik nem csucsok
+
+Tehat csak akkor latjuk az X. iteraciobol szarmazo csucsokat (amik legalabb 1x csucsok maradnak), 
+ha feldolgozzuk az X+1. iteracio kimenetet.
+
+
+
+
+edge_and_face_data
+==================
+
+
+
+
+
+
+
+
