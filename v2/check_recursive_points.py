@@ -119,6 +119,13 @@ Points = {}        # { (x,y,z):   [[*], [(iter, rowfill, colfill),... ]]...
                     # [*]: 0=not vertex  1=vertex  2=vertex&generated
 RowFill2Data = {}  # { <rowfill>: (iter, (x,y,z)), ...
 ColFill2Data = {}
+Stats = {
+    'org_not_vertex': 0,
+    'not_nc': 0,
+    'not_listed': 0,
+    'not_vertex': 0
+}
+
 
 def read_point_data():
     
@@ -158,6 +165,7 @@ def read_point_data():
             Points[pkey] = [0, [(itr, fill_per_row, fill_per_col, desc_short)]]
             RowFill2Data[fill_per_row] = (itr, pkey)
             ColFill2Data[fill_per_col] = (itr, pkey)
+            Stats['org_not_vertex'] += 1
         elif status == 'vertex_and_previously':
             assert pkey not in Points
             Points[pkey] = [1, [(itr, fill_per_row, fill_per_col, desc_short)]]
@@ -172,11 +180,6 @@ def read_point_data():
         print(msg)
         exit(1)
 
-Stats = {
-    'not_nc': 0,
-    'not_listed': 0,
-    'not_vertex': 0
-}
 
 def find_recursion():
     for target_itr in range(UP_TO_ITER+1):
@@ -194,49 +197,50 @@ def find_recursion():
                     # Last iteration processed, cannot generate points
                     continue
                 
-                if itr > target_itr:
+                if itr >= target_itr:
                     continue
                 
-                candidate_col = tuple([target_itr+1] + list(fill_per_col)[:-1])
-                candidate_row = tuple([target_itr+1] + list(fill_per_row)[:-1])
-                
-                if candidate_row not in RowFill2Data:
-                    if check_nv(candidate_row):
-                        print(f"L From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] but it is not a listed point (but NC)")
-                        Stats['not_listed'] += 1
+                if ender:
+                    candidate_row = tuple([target_itr+1] + list(fill_per_row)[:-1])                
+                    if candidate_row not in RowFill2Data:
+                        if check_nv(candidate_row):
+                            print(f"L From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] but it is not a listed point (but NC)")
+                            Stats['not_listed'] += 1
+                        else:
+                            print(f"C From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] which is not NC")
+                            Stats['not_nc'] += 1
                     else:
-                        print(f"C From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] which is not NC")
-                        Stats['not_nc'] += 1
-                else:
-                    c_row_coords = RowFill2Data[candidate_row][1]
-                    if Points[c_row_coords][0] == 0:
-                        print(f"N From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] = {c_row_coords} but it is not a vertex")
-                        Stats['not_vertex'] += 1
+                        c_row_coords = RowFill2Data[candidate_row][1]
+                        if Points[c_row_coords][0] == 0:
+                            print(f"N From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] = {c_row_coords} but it is not a vertex")
+                            Stats['not_vertex'] += 1
+                        else:
+                            Points[c_row_coords][0] = 2
+                            print(f"v From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] = {c_row_coords} which is a vertex")
+
+                if beginner:
+                    candidate_col = tuple([target_itr+1] + list(fill_per_col)[:-1])
+                    if candidate_col not in ColFill2Data:
+                        if check_nv(candidate_col):
+                            print(f"L From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] but it is not a listed point (but NC)")
+                            Stats['not_listed'] += 1
+                        else:
+                            print(f"C From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] which is not NC")
+                            Stats['not_nc'] += 1
                     else:
-                        Points[c_row_coords][0] = 2
-                        print(f"v From {coords} and row fill [{fill_per_row}] generated [{candidate_row}] = {c_row_coords} which is a vertex")
-                    
-                if candidate_col not in ColFill2Data:
-                    if check_nv(candidate_col):
-                        print(f"L From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] but it is not a listed point (but NC)")
-                        Stats['not_listed'] += 1
-                    else:
-                        print(f"C From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] which is not NC")
-                        Stats['not_nc'] += 1
-                else:
-                    c_col_coords = ColFill2Data[candidate_col][1]
-                    if Points[c_col_coords][0] == 0:
-                        print(f"N From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] = {c_col_coords} but it is not a vertex")
-                        Stats['not_vertex'] += 1
-                    else:
-                        Points[c_col_coords][0] = 2
-                        print(f"v From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] = {c_col_coords} which is a vertex")
+                        c_col_coords = ColFill2Data[candidate_col][1]
+                        if Points[c_col_coords][0] == 0:
+                            print(f"N From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] = {c_col_coords} but it is not a vertex")
+                            Stats['not_vertex'] += 1
+                        else:
+                            Points[c_col_coords][0] = 2
+                            print(f"v From {coords} and col fill [{fill_per_col}] generated [{candidate_col}] = {c_col_coords} which is a vertex")
 
     print("")
     print(f"Using points from iteration {UP_TO_ITER-1} and below as a basis")
     print(f"{Stats['not_nc']} points were generated that do not satisfy the necessary condition")
     print(f"{Stats['not_listed']} points were generated that satisfy the necessary condition but were not listed (shouldn't happen)")
-    print(f"{Stats['not_vertex']} points were generated that were not vertices")
+    print(f"{Stats['not_vertex']} points were generated that were not vertices\n (compare: {Stats['org_not_vertex']} points satisfy the necessary condition that are not vertices)")
 
     for coords, pdata in Points.items():
         is_vertex, sources = pdata
