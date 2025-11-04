@@ -2,15 +2,19 @@
 gcc -lm triads.c -o triads
 
 ./triads 12 | python convexhull_iter.py > combined_report.txt
+                SET CREATE_SCAD
+                SET CREATE_POINT_DATA
                 -> hull*.scad
                 -> pointdata
                 
 python process_pointdata.py < pointdata > processeddata
+    SET OUTPUT_UP_TO_ITER
+    SET OUTPUT_LAST_ITER_ONLY
 
-   <- processeddata_13
+    <- processeddata_13
 python train_model.py
-   -> model_data
+    -> model_data
    
-   <- model_data
+    <- model_data
 python interpret_model.py
 

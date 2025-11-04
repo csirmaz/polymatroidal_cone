@@ -98,7 +98,7 @@ def read_raw_data():
             if pkey in globalv.nc_points_info:
                 globalv.nc_points_info[pkey].append((desc, itr))
                 if CREATE_POINT_DATA and pkey in globalv.all_points_in_outdata:
-                    output_point_data_msg_add(pkey=pkey, desc=desc, Pobj=Pobj)                    
+                    output_point_data_msg_add(pkey=pkey, desc=desc, itr=itr)                    
                 # Skip repeated points - important as we can't know which form of a duplicate qhull would keep
                 continue
                 
@@ -259,12 +259,12 @@ def output_point_data_end_iter(Pobj):
     point_data_file.write(f"--- iter={Pobj.Iteration} done\n")
     point_data_file.flush()
 
-def output_point_data_msg_add(*, pkey, desc, Pobj):
-        point_data_file.write(f"#-1/-1 ({pkey}) <{desc}> status=additional_form iter={Pobj.Iteration}\n")
+def output_point_data_msg_add(*, pkey, desc, itr):
+        point_data_file.write(f"#-1/-1 ({pkey}) <{desc}> status=additional_form iter={itr}\n")
 
 def output_point_data_msg(*, pi, pkey, Pobj, status):
     for i, info in enumerate(Pobj.Global.nc_points_info[pkey]):
-        point_data_file.write(f"#{Pobj.Iteration}/{pi} ({pkey}) <{info[0]}> status={status}{'(additional_form)' if i>0 else ''} iter={Pobj.Iteration}\n")
+        point_data_file.write(f"#{Pobj.Iteration}/{pi} ({pkey}) <{info[0]}> status={status}{'(additional_form)' if i>0 else ''} iter={info[1]}\n")
 
 def output_point_data(*, pi, p, Pobj, status):
     # Write point data to a file
