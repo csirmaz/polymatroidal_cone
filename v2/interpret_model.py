@@ -28,6 +28,7 @@ for layer in Data['layers']:
     print(f"Layer weights h(in)={weights_h} w(out)={weights_w} biases {biases_l}")
 
 def print_layer(n):
+    print(f"LAYER {n}")
     print(np.array(Data['layers'][n]['weights']))
     print(np.array(Data['layers'][n]['biases']))
     
@@ -77,25 +78,12 @@ def run_data(filled_per_row, filled_per_col=None):
         filled_per_row = filled_per_row[0:13]
     
     row_enc = encode(np.array(filled_per_row))
-    col_enc = encode(np.array(filled_per_col))
-    #row_cat = binary_read(row_enc) # np.argmax(row_enc)
-    #col_cat = binary_read(col_enc) # np.argmax(col_enc)
-    #if print_details:
-    #    print(f"per row: {filled_per_row} category: {row_cat}")
-    #    print(f"per col: {filled_per_col} category: {col_cat}")
-
-    out_smooth = tail(np.array(row_enc.tolist() + col_enc.tolist())) # ORDER IMPORTANT!
-    #out_forced = tail(np.array(binary(row_cat) + binary(col_cat))) # ORDER IMPORTANT!
+    out_smooth = tail(row_enc)
 
     out_smooth = 0 if out_smooth < .5 else 1 # np.argmax(out_smooth)
-    #out_forced = np.argmax(out_forced)
     if print_details:
         print(f"prediction: {out_smooth} (smooth)")
     return out_smooth
-
-#run_data([12.0, 11.0, 10.0, 9.0, 6.0, 3.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],[ 8.0, 7.0, 6.0, 5.0, 5.0, 5.0, 4.0, 4.0, 4.0, 3.0, 2.0, 1.0, 0.0])
-#run_data([12.0, 10.0, 9.0, 8.0, 6.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 5.0, 5.0, 5.0, 5.0, 5.0, 4.0, 4.0, 3.0, 2.0, 1.0, 1.0, 0.0])
-#exit(0)
 
 # CHECK ON DATA        
 
@@ -120,4 +108,6 @@ for lix, line in enumerate(open(DATAFILE, 'r')):
     
 print(f"smooth match={smooth_match/all_items}")
 
+print_layer(0)
+print_layer(1)
 print_layer(2)

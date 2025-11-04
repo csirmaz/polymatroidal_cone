@@ -33,7 +33,7 @@ for line in open(DATAFILE, 'r'):
     if USE_VALIDATION_DATA and random.randint(0, validation_set_one_of) == 0:   # train/validation split
         VALIDATION_DATA.append((filled_per_row + filled_per_col, status))
     else:
-        TRAINING_DATA[status].append(filled_per_row + filled_per_col)
+        TRAINING_DATA[status].append(filled_per_row)
     all_samples += 1
 
 print(f"*** Training data: {len(TRAINING_DATA[0])}+{len(TRAINING_DATA[1])} Validation data: {len(VALIDATION_DATA)}")
@@ -69,22 +69,15 @@ def training_data(is_training: bool):
 
 
 layers = []
-input_tensor = keras.Input(shape=(SIZE*2,))
+input_tensor = keras.Input(shape=(SIZE,))
 # Split into per_row and per_col
-t1 = input_tensor[..., 0:SIZE]
-t2 = input_tensor[..., SIZE:SIZE*2]
+t = input_tensor
 for i in range(1):
     layers.append(keras.layers.Dense(SIZE*2, activation="sigmoid"))
-    t1 = layers[-1](t1)
-    t2 = layers[-1](t2)
-layers.append(keras.layers.Dense(3, activation="sigmoid"))
-t1 = layers[-1](t1)
-t2 = layers[-1](t2)
-
-t = keras.layers.Concatenate()([t1, t2])
-for i in range(0):
-    layers.append(keras.layers.Dense(6, activation="sigmoid"))
     t = layers[-1](t)
+layers.append(keras.layers.Dense(3, activation="sigmoid"))
+t = layers[-1](t)
+
 layers.append(keras.layers.Dense(1, activation="sigmoid"))
 t = layers[-1](t)
 
