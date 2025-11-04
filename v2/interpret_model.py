@@ -7,7 +7,8 @@ import scipy.special
 
 MODELFILE = 'model_data'
 DATAFILE = 'processeddata_12'
-encoder_categories = 4
+encoder_bits = 3
+encoder_categories = (1 << encoder_bits)
 print_details = False
 
 Data = json.loads(open(MODELFILE,'r').readline())
@@ -38,8 +39,7 @@ def apply_layer(vec, n, sigmoid=False):
 
 def encode(vec):  # The encoder
     o = apply_layer(vec, 0, sigmoid=True)
-    o = apply_layer(o, 1)
-    o = scipy.special.softmax(o)
+    o = apply_layer(o, 1, sigmoid=True)
     return o
 
 def tail(vec):  # After the concat, len(vec)==6
@@ -54,6 +54,22 @@ def tail(vec):  # After the concat, len(vec)==6
 def onehot(v):
     return [1 if v==i else 0 for i in range(encoder_categories)]
 
+def binary(v):
+    return [(v & (1<<i)) for i in range(encoder_bits)]
+
+def binary_read(v):
+    o = 0
+    b = 1
+    for i in reversed(v):
+        if i >= .5:
+            o += b
+        b = b << 1
+    return o
+
+assert binary_read([0]) == 0
+assert binary_read([0,1,0]) == 2
+assert binary_read([.4,1,.6]) == 3
+
 #print(np.array(Data['layers'][5]['weights']))
 #print(Data['layers'][5]['biases'])
 
@@ -65,14 +81,14 @@ def run_data(filled_per_row, filled_per_col=None):
     
     row_enc = encode(np.array(filled_per_row))
     col_enc = encode(np.array(filled_per_col))
-    row_cat = np.argmax(row_enc)
-    col_cat = np.argmax(col_enc)
+    row_cat = binary_read(row_enc) # np.argmax(row_enc)
+    col_cat = binary_read(col_enc) # np.argmax(col_enc)
     if print_details:
         print(f"per row: {filled_per_row} category: {row_cat}")
         print(f"per col: {filled_per_col} category: {col_cat}")
 
     out_smooth = tail(np.array(row_enc.tolist() + col_enc.tolist())) # ORDER IMPORTANT!
-    out_forced = tail(np.array(onehot(row_cat) + onehot(col_cat))) # ORDER IMPORTANT!
+    out_forced = tail(np.array(binary(row_cat) + binary(col_cat))) # ORDER IMPORTANT!
 
     out_smooth = np.argmax(out_smooth)
     out_forced = np.argmax(out_forced)
@@ -106,7 +122,7 @@ for j in range(encoder_categories):
 print("TAIL: MAPPING THE CATEGORIZATION OF THE TWO INPUT VECTORS TO THE OVERALL PREDICTION")
 for v1 in range(encoder_categories):
     for v2 in range(encoder_categories):
-        inv = onehot(v1) + onehot(v2)
+        inv = binary(v1) + binary(v2)
         out = tail(np.array(inv))
         out = "s0" if out[0] > out[1] else "s1"
         print(f"{out}  ", end="")

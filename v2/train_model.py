@@ -79,12 +79,9 @@ for i in range(1):
     layers.append(keras.layers.Dense(SIZE*2, activation="sigmoid"))
     t1 = layers[-1](t1)
     t2 = layers[-1](t2)
-layers.append(keras.layers.Dense(4))
+layers.append(keras.layers.Dense(3, activation="sigmoid"))
 t1 = layers[-1](t1)
 t2 = layers[-1](t2)
-
-t1 = keras.layers.Softmax(axis=-1)(t1)
-t2 = keras.layers.Softmax(axis=-1)(t2)
 
 t = keras.layers.Concatenate()([t1, t2])
 for i in range(4):
