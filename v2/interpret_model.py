@@ -29,7 +29,10 @@ for layer in Data['layers']:
 
 def print_layer(n):
     print(f"LAYER {n}")
-    print(np.array(Data['layers'][n]['weights']))
+    for row in Data['layers'][n]['weights']:
+        for v in row:
+            print(f"{v:6.2f} ", end="")
+        print("")
     print(np.array(Data['layers'][n]['biases']))
     
 def apply_layer(vec, n, sigmoid=False):
