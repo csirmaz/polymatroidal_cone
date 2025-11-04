@@ -10,13 +10,14 @@ import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-DATAFILE = 'processeddata_13'
+DATAFILE = 'processeddata_12'
 OUTFILE = 'model_data'
 SIZE = None
 BATCH_SIZE = 64
-validation_set_one_of = 1000
+USE_VALIDATION_DATA = False
+validation_set_one_of = 10
 steps_per_epoch = 2000
-num_epochs = 500
+num_epochs = 35
 
 all_samples = 0
 
@@ -31,7 +32,7 @@ for line in open(DATAFILE, 'r'):
         continue
     
     (status, filled_per_row, filled_per_col, _) = json.loads(line)
-    if random.randint(0, validation_set_one_of) == 0:   # train/validation split
+    if USE_VALIDATION_DATA and random.randint(0, validation_set_one_of) == 0:   # train/validation split
         VALIDATION_DATA.append((filled_per_row + filled_per_col, status))
     else:
         TRAINING_DATA[status].append(filled_per_row + filled_per_col)
@@ -48,7 +49,7 @@ def training_data(is_training: bool):
             inputs = []
             targets = []
             for i in range(BATCH_SIZE):
-                target = 1 if random.randint(0, 1) == 0 else 0  # target split
+                target = 1 if random.random() < .5 else 0  # target split
                 targets.append(target)
                 inputs.append(random.choice(TRAINING_DATA[target]))
             yield np.array(inputs, dtype="float32"), np.array(targets)
@@ -78,7 +79,7 @@ for i in range(1):
     layers.append(keras.layers.Dense(SIZE*2, activation="sigmoid"))
     t1 = layers[-1](t1)
     t2 = layers[-1](t2)
-layers.append(keras.layers.Dense(8))
+layers.append(keras.layers.Dense(4))
 t1 = layers[-1](t1)
 t2 = layers[-1](t2)
 
@@ -102,7 +103,7 @@ model.compile(
 
 model.fit(
     x=training_data(is_training=True),
-    validation_data=training_data(is_training=False),
+    validation_data=training_data(is_training=False) if USE_VALIDATION_DATA else None,
     steps_per_epoch=steps_per_epoch,
     validation_steps=500,
     epochs=num_epochs,

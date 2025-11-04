@@ -11,10 +11,11 @@ python process_pointdata.py < pointdata > processeddata
     SET OUTPUT_UP_TO_ITER
     SET OUTPUT_LAST_ITER_ONLY
 
-    <- processeddata_13
+    <- processeddata (SET DATAFILE)
 python train_model.py
-    -> model_data
+    -> model_data (SET OUTFILE)
    
-    <- model_data
+    <- model_data (SET MODELFILE)
+    <- processeddata (SET DATAFILE)
 python interpret_model.py
 

@@ -6,8 +6,8 @@ import numpy as np
 import scipy.special
 
 MODELFILE = 'model_data'
-DATAFILE = 'processeddata_13'
-encoder_categories = 8
+DATAFILE = 'processeddata_12'
+encoder_categories = 4
 print_details = False
 
 Data = json.loads(open(MODELFILE,'r').readline())
