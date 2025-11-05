@@ -1,4 +1,14 @@
 
+
+triads -- generate points from all closed S sets
+
+convexhull_iter.py -- use points that satisfy the necessary condition (NC) to calculate convex hulls
+
+convexhull_gen.py -- use points generated using the full-row rule to calculate convex hulls
+
+
+
+
 gcc -lm triads.c -o triads
 
 ./triads 12 | python convexhull_iter.py > combined_report.txt
