@@ -14,13 +14,13 @@ sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://cod
 from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
 CREATE_SCAD = False # Whether to create an scad file for each iteration
-CREATE_POINT_DATA = True
+CREATE_POINT_DATA = False
 POINT_DATA_OUTFILE = 'pointdata'
-CREATE_EDGE_FACE_DATA = True
+CREATE_EDGE_FACE_DATA = False
 EDGE_FACE_DATA_OUTFILE = 'edge_face_data'
 
 CACHE_BINOM_TO = 200
-CACHE_GRID_TO = 100
+CACHE_GRID_TO = 100 # TODO
 
 if CREATE_POINT_DATA:
     point_data_file = open(POINT_DATA_OUTFILE, "w")
@@ -34,11 +34,15 @@ class PObjectClass:
 class GlobalClass:
     pass
 
+
 def assrt(test, msg):
     if not test:
         print(f"ERROR: {msg}")
         exit(1)
 
+
+def pointtuple(p):
+    return (int(p[0]), int(p[1]), int(p[2]))
 
 
 BinomCache = [[None for i in range(CACHE_BINOM_TO)] for j in range(CACHE_BINOM_TO)]
@@ -140,28 +144,30 @@ def check_nc(fill):
         return True
     return False
 
+
 def get_init_pobj():
     """Get the initial collection of points"""
     globalv = GlobalClass
-    globalv.max_y = 0
-    globalv.max_z = 0
     globalv.PointInfo = {} # {<coords>: (iter, <fill_col>),...
     
     Pobj = PObjectClass()
-    Pobj.Iteration = -1
     Pobj.Global = globalv
 
+    Pobj.Iteration = -1
     Pobj.RawPoints = [(0,0,0)]
+    Pobj.max_y = 0
     Pobj.Global.PointInfo[(0,0,0)] = (-1, [])
     return Pobj
     
 
 def get_next_pobj(PrevPobj):
-    """Generate the next candidates for vertices"""
+    """Generate the next candidates for vertices from existing vertices by adding full rows/columns"""
     Pobj = PObjectClass()
-    Pobj.Iteration = PrevPobj.Iteration + 1
     Pobj.Global = PrevPobj.Global
+    Pobj.Iteration = PrevPobj.Iteration + 1
+    Pobj.max_y = PrevPobj.max_y
     Pobj.RawPoints = list(PrevPobj.RetainPoints)  # clone for sanity
+    print(f"// GENERATING POINTS for iteration={Pobj.Iteration}")
 
     for src_coords in PrevPobj.RetainPoints:
         src_itr, src_fill = PrevPobj.Global.PointInfo[src_coords]   # per-column fill
@@ -189,9 +195,7 @@ def get_next_pobj(PrevPobj):
             new_fills.append(fill)
 
         prev_coords = None
-        for fill in new_fills:
-            print(f"iter={Pobj.Iteration} {src_fill} generated {fill}")
-        
+        for fill in new_fills:        
             assert check_nc(fill) # TODO
         
             coords = fill2coords(fill)
@@ -199,147 +203,49 @@ def get_next_pobj(PrevPobj):
                 prev_coords = coords
             elif coords == prev_coords:
                 continue  # We allow a duplicate point from the same source
-            print(f"      {src_coords} generated {coords}")
+            print(f"iter={Pobj.Iteration} {src_fill} = {src_coords} generated {fill} = {coords}")
             Pobj.RawPoints.append(coords)
             assert coords not in Pobj.Global.PointInfo     # But we check for other duplicates here
             Pobj.Global.PointInfo[coords] = (Pobj.Iteration, fill)
+            
+            if Pobj.max_y < coords[1]: Pobj.max_y = coords[1]
 
+    print(f"// GENERATING POINTS ENDS for iteration={Pobj.Iteration}")
     return Pobj
 
 
-o = get_init_pobj()
-o.RetainPoints = o.RawPoints
-o = get_next_pobj(o)
-o.RetainPoints = o.RawPoints
-o = get_next_pobj(o)
-o.RetainPoints = o.RawPoints
-o = get_next_pobj(o)
-exit(0)
-
-
-
-
-
-
-
-
-
-
-# Read output of triad.c
-def read_raw_data():
-    current_iteration = None
-    
-    globalv = GlobalClass()
-    globalv.max_y = 0
-    globalv.max_z = 0
-    globalv.all_points_in_outdata = {}
-    globalv.nc_points_info = {}  # {<point_key>: [(<desc string>, <iteration>) ...   Only contains points satisfying necessary condition
-    
-    Pobj = None
-    PrevPobj = None
-    
-    for line in sys.stdin:
-        match = re.search(r'^Sum: ([0-9]+), ([0-9]+), ([0-9]+) \(([\-0-9]+)\) <([^>]+)>', line)
-        if match:
-            x = int(match.group(1))
-            y = int(match.group(2))
-            z = int(match.group(3))
-            itr = int(match.group(4))
-            desc = match.group(5)
-            
-            if current_iteration is None or current_iteration < itr:
-                if current_iteration is not None:
-                    # Process the points so far
-                    process_points(Pobj, PrevPobj)
-                    if CREATE_POINT_DATA: output_point_data_end_iter(Pobj)
-                    PrevPobj = Pobj
-                Pobj = PObjectClass()
-                Pobj.Iteration = itr
-                Pobj.Global = globalv  # object that keeps changing
-                # We MUST start with the retained points (vertices from the prev iteration) so we can check which vertex remains by index
-                # Cloning for sanity
-                Pobj.RawPoints = list(PrevPobj.RetainPoints) if PrevPobj else []
-                current_iteration = itr
-
-            # Points CAN be repeated from different sets
-            
-            # We can prove that vertices must satisfy the necessary condition (NC)
-            if not check_necessary_condition(desc):
-                continue
-
-            if globalv.max_y < y: globalv.max_y = y
-            if globalv.max_z < z: globalv.max_z = z
-            p = [x,y,z]
-            pkey = get_pkey(p)
-
-            # Save the descriptor string
-            if pkey in globalv.nc_points_info:
-                globalv.nc_points_info[pkey].append((desc, itr))
-                if CREATE_POINT_DATA and pkey in globalv.all_points_in_outdata:
-                    output_point_data_msg_add(pkey=pkey, desc=desc, itr=itr)                    
-                # Skip repeated points - important as we can't know which form of a duplicate qhull would keep
-                continue
-                
-            globalv.nc_points_info[pkey] = [(desc, itr)]
-            
-            Pobj.RawPoints.append(p)
-
-    # Process last iteration
-    process_points(Pobj, PrevPobj)
-
-
-def get_scad_hull(chull):
-    # Convert the Qhull hull into openscad
-    point_reindex = {} # {old_index: new_index (only vertices)
-    for pinew, piold in enumerate(chull.vertices):
-        point_reindex[piold] = pinew
-    new_faces = [
-        [point_reindex[pi] for pi in face]
-        for face in chull.simplices
-    ]
-    ohull = Polyhedron(points=[chull.points[pi] for pi in chull.vertices], faces=new_faces)
-    return ohull.render()
-
-
-def process_points(Pobj, PrevPobj):
+def process_points(*, Pobj, PrevPobj):
     
     if PrevPobj:
         assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrePobj iteration")
     
-    print(f"// process_points: starting with {len(Pobj.RawPoints)} points (retained+loaded), iter={Pobj.Iteration}")
+    print(f"// process_points: starting with {len(Pobj.RawPoints)} points (retained+generated), iter={Pobj.Iteration}")
     
     if Pobj.Iteration < 2:
         Pobj.RetainPoints = Pobj.RawPoints
         return
     
     # Add extra points to create triangles
-    assrt(Pobj.Global.max_y == Pobj.Global.max_z, "max y != max z")
-    max_v = Pobj.Global.max_y * 2.
+    max_v = Pobj.max_y * 2.
     
     Pobj.ExtraPointsFrom = len(Pobj.RawPoints)
     
-    if True: # OPTIMIZED EXTRA POINTS
-        # We know for every (x,y,z) point we also have (x,z,y)
-        # (x,y,z) -> (x, y, m-y); (x, m-z, z)
-        # (x,z,y) -> (x, z, m-z); (x, m-y, y)
-        seen_yz = set()
-        for pi in range(Pobj.ExtraPointsFrom):
-            ep = Pobj.RawPoints[pi]
-            ex = ep[0]
-            ey = ep[1]
-            ez = ep[2]
-            if ey > ez: (ez, ey) = (ey, ez)
-            key = (ey, ez)
-            if key in seen_yz: continue
-            seen_yz.add(key)
-            Pobj.RawPoints.append([ex, ey, max_v-ey])
-            Pobj.RawPoints.append([ex, max_v-ey, ey])
-        del seen_yz
-    else: # ORG LOGIC
-        for pi in range(Pobj.ExtraPointsFrom):
-            p = Pobj.RawPoints[pi]
-            Pobj.RawPoints.append([p[0], p[1], max_v-p[1]])
-            Pobj.RawPoints.append([p[0], max_v-p[2], p[2]])
+    # We know for every (x,y,z) point we also have (x,z,y)
+    # (x,y,z) -> (x, y, m-y); (x, m-z, z)
+    # (x,z,y) -> (x, z, m-z); (x, m-y, y)
+    seen_yz = set()
+    for pi in range(Pobj.ExtraPointsFrom):
+        ep = Pobj.RawPoints[pi]
+        ex = ep[0]
+        ey = ep[1]
+        ez = ep[2]
+        if ey > ez: (ez, ey) = (ey, ez)
+        key = (ey, ez)
+        if key in seen_yz: continue
+        seen_yz.add(key)
+        Pobj.RawPoints.append([ex, ey, max_v-ey])
+        Pobj.RawPoints.append([ex, max_v-ey, ey])
+    del seen_yz
     
     Pobj.Hull = ConvexHull(np.array(Pobj.RawPoints), qhull_options="Qc")
     # Hull.points shape=<n,3> coordinates of all points
@@ -352,12 +258,12 @@ def process_points(Pobj, PrevPobj):
     # We have already reindexed the points to match this iteration
     if PrevPobj and hasattr(PrevPobj, 'Simplices'):
         print(f"// EDGES OF THE CONVEX HULL iteration={PrevPobj.Iteration}")
-        process_faces(Pobj, PrevPobj)
+        # process_faces(Pobj, PrevPobj) # TODO
         print(f"// EDGES REPORT END iteration={PrevPobj.Iteration}")
     
     # Create report
     
-    def assess_point(*, pi, p, pkey, Pobj, PrevPobj, currently_vertex):
+    def assess_point(*, pi, p, Pobj, PrevPobj, currently_vertex):
         was_vertex = False
         # IMPORTANT Pobj.RawPoints starts with PrevPobj.RetainPoints
         if PrevPobj and PrevPobj.Iteration >= 2 and pi < len(PrevPobj.RetainPoints):
@@ -374,12 +280,14 @@ def process_points(Pobj, PrevPobj):
             if was_vertex:
                 status = 'dropped_vertex'
                 # Check that we are only dropping vertices from the previous iteration
-                pkey = get_pkey(p)
-                assrt(Pobj.Iteration == Pobj.Global.nc_points_info[pkey][0][1] + 1, 'only dropping vertex from prev iter')
+                assrt(Pobj.Iteration == Pobj.Global.PointInfo[p][0] + 1, 'only dropping vertex from prev iter')
             else:
                 status = 'not_vertex'
         if is_extra:
             status += '(extra)'
+
+        if status == 'not_vertex(extra)':
+            return
         
         print_point(pi=pi, p=p, Pobj=Pobj, status=status)
         if CREATE_POINT_DATA and (not is_extra) and (status in ['vertex_and_previously', 'dropped_vertex', 'not_vertex']):
@@ -388,32 +296,26 @@ def process_points(Pobj, PrevPobj):
     print(f"// VERTICES OF THE CONVEX HULL iteration={Pobj.Iteration}")
     seen_pk = set()
     for pi in Pobj.Hull.vertices:
-        p = Pobj.Hull.points[pi]
-        pkey = get_pkey(p)
-        if pi < Pobj.ExtraPointsFrom:  # not an extra point
-            # Check that the necessary condition (NC) applies to all vertices
-            assrt(pkey in Pobj.Global.nc_points_info, "vertex not NC")
-        assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=True)
-        assrt(pkey not in seen_pk, "point listed as vertex multiple times")
-        seen_pk.add(pkey)
+        p = pointtuple(Pobj.Hull.points[pi])
+        assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=True)
+        assrt(p not in seen_pk, "point listed as vertex multiple times")
+        seen_pk.add(p)
 
-    print(f"// POINTS THAT ARE NOT VERTICES (but satisfy the necessary condition and/or were vertices before) iteration={Pobj.Iteration}")
+    print(f"// POINTS THAT ARE NOT VERTICES iteration={Pobj.Iteration}")
     for pi in range(len(Pobj.Hull.points)):
-        p = Pobj.Hull.points[pi]
-        pkey = get_pkey(p)
-        if pkey not in seen_pk:
-            if pkey in Pobj.Global.nc_points_info:
-                assess_point(pi=pi, p=p, pkey=pkey, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
+        p = pointtuple(Pobj.Hull.points[pi])
+        if p not in seen_pk:
+            assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
     print(f"// VERTEX REPORT END for iteration={Pobj.Iteration}", flush=True)
     
-    # Initialize new input from the vertices of this hull to save space/time
+    # Initialize new input from the vertices of this hull
     Pobj.RetainPoints = []
     old2new_index = {}
     for pi in Pobj.Hull.vertices:
         if pi < Pobj.ExtraPointsFrom:  # not extra point
             old2new_index[pi] = len(Pobj.RetainPoints)
-            p = Pobj.Hull.points[pi]
+            p = pointtuple(Pobj.Hull.points[pi])
             Pobj.RetainPoints.append(p)
         
     # Store faces for processing later
@@ -433,6 +335,63 @@ def process_points(Pobj, PrevPobj):
         Pobj.ScadOfHull = get_scad_hull(Pobj.Hull)
 
     del Pobj.Hull
+
+
+def print_point(*, pi, p, Pobj, status):
+    
+    if hasattr(Pobj, 'Hull'):
+        p2 = pointtuple(Pobj.Hull.points[pi])
+    elif hasattr(Pobj, 'RetainPoints'):
+        p2 = Pobj.RetainPoints[pi]
+    assrt(p == p2, 'printpoint pi ~ p')
+    
+    if pi >= Pobj.ExtraPointsFrom:
+        info = ('E', '')
+    else:
+        info = Pobj.Global.PointInfo[p]
+    point_iter = info[0]
+    point_fill = info[1]
+    print(f"// #{Pobj.Iteration}/{pi:4.0f} {p} <{point_fill}> iter={point_iter} <{status}>")
+
+
+
+def main():
+    Pobj = get_init_pobj()
+    PrevPobj = None
+    for x in range(9):
+        process_points(Pobj=Pobj, PrevPobj=PrevPobj)
+        PrevPobj = Pobj
+        Pobj = get_next_pobj(PrevPobj)
+
+
+main()    
+exit(0)
+
+
+
+
+
+
+
+
+
+
+
+
+def get_scad_hull(chull):
+    # Convert the Qhull hull into openscad
+    point_reindex = {} # {old_index: new_index (only vertices)
+    for pinew, piold in enumerate(chull.vertices):
+        point_reindex[piold] = pinew
+    new_faces = [
+        [point_reindex[pi] for pi in face]
+        for face in chull.simplices
+    ]
+    ohull = Polyhedron(points=[chull.points[pi] for pi in chull.vertices], faces=new_faces)
+    return ohull.render()
+
+    
+    
 
 
 def output_point_data_end_iter(Pobj):
@@ -461,23 +420,6 @@ def output_point_data(*, pi, p, Pobj, status):
     output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status)
 
 
-def print_point(*, pi, p, Pobj, status):
-    pkey = get_pkey(p)
-    
-    if hasattr(Pobj, 'Hull'):
-        pkey2 = get_pkey(Pobj.Hull.points[pi])
-    elif hasattr(Pobj, 'RetainPoints'):
-        pkey2 = get_pkey(Pobj.RetainPoints[pi])
-    assrt(pkey == pkey2, 'printpoint pi ~ p')
-    
-    if pi >= Pobj.ExtraPointsFrom:
-        info = [('', 'E')]
-    else:
-        info = Pobj.Global.nc_points_info[pkey]
-    for i, di in enumerate(info):
-        point_iter = di[1]
-        point_desc = di[0]
-        print(f"// #{Pobj.Iteration}/{pi:4.0f} [{p[0]:4.0f}, {p[1]:4.0f}, {p[2]:4.0f}] <{point_desc}> iter={point_iter} <{status}{'(additional_form)' if i>0 else ''}>")
 
 
 def process_faces(Pobj, PrevPobj):
