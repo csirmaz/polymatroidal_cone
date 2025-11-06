@@ -166,6 +166,7 @@ def get_init_pobj():
     """Get the initial collection of points"""
     globalv = GlobalClass
     globalv.PointInfo = {} # {<coords>: (iter, <fill_col>),...
+    globalv.DuplicateSets = {} # {<coords>: [(iter, <fill_col>), ...
     
     Pobj = PObjectClass()
     Pobj.Global = globalv
@@ -186,36 +187,46 @@ def get_next_pobj(PrevPobj):
     Pobj.RawPoints = list(PrevPobj.RetainPoints)  # clone for sanity
     print(f"// GENERATING POINTS for iteration={Pobj.Iteration}")
 
-    for src_coords in PrevPobj.RetainPoints:
-        src_itr, src_fill = PrevPobj.Global.PointInfo[src_coords]   # per-column fill
-        assert src_itr + 1 == len(src_fill)
+    for src_coords in PrevPobj.RetainPoints:  # loop through the vertices
+        sources = [PrevPobj.Global.PointInfo[src_coords]]
+        if src_coords in PrevPobj.Global.DuplicateSets:
+            sources.extend(PrevPobj.Global.DuplicateSets[src_coords])
+        for source in sources:
+            src_itr, src_fill = source   # per-column fill
+            assert src_itr + 1 == len(src_fill)
 
-        beginner = (src_itr == -1 or src_fill[0] == src_itr + 1)    # whether the beginnings of diagonals are selected
-        ender = (src_itr == -1 or src_fill[-1] == 1)                 # whether the ends of diagonals are selected
-        
-        new_fills = []
-        
-        if beginner:
-            new_fills.append(generate_next_by_column(src_fill, Pobj.Iteration+1))
+            beginner = (src_itr == -1 or src_fill[0] == src_itr + 1)    # whether the beginnings of diagonals are selected
+            ender = (src_itr == -1 or src_fill[-1] == 1)                 # whether the ends of diagonals are selected
             
-        if ender:
-            new_fills.append(generate_next_by_row(src_fill, Pobj.Iteration+1))
+            new_fills = []
+            
+            if beginner:
+                new_fills.append(generate_next_by_column(src_fill, Pobj.Iteration+1))
+                
+            if ender:
+                new_fills.append(generate_next_by_row(src_fill, Pobj.Iteration+1))
 
-        prev_coords = None
-        for fill in new_fills:        
-            assert check_nc(fill) # TODO Remove to speed up
-        
-            coords = fill2coords(fill)
-            if prev_coords is None:
-                prev_coords = coords
-            elif coords == prev_coords:
-                continue  # We allow a duplicate point from the same source
-            print(f"iter={Pobj.Iteration} {src_fill} = {src_coords} generated {fill} = {coords}")
-            Pobj.RawPoints.append(coords)
-            assert coords not in Pobj.Global.PointInfo     # But we check for other duplicates here
-            Pobj.Global.PointInfo[coords] = (Pobj.Iteration, fill)
+            prev_coords = None
+            for fill in new_fills:        
+                assert check_nc(fill) # TODO Remove to speed up
             
-            if Pobj.max_y < coords[1]: Pobj.max_y = coords[1]
+                coords = fill2coords(fill)
+                if prev_coords is None:
+                    prev_coords = coords
+                elif coords == prev_coords:
+                    continue  # We allow a duplicate point from the same source
+                print(f"iter={Pobj.Iteration} {src_fill} = {src_coords} generated {fill} = {coords}")
+                
+                if coords in Pobj.Global.PointInfo:
+                    # We have seen this point before from a different S set
+                    if coords not in Pobj.Global.DuplicateSets: Pobj.Global.DuplicateSets[coords] = []
+                    Pobj.Global.DuplicateSets[coords].append((Pobj.Iteration, fill))
+                    print(f"duplicate of {Pobj.Global.PointInfo[coords][1]}")
+                else:
+                    Pobj.RawPoints.append(coords)
+                    Pobj.Global.PointInfo[coords] = (Pobj.Iteration, fill)
+                
+                if Pobj.max_y < coords[1]: Pobj.max_y = coords[1]
 
     print(f"// GENERATING POINTS ENDS for iteration={Pobj.Iteration}")
     return Pobj
@@ -264,9 +275,10 @@ def process_points(*, Pobj, PrevPobj):
     # Process faces from the previous iteration
     # We have already reindexed the points to match this iteration
     if PrevPobj and hasattr(PrevPobj, 'Simplices'):
-        print(f"// EDGES OF THE CONVEX HULL iteration={PrevPobj.Iteration}")
-        # process_faces(Pobj, PrevPobj) # TODO
-        print(f"// EDGES REPORT END iteration={PrevPobj.Iteration}")
+        pass
+        # print(f"// EDGES OF THE CONVEX HULL iteration={PrevPobj.Iteration}")
+        # process_faces(Pobj, PrevPobj) # TODO enable later
+        # print(f"// EDGES REPORT END iteration={PrevPobj.Iteration}")
     
     # Create report
     
@@ -287,6 +299,7 @@ def process_points(*, Pobj, PrevPobj):
             if was_vertex:
                 status = 'dropped_vertex'
                 # Check that we are only dropping vertices from the previous iteration
+                # NOTE Here we use the earliest iteration this point got generated
                 assrt(Pobj.Iteration == Pobj.Global.PointInfo[p][0] + 1, 'only dropping vertex from prev iter')
             else:
                 status = 'not_vertex'
@@ -353,12 +366,13 @@ def print_point(*, pi, p, Pobj, status):
     assrt(p == p2, 'printpoint pi ~ p')
     
     if pi >= Pobj.ExtraPointsFrom:
-        info = ('E', '')
+        info = [('E', '')]
     else:
-        info = Pobj.Global.PointInfo[p]
-    point_iter = info[0]
-    point_fill = info[1]
-    print(f"// #{Pobj.Iteration}/{pi:4.0f} {p} <{point_fill}> iter={point_iter} <{status}>")
+        info = [Pobj.Global.PointInfo[p]]
+        if p in Pobj.Global.DuplicateSets:
+            info.extend(Pobj.Global.DuplicateSets[p])
+    for i, infod in enumerate(info):
+        print(f"// #{Pobj.Iteration}/{pi:4.0f} {p} <{infod[1]}> iter={infod[0]} <{status}{'(duplicate)' if i>0 else ''}>")
 
 
 
