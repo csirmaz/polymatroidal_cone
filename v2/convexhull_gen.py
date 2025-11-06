@@ -10,10 +10,14 @@ from scipy.spatial import ConvexHull  # https://docs.scipy.org/doc/scipy/referen
 import numpy as np
 import time
 import random
+import json
 
 sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://codeberg.org/csirmaz/openscad-py
 
 from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
+
+LOG_GENERATION = False
+
 
 CREATE_SCAD = False # Whether to create an scad file for each iteration
 CREATE_POINT_DATA = False
@@ -185,9 +189,12 @@ def ungenerate(fill):
 
 def get_init_stats():
     return {
-        'num_vertex': 0,
-        'num_dropped_vertex': 0,
-        'num_not_vertex': 0,
+        'vertices': 0,
+        'vertex->vertex': 0,
+        'vertex->nonvertex': 0,
+        'generated->vertex': 0,
+        'generated->nonvertex': 0,
+        'extra->vertex': 0,
     }
 
 
@@ -216,7 +223,8 @@ def get_next_pobj(PrevPobj):
     Pobj.Iteration = PrevPobj.Iteration + 1
     Pobj.max_y = PrevPobj.max_y
     Pobj.RawPoints = list(PrevPobj.RetainPoints)  # clone for sanity
-    print(f"// GENERATING POINTS for iteration={Pobj.Iteration}")
+    if LOG_GENERATION:
+        print(f"GENERATING POINTS for iteration={Pobj.Iteration}")
 
     for src_coords in PrevPobj.RetainPoints:  # loop through the vertices
         sources = [PrevPobj.Global.PointInfo[src_coords]]
@@ -246,20 +254,23 @@ def get_next_pobj(PrevPobj):
                     prev_coords = coords
                 elif coords == prev_coords:
                     continue  # We allow a duplicate point from the same source
-                print(f"iter={Pobj.Iteration} {src_fill} = {src_coords} generated {fill} = {coords}")
+                if LOG_GENERATION:
+                    print(f"iter={Pobj.Iteration} {src_fill} = {src_coords} generated {fill} = {coords}")
                 
                 if coords in Pobj.Global.PointInfo:
                     # We have seen this point before from a different S set
                     if coords not in Pobj.Global.DuplicateSets: Pobj.Global.DuplicateSets[coords] = []
                     Pobj.Global.DuplicateSets[coords].append((Pobj.Iteration, fill))
-                    print(f"duplicate of {Pobj.Global.PointInfo[coords][1]}")
+                    if LOG_GENERATION:
+                        print(f"generated point {coords} is duplicate of {Pobj.Global.PointInfo[coords][1]}")
                 else:
                     Pobj.RawPoints.append(coords)
                     Pobj.Global.PointInfo[coords] = (Pobj.Iteration, fill)
                 
                 if Pobj.max_y < coords[1]: Pobj.max_y = coords[1]
 
-    print(f"// GENERATING POINTS ENDS for iteration={Pobj.Iteration}")
+    if LOG_GENERATION:
+        print(f"GENERATING POINTS ENDS for iteration={Pobj.Iteration}")
     return Pobj
 
 
@@ -281,8 +292,7 @@ def process_points(*, Pobj, PrevPobj):
     
     if PrevPobj:
         assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrePobj iteration")
-    
-    print(f"// process_points: starting with {len(Pobj.RawPoints)} points (retained+generated), iter={Pobj.Iteration}")
+        print(f"process_points: starting with {len(Pobj.RawPoints)} points of which {len(PrevPobj.RetainPoints)} is retained, iter={Pobj.Iteration}")
     
     if Pobj.Iteration < 2:
         Pobj.RetainPoints = Pobj.RawPoints
@@ -309,6 +319,8 @@ def process_points(*, Pobj, PrevPobj):
         Pobj.RawPoints.append([ex, ey, max_v-ey])
         Pobj.RawPoints.append([ex, max_v-ey, ey])
     del seen_yz
+    
+    print(f"process_points: {len(Pobj.RawPoints)} after adding the extra points")
     
     for tryix in range(3):
         try:
@@ -341,39 +353,27 @@ def process_points(*, Pobj, PrevPobj):
 
         is_extra = (pi >= Pobj.ExtraPointsFrom)
 
-        if currently_vertex:
-            if was_vertex:
-                status = 'vertex_and_previously'  # a final vertex?
-            else:
-                status = 'new_vertex'
-        else:
-            if was_vertex:
-                status = 'dropped_vertex'
-                # Check that we are only dropping vertices from the previous iteration
-                # NOTE Here we use the earliest iteration this point got generated
-                # FALSE from iteration 35 and up
-                # if Pobj.Iteration != Pobj.Global.PointInfo[p][0] + 1:
-                #     print(f"CONJ VIOLATION iter={Pobj.Iteration} Dropping vertex first generated in iter {Pobj.Global.PointInfo[p][0]} and last generated in iter {Pobj.Global.DuplicateSets[p][-1][0] if p in Pobj.Global.DuplicateSets else 'N/A'}")
-            else:
-                status = 'not_vertex'
-        if is_extra:
-            status += '(extra)'
+        # currently_vertex, is_extra, was_vertex
 
-        if status == 'not_vertex(extra)':
-            return
+        if currently_vertex:
+            Pobj.Stats['vertices'] += 1
         
-        print_point(pi=pi, p=p, Pobj=Pobj, status=status)
-        
-        if status == 'dropped_vertex':
-            Pobj.Stats['num_dropped_vertex'] += 1
-        elif status == 'not_vertex':
-            Pobj.Stats['num_not_vertex'] += 1
-        elif status in ['new_vertex', 'vertex_and_previously']:
-            Pobj.Stats['num_vertex'] += 1
-        
-        if CREATE_POINT_DATA and (not is_extra) and (status in ['vertex_and_previously', 'dropped_vertex', 'not_vertex']):
-            output_point_data(pi=pi, p=p, Pobj=Pobj, status=status)
-    
+        if was_vertex:
+            status = 'vertex'
+        elif is_extra:
+            status = 'extra'
+        else:
+            status = 'generated'
+        status += '->'
+        if currently_vertex:
+            status += 'vertex'
+        else:
+            status += 'nonvertex'
+            
+        if status not in ['extra->nonvertex']:
+            Pobj.Stats[status] += 1
+            print_point(pi=pi, p=p, Pobj=Pobj, status=status)
+
     print(f"// VERTICES OF THE CONVEX HULL iteration={Pobj.Iteration}")
     seen_pk = set()
     for pi in Pobj.Hull.vertices:
@@ -389,8 +389,6 @@ def process_points(*, Pobj, PrevPobj):
             assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
     print(f"// VERTEX REPORT END for iteration={Pobj.Iteration}", flush=True)
-    #if Pobj.Stats['num_dropped_vertex'] != Pobj.Stats['num_not_vertex']:
-    #    print(f"CONJ VIOLATION: iter={Pobj.Iteration} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} != num_not_vertex={Pobj.Stats['num_not_vertex']}")
     
     # Initialize new input from the vertices of this hull
     Pobj.RetainPoints = []
@@ -434,12 +432,11 @@ def print_point(*, pi, p, Pobj, status):
         if p in Pobj.Global.DuplicateSets:
             info.extend(Pobj.Global.DuplicateSets[p])
     for i, infod in enumerate(info):
-        ancestry = ''
-        if status in  ['dropped_vertex', 'not_vertex']:
-            # Find the generator
-            parent_coords = fill2coords(ungenerate(infod[1]))
-            ancestry = f" generated by {parent_coords} org from iter={Pobj.Global.PointInfo[parent_coords][0]}"
-        print(f"// #{Pobj.Iteration}/{pi:4.0f} {p} <{infod[1]}> iter={infod[0]} <{status}{'(duplicate)' if i>0 else ''}>{ancestry}")
+        #if status in  ['vertex->notvertex', 'generated->notvertex']:
+        #    # Find the generator
+        #    parent_coords = fill2coords(ungenerate(infod[1]))
+        #    ancestry = f" generated by {parent_coords}, first appeared in iter={Pobj.Global.PointInfo[parent_coords][0]}"
+        print(f"iter={Pobj.Iteration} {p} <{infod[1]}> iter={infod[0]} <{status}{'(duplicate)' if i>0 else ''}>")
 
 
 
@@ -450,7 +447,7 @@ def main():
     for x in range(200):
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
         now_time = time.time()
-        print(f"ITERATION END for iteration={Pobj.Iteration} num_vertex={Pobj.Stats['num_vertex']} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} num_not_vertex={Pobj.Stats['num_not_vertex']} time={now_time-prev_time:.0f}s", flush=True)
+        print(f"ITERATION END for iteration={Pobj.Iteration} time={now_time-prev_time:.0f}s {json.dumps(Pobj.Stats)}", flush=True)
         prev_time = now_time
         PrevPobj = Pobj
         Pobj = get_next_pobj(PrevPobj)
@@ -486,30 +483,6 @@ def get_scad_hull(chull):
     
 
 
-def output_point_data_end_iter(Pobj):
-    point_data_file.write(f"--- iter={Pobj.Iteration} done\n")
-    point_data_file.flush()
-
-def output_point_data_msg_add(*, pkey, desc, itr):
-        point_data_file.write(f"#-1/-1 ({pkey}) <{desc}> status=additional_form iter={itr}\n")
-
-def output_point_data_msg(*, pi, pkey, Pobj, status):
-    for i, info in enumerate(Pobj.Global.nc_points_info[pkey]):
-        point_data_file.write(f"#{Pobj.Iteration}/{pi} ({pkey}) <{info[0]}> status={status}{'(additional_form)' if i>0 else ''} iter={info[1]}\n")
-
-def output_point_data(*, pi, p, Pobj, status):
-    # Write point data to a file
-    if not CREATE_POINT_DATA: return
-    pkey = get_pkey(p)
-    seen = Pobj.Global.all_points_in_outdata
-    if pkey in seen:
-        if seen[pkey] != status:
-            point_data_file.write(f"ERROR: STATUS OF POINT CHANGED FROM {seen[pkey]} TO:\n")
-            output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status)
-            assert False
-        return
-    seen[pkey] = status
-    output_point_data_msg(pi=pi, pkey=pkey, Pobj=Pobj, status=status)
 
 
 
