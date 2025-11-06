@@ -1,5 +1,5 @@
 
-# Generate candidates for vertices from the previous iteration
+# Generate candidates for vertices from vertices in the previous iteration
 # using the "full-row" rule
 # Generate reports on vertices, edges and scad
 
@@ -15,12 +15,11 @@ from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
 CREATE_SCAD = False # Whether to create an scad file for each iteration
 CREATE_POINT_DATA = False
-POINT_DATA_OUTFILE = 'pointdata'
+POINT_DATA_OUTFILE = 'pointdata_gen'
 CREATE_EDGE_FACE_DATA = False
-EDGE_FACE_DATA_OUTFILE = 'edge_face_data'
+EDGE_FACE_DATA_OUTFILE = 'edge_face_data_gen'
 
 CACHE_BINOM_TO = 200
-CACHE_GRID_TO = 100 # TODO
 
 if CREATE_POINT_DATA:
     point_data_file = open(POINT_DATA_OUTFILE, "w")
@@ -70,7 +69,7 @@ assert altbinom(2,1) == 3
 
 
 def fill2matrix(fill):
-    """Given a column fill vector, produce a matrix"""
+    """Given a column fill vector, produce a 0-1 matrix"""
     maxlength = len(fill)
     matrix = []
     for j in range(maxlength):
@@ -85,6 +84,7 @@ assert fill2matrix([2,0]) == [[1,0],[1,0]]
 
 
 def fill2coords(fill):
+    """Given a column fill vector, get the coordinates"""
     matrix = fill2matrix(fill)
     x = 0
     y = 0
@@ -99,6 +99,7 @@ def fill2coords(fill):
 
 assert fill2coords([]) == (0,0,0)
 assert fill2coords([2,0]) == (2,0,1)
+assert fill2coords([2,0,0,0]) == (2,0,1)
 assert fill2coords([4,2,0,0]) == (7,3,8)
 
 
@@ -145,6 +146,22 @@ def check_nc(fill):
     return False
 
 
+def generate_next_by_column(fill, length):
+    """Given a fill vector, add a full column"""
+    fill = [length] + fill  # clones
+    if len(fill) < length:
+        fill += [0] * (length-len(fill))
+    return fill
+
+
+def generate_next_by_row(fill, length):
+    """Given a fill vector, add a full row"""
+    fill = list(fill)
+    if len(fill) < length:
+        fill += [0] * (length-len(fill))  # warning: modifies fill
+    return [v+1 for v in fill]
+
+
 def get_init_pobj():
     """Get the initial collection of points"""
     globalv = GlobalClass
@@ -179,24 +196,14 @@ def get_next_pobj(PrevPobj):
         new_fills = []
         
         if beginner:
-            fill = src_fill
-            fill = [Pobj.Iteration+1] + fill
-            if len(fill) < Pobj.Iteration+1:
-                fill += [0] * (Pobj.Iteration+1-len(fill))
-            new_fills.append(fill)
+            new_fills.append(generate_next_by_column(src_fill, Pobj.Iteration+1))
             
         if ender:
-            fill = src_fill
-            fill = invert_fill(fill)
-            fill = [Pobj.Iteration+1] + fill
-            if len(fill) < Pobj.Iteration+1:
-                fill += [0] * (Pobj.Iteration+1-len(fill))
-            fill = invert_fill(fill)
-            new_fills.append(fill)
+            new_fills.append(generate_next_by_row(src_fill, Pobj.Iteration+1))
 
         prev_coords = None
         for fill in new_fills:        
-            assert check_nc(fill) # TODO
+            assert check_nc(fill) # TODO Remove to speed up
         
             coords = fill2coords(fill)
             if prev_coords is None:
@@ -358,7 +365,7 @@ def print_point(*, pi, p, Pobj, status):
 def main():
     Pobj = get_init_pobj()
     PrevPobj = None
-    for x in range(9):
+    for x in range(20):
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
         PrevPobj = Pobj
         Pobj = get_next_pobj(PrevPobj)
