@@ -146,8 +146,18 @@ def check_nc(fill):
     return False
 
 
+def is_beginner(fill):
+    # whether the beginnings of diagonals are selected
+    return (len(fill) == 0 or fill[0] == len(fill))
+
+
+def is_ender(fill):
+    # whether the ends of diagonals are selected
+    return (len(fill) == 0 or fill[-1] == 1)
+
+
 def generate_next_by_column(fill, length):
-    """Given a fill vector, add a full column"""
+    """Given a fill vector, add a full column. Suitable for "beginner"s"""
     fill = [length] + fill  # clones
     if len(fill) < length:
         fill += [0] * (length-len(fill))
@@ -155,11 +165,27 @@ def generate_next_by_column(fill, length):
 
 
 def generate_next_by_row(fill, length):
-    """Given a fill vector, add a full row"""
+    """Given a fill vector, add a full row. Suitable for "ender"s"""
     fill = list(fill)
     if len(fill) < length:
         fill += [0] * (length-len(fill))  # warning: modifies fill
     return [v+1 for v in fill]
+
+
+def ungenerate(fill):
+    """Given a fill vector, return the vector that generated it.
+    Note the result may have superfluous 0s at the end"""
+    if is_beginner(fill):
+        return fill[1:]
+    if is_ender(fill):
+        return [v-1 for v in fill[:-1]]
+
+
+def get_init_stats():
+    return {
+        'num_dropped_vertex': 0,
+        'num_not_vertex': 0,
+    }
 
 
 def get_init_pobj():
@@ -171,6 +197,7 @@ def get_init_pobj():
     Pobj = PObjectClass()
     Pobj.Global = globalv
 
+    Pobj.Stats = get_init_stats()
     Pobj.Iteration = -1
     Pobj.RawPoints = [(0,0,0)]
     Pobj.max_y = 0
@@ -182,6 +209,7 @@ def get_next_pobj(PrevPobj):
     """Generate the next candidates for vertices from existing vertices by adding full rows/columns"""
     Pobj = PObjectClass()
     Pobj.Global = PrevPobj.Global
+    Pobj.Stats = get_init_stats()
     Pobj.Iteration = PrevPobj.Iteration + 1
     Pobj.max_y = PrevPobj.max_y
     Pobj.RawPoints = list(PrevPobj.RetainPoints)  # clone for sanity
@@ -195,8 +223,8 @@ def get_next_pobj(PrevPobj):
             src_itr, src_fill = source   # per-column fill
             assert src_itr + 1 == len(src_fill)
 
-            beginner = (src_itr == -1 or src_fill[0] == src_itr + 1)    # whether the beginnings of diagonals are selected
-            ender = (src_itr == -1 or src_fill[-1] == 1)                 # whether the ends of diagonals are selected
+            beginner = is_beginner(src_fill)    # whether the beginnings of diagonals are selected
+            ender = is_ender(src_fill)          # whether the ends of diagonals are selected
             
             new_fills = []
             
@@ -300,7 +328,8 @@ def process_points(*, Pobj, PrevPobj):
                 status = 'dropped_vertex'
                 # Check that we are only dropping vertices from the previous iteration
                 # NOTE Here we use the earliest iteration this point got generated
-                assrt(Pobj.Iteration == Pobj.Global.PointInfo[p][0] + 1, 'only dropping vertex from prev iter')
+                if Pobj.Iteration != Pobj.Global.PointInfo[p][0] + 1:
+                    print(f"CONJ VIOLATION iter={Pobj.Iteration} Dropping vertex first generated in iter {Pobj.Global.PointInfo[p][0]} and last generated in iter {Pobj.Global.DuplicateSets[p][-1][0] if p in Pobj.Global.DuplicateSets else 'N/A'}")
             else:
                 status = 'not_vertex'
         if is_extra:
@@ -310,8 +339,14 @@ def process_points(*, Pobj, PrevPobj):
             return
         
         print_point(pi=pi, p=p, Pobj=Pobj, status=status)
+        
+        if status == 'dropped_vertex':
+            Pobj.Stats['num_dropped_vertex'] += 1
+        if status == 'not_vertex':
+            Pobj.Stats['num_not_vertex'] += 1
+        
         if CREATE_POINT_DATA and (not is_extra) and (status in ['vertex_and_previously', 'dropped_vertex', 'not_vertex']):
-            output_point_data(pi=pi, p=p, Pobj=Pobj, status=(status if status == 'vertex_and_previously' else 'not_vertex'))
+            output_point_data(pi=pi, p=p, Pobj=Pobj, status=status)
     
     print(f"// VERTICES OF THE CONVEX HULL iteration={Pobj.Iteration}")
     seen_pk = set()
@@ -327,7 +362,9 @@ def process_points(*, Pobj, PrevPobj):
         if p not in seen_pk:
             assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
-    print(f"// VERTEX REPORT END for iteration={Pobj.Iteration}", flush=True)
+    print(f"// VERTEX REPORT END for iteration={Pobj.Iteration} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} num_not_vertex={Pobj.Stats['num_not_vertex']}", flush=True)
+    if Pobj.Stats['num_dropped_vertex'] != Pobj.Stats['num_not_vertex']:
+        print(f"CONJ VIOLATION: iter={Pobj.Iteration} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} != num_not_vertex={Pobj.Stats['num_not_vertex']}")
     
     # Initialize new input from the vertices of this hull
     Pobj.RetainPoints = []
@@ -358,7 +395,6 @@ def process_points(*, Pobj, PrevPobj):
 
 
 def print_point(*, pi, p, Pobj, status):
-    
     if hasattr(Pobj, 'Hull'):
         p2 = pointtuple(Pobj.Hull.points[pi])
     elif hasattr(Pobj, 'RetainPoints'):
@@ -372,14 +408,19 @@ def print_point(*, pi, p, Pobj, status):
         if p in Pobj.Global.DuplicateSets:
             info.extend(Pobj.Global.DuplicateSets[p])
     for i, infod in enumerate(info):
-        print(f"// #{Pobj.Iteration}/{pi:4.0f} {p} <{infod[1]}> iter={infod[0]} <{status}{'(duplicate)' if i>0 else ''}>")
+        ancestry = ''
+        if status in  ['dropped_vertex', 'not_vertex']:
+            # Find the generator
+            parent_coords = fill2coords(ungenerate(infod[1]))
+            ancestry = f" generated by {parent_coords} org from iter={Pobj.Global.PointInfo[parent_coords][0]}"
+        print(f"// #{Pobj.Iteration}/{pi:4.0f} {p} <{infod[1]}> iter={infod[0]} <{status}{'(duplicate)' if i>0 else ''}>{ancestry}")
 
 
 
 def main():
     Pobj = get_init_pobj()
     PrevPobj = None
-    for x in range(20):
+    for x in range(40):
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
         PrevPobj = Pobj
         Pobj = get_next_pobj(PrevPobj)
