@@ -8,6 +8,8 @@ import os
 import regex as re
 from scipy.spatial import ConvexHull  # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html
 import numpy as np
+import time
+import random
 
 sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://codeberg.org/csirmaz/openscad-py
 
@@ -183,6 +185,7 @@ def ungenerate(fill):
 
 def get_init_stats():
     return {
+        'num_vertex': 0,
         'num_dropped_vertex': 0,
         'num_not_vertex': 0,
     }
@@ -260,6 +263,20 @@ def get_next_pobj(PrevPobj):
     return Pobj
 
 
+def swap(*, array, minix, maxix, steps):
+    for i in range(steps):
+        a = random.randrange(minix, maxix)
+        b = random.randrange(minix, maxix)
+        if a != b:
+            array[a], array[b] = array[b], array[a]
+
+def reorder_points(*, Pobj, PrevPobj):
+    """Reorder Pobj.RawPoints keeping RetainPoints first and ExtraPoints last"""
+    swap(array=Pobj.RawPoints, minix=0, maxix=len(PrevPobj.RetainPoints), steps=1000)
+    swap(array=Pobj.RawPoints, minix=len(PrevPobj.RetainPoints), maxix=Pobj.ExtraPointsFrom, steps=5000)
+    swap(array=Pobj.RawPoints, minix=Pobj.ExtraPointsFrom, maxix=len(Pobj.RawPoints), steps=5000)
+
+
 def process_points(*, Pobj, PrevPobj):
     
     if PrevPobj:
@@ -293,20 +310,26 @@ def process_points(*, Pobj, PrevPobj):
         Pobj.RawPoints.append([ex, max_v-ey, ey])
     del seen_yz
     
-    Pobj.Hull = ConvexHull(np.array(Pobj.RawPoints), qhull_options="Qc")
+    for tryix in range(3):
+        try:
+            Pobj.Hull = ConvexHull(np.array(Pobj.RawPoints, dtype=np.float64), qhull_options="Qc")
+        except Exception as e:
+            print(f"ConvexHull error: {e}")
+            reorder_points(Pobj=Pobj, PrevPobj=PrevPobj)
+            continue
+        break
     # Hull.points shape=<n,3> coordinates of all points
     # Hull.vertices shape=<k> indices of points that are vertices
     # Hull.simplices  triads of indices of points that form faces (triangulated)
     # We have previously checked that Hull.points === input points (indices match)
     del Pobj.RawPoints
     
-    # Process faces from the previous iteration
-    # We have already reindexed the points to match this iteration
-    if PrevPobj and hasattr(PrevPobj, 'Simplices'):
-        pass
-        # print(f"// EDGES OF THE CONVEX HULL iteration={PrevPobj.Iteration}")
-        # process_faces(Pobj, PrevPobj) # TODO enable later
-        # print(f"// EDGES REPORT END iteration={PrevPobj.Iteration}")
+    ## Process faces from the previous iteration
+    ## We have already reindexed the points to match this iteration
+    # if PrevPobj and hasattr(PrevPobj, 'Simplices'):
+    #     print(f"// EDGES OF THE CONVEX HULL iteration={PrevPobj.Iteration}")
+    #     process_faces(Pobj, PrevPobj) # TODO enable later
+    #     print(f"// EDGES REPORT END iteration={PrevPobj.Iteration}")
     
     # Create report
     
@@ -328,8 +351,9 @@ def process_points(*, Pobj, PrevPobj):
                 status = 'dropped_vertex'
                 # Check that we are only dropping vertices from the previous iteration
                 # NOTE Here we use the earliest iteration this point got generated
-                if Pobj.Iteration != Pobj.Global.PointInfo[p][0] + 1:
-                    print(f"CONJ VIOLATION iter={Pobj.Iteration} Dropping vertex first generated in iter {Pobj.Global.PointInfo[p][0]} and last generated in iter {Pobj.Global.DuplicateSets[p][-1][0] if p in Pobj.Global.DuplicateSets else 'N/A'}")
+                # FALSE from iteration 35 and up
+                # if Pobj.Iteration != Pobj.Global.PointInfo[p][0] + 1:
+                #     print(f"CONJ VIOLATION iter={Pobj.Iteration} Dropping vertex first generated in iter {Pobj.Global.PointInfo[p][0]} and last generated in iter {Pobj.Global.DuplicateSets[p][-1][0] if p in Pobj.Global.DuplicateSets else 'N/A'}")
             else:
                 status = 'not_vertex'
         if is_extra:
@@ -342,8 +366,10 @@ def process_points(*, Pobj, PrevPobj):
         
         if status == 'dropped_vertex':
             Pobj.Stats['num_dropped_vertex'] += 1
-        if status == 'not_vertex':
+        elif status == 'not_vertex':
             Pobj.Stats['num_not_vertex'] += 1
+        elif status in ['new_vertex', 'vertex_and_previously']:
+            Pobj.Stats['num_vertex'] += 1
         
         if CREATE_POINT_DATA and (not is_extra) and (status in ['vertex_and_previously', 'dropped_vertex', 'not_vertex']):
             output_point_data(pi=pi, p=p, Pobj=Pobj, status=status)
@@ -362,9 +388,9 @@ def process_points(*, Pobj, PrevPobj):
         if p not in seen_pk:
             assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
-    print(f"// VERTEX REPORT END for iteration={Pobj.Iteration} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} num_not_vertex={Pobj.Stats['num_not_vertex']}", flush=True)
-    if Pobj.Stats['num_dropped_vertex'] != Pobj.Stats['num_not_vertex']:
-        print(f"CONJ VIOLATION: iter={Pobj.Iteration} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} != num_not_vertex={Pobj.Stats['num_not_vertex']}")
+    print(f"// VERTEX REPORT END for iteration={Pobj.Iteration}", flush=True)
+    #if Pobj.Stats['num_dropped_vertex'] != Pobj.Stats['num_not_vertex']:
+    #    print(f"CONJ VIOLATION: iter={Pobj.Iteration} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} != num_not_vertex={Pobj.Stats['num_not_vertex']}")
     
     # Initialize new input from the vertices of this hull
     Pobj.RetainPoints = []
@@ -375,18 +401,18 @@ def process_points(*, Pobj, PrevPobj):
             p = pointtuple(Pobj.Hull.points[pi])
             Pobj.RetainPoints.append(p)
         
-    # Store faces for processing later
-    # We do it in the next step as that's when we know which vertices stay
-    # Reindex data to index into RetainPoints
-    Pobj.Simplices = []
-    for face in Pobj.Hull.simplices:
-        face = [int(v) for v in face]
-        if max(face) < Pobj.ExtraPointsFrom:
-            Pobj.Simplices.append([
-                old2new_index[face[0]],
-                old2new_index[face[1]],
-                old2new_index[face[2]]
-            ])
+    ## Store faces for processing later
+    ## We do it in the next step as that's when we know which vertices stay
+    ## Reindex data to index into RetainPoints
+    # Pobj.Simplices = []
+    # for face in Pobj.Hull.simplices:
+    #     face = [int(v) for v in face]
+    #     if max(face) < Pobj.ExtraPointsFrom:
+    #         Pobj.Simplices.append([
+    #             old2new_index[face[0]],
+    #             old2new_index[face[1]],
+    #             old2new_index[face[2]]
+    #         ])
 
     if CREATE_SCAD:
         Pobj.ScadOfHull = get_scad_hull(Pobj.Hull)
@@ -420,8 +446,12 @@ def print_point(*, pi, p, Pobj, status):
 def main():
     Pobj = get_init_pobj()
     PrevPobj = None
-    for x in range(40):
+    prev_time = time.time()
+    for x in range(200):
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
+        now_time = time.time()
+        print(f"ITERATION END for iteration={Pobj.Iteration} num_vertex={Pobj.Stats['num_vertex']} num_dropped_vertex={Pobj.Stats['num_dropped_vertex']} num_not_vertex={Pobj.Stats['num_not_vertex']} time={now_time-prev_time:.0f}s", flush=True)
+        prev_time = now_time
         PrevPobj = Pobj
         Pobj = get_next_pobj(PrevPobj)
 
