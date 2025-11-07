@@ -1,11 +1,19 @@
 
 # Generate candidates for vertices from vertices in the previous iteration
 # using the "full-row" rule
-# Generate reports on vertices, edges and scad
+
+# INSTALLATION:
+# $ python3 -m venv pyenv
+# $ source pyenv/bin/activate
+# (pyenv)$ pip install scipy
+# (pyenv)$ pip install numpy
+
+# RUNNING:
+# $ source pyenv/bin/activate     # if not run before
+# (pyenv)$ python convexhull_gen.py
 
 import sys
 import os
-import regex as re
 from scipy.spatial import ConvexHull  # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html
 import numpy as np
 import time
@@ -14,24 +22,12 @@ import json
 
 sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://codeberg.org/csirmaz/openscad-py
 
-from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
+# from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
-LOG_GENERATION = False
-
-
-CREATE_SCAD = False # Whether to create an scad file for each iteration
-CREATE_POINT_DATA = False
-POINT_DATA_OUTFILE = 'pointdata_gen'
-CREATE_EDGE_FACE_DATA = False
-EDGE_FACE_DATA_OUTFILE = 'edge_face_data_gen'
+LOG_GENERATION = True
+CREATE_SCAD = False
 
 CACHE_BINOM_TO = 200
-
-if CREATE_POINT_DATA:
-    point_data_file = open(POINT_DATA_OUTFILE, "w")
-if CREATE_EDGE_FACE_DATA:
-    edge_face_file = open(EDGE_FACE_DATA_OUTFILE, "w")
-
 
 class PObjectClass:
     pass
@@ -87,10 +83,11 @@ def fill2matrix(fill):
     return matrix
 
 assert fill2matrix([2,0]) == [[1,0],[1,0]]
+assert fill2matrix([2,1]) == [[1,1],[1,0]]  # lowermost row first!
 
 
 def fill2coords(fill):
-    """Given a column fill vector, get the coordinates"""
+    """Given a column fill vector, get the coordinates of the point"""
     matrix = fill2matrix(fill)
     x = 0
     y = 0
@@ -111,6 +108,7 @@ assert fill2coords([4,2,0,0]) == (7,3,8)
 
 def matrix2rowfill(matrix):
     """Given a matrix, return the per-row fill vector"""
+    # Lowermost row first
     rowfill = []
     l = len(matrix)
     for j, row in enumerate(matrix):
@@ -153,12 +151,12 @@ def check_nc(fill):
 
 
 def is_beginner(fill):
-    # whether the beginnings of diagonals are selected
+    # whether the beginnings of diagonals are selected; in the by-column fill vector, we start with a full column
     return (len(fill) == 0 or fill[0] == len(fill))
 
 
 def is_ender(fill):
-    # whether the ends of diagonals are selected
+    # whether the ends of diagonals are selected; in the by-column fill vector, all values are at least 1
     return (len(fill) == 0 or fill[-1] == 1)
 
 
@@ -179,12 +177,46 @@ def generate_next_by_row(fill, length):
 
 
 def ungenerate(fill):
-    """Given a fill vector, return the vector that generated it.
+    """Given a fill vector, return a vector that generated it.
     Note the result may have superfluous 0s at the end"""
     if is_beginner(fill):
-        return fill[1:]
+        return fill[1:]   # This means: [fill[1], fill[2], ..., fill[-1]]
     if is_ender(fill):
-        return [v-1 for v in fill[:-1]]
+        return [v-1 for v in fill[:-1]]    # This means: [fill[0]-1, fill[1]-1, ..., fill[-2]-1]
+
+
+def get_corner_points(fill):
+    """Given a (per-column) fill vector, produce the corner points"""
+    corners = []
+    for i, f in enumerate(fill):  # i = 0, 1, ..., len(f)-1   f = fill[0], fill[1], ..., fill[-1]
+        if f > 0 and (i == len(fill)-1 or fill[i+1] < f):
+            corners.append((i, f-1))
+    return corners
+
+assert get_corner_points([2,2,0,0,0]) == [(1,1)]
+assert get_corner_points([3,2,2,1]) == [(0,2), (2,1), (3,0)]
+assert get_corner_points([3,1,1]) == [(0,2), (2,0)]
+assert get_corner_points([3,2,1]) == [(0,2), (1,1), (2,0)]
+
+
+def is_reducible(fill):
+    corners = get_corner_points(fill)
+    ## HA EZT HOZZAVESZEM, PERSZE TOBB CSUCSRA MONDJA HOGY REDUCIBLE
+    # if len(fill) > 0:
+    #     corners = [(-1, fill[0]+1)] + corners  # addition is list concatenation
+    # else:
+    #     assert len(corners) == 0
+    #     corners = [(-1, 1)]
+
+    for p1 in range(0, len(corners)-2):  # for(p1=0; p1<len(corners)-2; p1++)
+        for p2 in range(p1+1, len(corners)-1):  # for(p2=p1+1, p2<len(corners)-1; p2++)
+            for p3 in range(p2+1, len(corners)):  # for(p3=p2+1, p3<len(corners); p3++)
+                i1, j1 = corners[p1]
+                i2, j2 = corners[p2]
+                i3, j3 = corners[p3]
+                if (i3-i2+1)/(j2-j3) <= (i3-i1)/(j1-j3): return (i1, i2, i3)
+                if (i3-i2-1)/(j2-j3) >= (i3-i1)/(j1-j3): return (i1, i2, i3)
+    return None
 
 
 def get_init_stats():
@@ -255,14 +287,14 @@ def get_next_pobj(PrevPobj):
                 elif coords == prev_coords:
                     continue  # We allow a duplicate point from the same source
                 if LOG_GENERATION:
-                    print(f"iter={Pobj.Iteration} {src_fill} = {src_coords} generated {fill} = {coords}")
+                    print(f"  {src_coords} = <{src_fill}> generated {coords} = <{fill}>")
                 
                 if coords in Pobj.Global.PointInfo:
                     # We have seen this point before from a different S set
                     if coords not in Pobj.Global.DuplicateSets: Pobj.Global.DuplicateSets[coords] = []
                     Pobj.Global.DuplicateSets[coords].append((Pobj.Iteration, fill))
                     if LOG_GENERATION:
-                        print(f"generated point {coords} is duplicate of {Pobj.Global.PointInfo[coords][1]}")
+                        print(f"    generated point {coords} seen before as <{Pobj.Global.PointInfo[coords][1]}>")
                 else:
                     Pobj.RawPoints.append(coords)
                     Pobj.Global.PointInfo[coords] = (Pobj.Iteration, fill)
@@ -270,7 +302,7 @@ def get_next_pobj(PrevPobj):
                 if Pobj.max_y < coords[1]: Pobj.max_y = coords[1]
 
     if LOG_GENERATION:
-        print(f"GENERATING POINTS ENDS for iteration={Pobj.Iteration}")
+        print(f"GENERATING POINTS ENDS")
     return Pobj
 
 
@@ -283,19 +315,24 @@ def swap(*, array, minix, maxix, steps):
 
 def reorder_points(*, Pobj, PrevPobj):
     """Reorder Pobj.RawPoints keeping RetainPoints first and ExtraPoints last"""
-    swap(array=Pobj.RawPoints, minix=0, maxix=len(PrevPobj.RetainPoints), steps=1000)
-    swap(array=Pobj.RawPoints, minix=len(PrevPobj.RetainPoints), maxix=Pobj.ExtraPointsFrom, steps=5000)
-    swap(array=Pobj.RawPoints, minix=Pobj.ExtraPointsFrom, maxix=len(Pobj.RawPoints), steps=5000)
+    # Doesn't seem to help
+    swap(array=Pobj.RawPoints, minix=0, maxix=len(PrevPobj.RetainPoints), steps=50000)
+    swap(array=Pobj.RawPoints, minix=len(PrevPobj.RetainPoints), maxix=Pobj.ExtraPointsFrom, steps=50000)
+    swap(array=Pobj.RawPoints, minix=Pobj.ExtraPointsFrom, maxix=len(Pobj.RawPoints), steps=50000)
 
 
 def process_points(*, Pobj, PrevPobj):
     
     if PrevPobj:
         assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrePobj iteration")
-        print(f"process_points: starting with {len(Pobj.RawPoints)} points of which {len(PrevPobj.RetainPoints)} is retained, iter={Pobj.Iteration}")
+        print(f"process_points: starting with {len(Pobj.RawPoints)} points of which {len(PrevPobj.RetainPoints)} is retained")
     
     if Pobj.Iteration < 2:
         Pobj.RetainPoints = Pobj.RawPoints
+        print(f"We are not generating a convex hull now, but just keep the following points")
+        Pobj.ExtraPointsFrom = len(Pobj.RetainPoints)
+        for pi, p in enumerate(Pobj.RetainPoints):
+            print_point(pi=pi, p=p, Pobj=Pobj, status='keep')
         return
     
     # Add extra points to create triangles
@@ -320,7 +357,7 @@ def process_points(*, Pobj, PrevPobj):
         Pobj.RawPoints.append([ex, max_v-ey, ey])
     del seen_yz
     
-    print(f"process_points: {len(Pobj.RawPoints)} after adding the extra points")
+    print(f"process_points: {len(Pobj.RawPoints)} points after adding the extra points")
     
     for tryix in range(3):
         try:
@@ -374,7 +411,7 @@ def process_points(*, Pobj, PrevPobj):
             Pobj.Stats[status] += 1
             print_point(pi=pi, p=p, Pobj=Pobj, status=status)
 
-    print(f"// VERTICES OF THE CONVEX HULL iteration={Pobj.Iteration}")
+    print(f"VERTICES OF THE CONVEX HULL in iteration={Pobj.Iteration}")
     seen_pk = set()
     for pi in Pobj.Hull.vertices:
         p = pointtuple(Pobj.Hull.points[pi])
@@ -382,13 +419,13 @@ def process_points(*, Pobj, PrevPobj):
         assrt(p not in seen_pk, "point listed as vertex multiple times")
         seen_pk.add(p)
 
-    print(f"// POINTS THAT ARE NOT VERTICES iteration={Pobj.Iteration}")
+    print(f"POINTS THAT ARE NOT VERTICES")
     for pi in range(len(Pobj.Hull.points)):
         p = pointtuple(Pobj.Hull.points[pi])
         if p not in seen_pk:
             assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
-    print(f"// VERTEX REPORT END for iteration={Pobj.Iteration}", flush=True)
+    print(f"VERTEX REPORT ENDS", flush=True)
     
     # Initialize new input from the vertices of this hull
     Pobj.RetainPoints = []
@@ -436,20 +473,27 @@ def print_point(*, pi, p, Pobj, status):
         #    # Find the generator
         #    parent_coords = fill2coords(ungenerate(infod[1]))
         #    ancestry = f" generated by {parent_coords}, first appeared in iter={Pobj.Global.PointInfo[parent_coords][0]}"
-        print(f"iter={Pobj.Iteration} {p} <{infod[1]}> iter={infod[0]} <{status}{'(duplicate)' if i>0 else ''}>")
+        reducible = is_reducible(infod[1])
+        if reducible is None:
+            reducible = 'non_reducible'
+        else:
+            reducible = f"reducible at i1={reducible[0]} i1={reducible[1]} i3={reducible[2]}"
+        print(f"  {p} <{infod[1]}> from_iter={infod[0]} status={status}{'(duplicate)' if i>0 else ''} {reducible}")
 
 
 
 def main():
     Pobj = get_init_pobj()
+    print(f"ITERATION {Pobj.Iteration} STARTS")
     PrevPobj = None
     prev_time = time.time()
-    for x in range(200):
+    for x in range(10):
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
         now_time = time.time()
-        print(f"ITERATION END for iteration={Pobj.Iteration} time={now_time-prev_time:.0f}s {json.dumps(Pobj.Stats)}", flush=True)
+        print(f"ITERATION {Pobj.Iteration} ENDS time={now_time-prev_time:.0f}s {json.dumps(Pobj.Stats)}\n\n", flush=True)
         prev_time = now_time
         PrevPobj = Pobj
+        print(f"ITERATION {PrevPobj.Iteration+1} STARTS")
         Pobj = get_next_pobj(PrevPobj)
 
 
@@ -465,7 +509,7 @@ exit(0)
 
 
 
-
+CREATE_EDGE_FACE_DATA = False
 
 def get_scad_hull(chull):
     # Convert the Qhull hull into openscad
@@ -478,13 +522,6 @@ def get_scad_hull(chull):
     ]
     ohull = Polyhedron(points=[chull.points[pi] for pi in chull.vertices], faces=new_faces)
     return ohull.render()
-
-    
-    
-
-
-
-
 
 
 def process_faces(Pobj, PrevPobj):
@@ -607,17 +644,3 @@ def process_faces(Pobj, PrevPobj):
     print("")
             
 
-    
-
-read_raw_data()
-
-if CREATE_POINT_DATA:
-    point_data_file.close()
-if CREATE_EDGE_FACE_DATA:
-    edge_face_file.close()
-
-
-## Process coplanar data
-#coplanar = {}
-#for d in chull.coplanar:
-#    coplanar[d[0]] = f"coplanar with f{d[1]}, its closest vertex is #{d[2]}"
