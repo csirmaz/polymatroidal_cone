@@ -132,21 +132,23 @@ assert invert_fill([2,2,2,1]) == [4,3,0,0]
 
 def check_nc(fill):
     """Check the necessary condition based on a fill vector"""
+    if len(fill) != fill[0] and fill[-1] != 1:
+        return False
     failed = False
     for i, v in enumerate(fill):
-        if i>0 and v >= fill[i-1] and fill[i-1] > 0:
+        if i > 0 and v >= fill[i-1] and fill[i-1] > 0:
             failed = True
             break
     if not failed:
-        return True
+        return fill[0]==len(fill)
     fill = invert_fill(fill)
     failed = False
     for i, v in enumerate(fill):
-        if i>0 and v >= fill[i-1] and fill[i-1] > 0:
+        if i > 0 and v >= fill[i-1] and fill[i-1] > 0:
             failed = True
             break
     if not failed:
-        return True
+        return fill[0]==len(fill)
     return False
 
 
@@ -187,14 +189,16 @@ def ungenerate(fill):
 
 def get_corner_points(fill):
     """Given a (per-column) fill vector, produce the corner points"""
+    if not is_ender(fill):
+        return get_corner_points(invert_fill(fill))
     corners = []
+    if len(fill) > 1 and fill[0] == fill[1]:
+        corners.append((-1, fill[0]))
     for i, f in enumerate(fill):  # i = 0, 1, ..., len(f)-1   f = fill[0], fill[1], ..., fill[-1]
         if f > 0 and (i == len(fill)-1 or fill[i+1] < f):
             corners.append((i, f-1))
     return corners
 
-assert get_corner_points([2,2,0,0,0]) == [(1,1)]
-assert get_corner_points([3,2,2,1]) == [(0,2), (2,1), (3,0)]
 assert get_corner_points([3,1,1]) == [(0,2), (2,0)]
 assert get_corner_points([3,2,1]) == [(0,2), (1,1), (2,0)]
 
@@ -215,7 +219,7 @@ def is_reducible(fill):
                 i2, j2 = corners[p2]
                 i3, j3 = corners[p3]
                 if (i3-i2+1)/(j2-j3) <= (i3-i1)/(j1-j3): return (i1, i2, i3) # reducible
-                if (i3-i2-1)/(j2-j3) >= (i3-i1)/(j1-j3): return (i1, i2, i3) # reducible
+                if i1 >= 0 and (i3-i2-1)/(j2-j3) >= (i3-i1)/(j1-j3): return (i1, i2, i3) # reducible
     return None # non-reducible
 
 
