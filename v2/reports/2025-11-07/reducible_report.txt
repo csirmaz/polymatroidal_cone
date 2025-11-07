@@ -207,7 +207,7 @@ VERTICES OF THE CONVEX HULL in iteration=4
   (15, 10, 30) <[5, 4, 0, 0, 0]> from_iter=4 status=generated->vertex non_reducible
   (15, 30, 10) <[2, 2, 2, 2, 1]> from_iter=4 status=generated->vertex non_reducible
   (16, 12, 30) <[5, 4, 1, 0, 0]> from_iter=4 status=generated->vertex non_reducible
-  (16, 30, 12) <[3, 2, 2, 2, 1]> from_iter=4 status=generated->vertex reducible at i1=0 i1=3 i3=4
+  (16, 30, 12) <[3, 2, 2, 2, 1]> from_iter=4 status=generated->vertex reducible at i1=0 i2=3 i3=4
   (19, 18, 33) <[5, 4, 2, 0, 0]> from_iter=4 status=generated->vertex non_reducible
   (19, 33, 18) <[3, 3, 2, 2, 1]> from_iter=4 status=generated->vertex non_reducible
   (20, 21, 33) <[5, 4, 2, 1, 0]> from_iter=4 status=generated->vertex non_reducible
@@ -233,7 +233,7 @@ POINTS THAT ARE NOT VERTICES
   (10, 6, 14) <[4, 3, 0, 0]> from_iter=3 status=vertex->nonvertex non_reducible
   (10, 14, 6) <[2, 2, 2, 1]> from_iter=3 status=vertex->nonvertex non_reducible
   (9, 5, 12) <[5, 2, 1, 0, 0]> from_iter=4 status=generated->nonvertex non_reducible
-  (9, 12, 5) <[3, 2, 1, 1, 1]> from_iter=4 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
+  (9, 12, 5) <[3, 2, 1, 1, 1]> from_iter=4 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
 VERTEX REPORT ENDS
 ITERATION 4 ENDS time=0s {"vertices": 64, "vertex->vertex": 25, "vertex->nonvertex": 2, "generated->vertex": 29, "generated->nonvertex": 2, "extra->vertex": 10}
 
@@ -378,9 +378,9 @@ VERTICES OF THE CONVEX HULL in iteration=5
   (21, 15, 55) <[6, 5, 0, 0, 0, 0]> from_iter=5 status=generated->vertex non_reducible
   (21, 55, 15) <[2, 2, 2, 2, 2, 1]> from_iter=5 status=generated->vertex non_reducible
   (22, 17, 55) <[6, 5, 1, 0, 0, 0]> from_iter=5 status=generated->vertex non_reducible
-  (22, 55, 17) <[3, 2, 2, 2, 2, 1]> from_iter=5 status=generated->vertex reducible at i1=0 i1=4 i3=5
+  (22, 55, 17) <[3, 2, 2, 2, 2, 1]> from_iter=5 status=generated->vertex reducible at i1=0 i2=4 i3=5
   (25, 23, 58) <[6, 5, 2, 0, 0, 0]> from_iter=5 status=generated->vertex non_reducible
-  (25, 58, 23) <[3, 3, 2, 2, 2, 1]> from_iter=5 status=generated->vertex reducible at i1=1 i1=4 i3=5
+  (25, 58, 23) <[3, 3, 2, 2, 2, 1]> from_iter=5 status=generated->vertex reducible at i1=1 i2=4 i3=5
   (31, 35, 70) <[6, 5, 3, 0, 0, 0]> from_iter=5 status=generated->vertex non_reducible
   (31, 70, 35) <[3, 3, 3, 2, 2, 1]> from_iter=5 status=generated->vertex non_reducible
   (32, 38, 70) <[6, 5, 3, 1, 0, 0]> from_iter=5 status=generated->vertex non_reducible
@@ -392,7 +392,7 @@ VERTICES OF THE CONVEX HULL in iteration=5
   (41, 55, 100) <[6, 5, 4, 0, 0, 0]> from_iter=5 status=generated->vertex non_reducible
   (41, 100, 55) <[3, 3, 3, 3, 2, 1]> from_iter=5 status=generated->vertex non_reducible
   (42, 58, 100) <[6, 5, 4, 1, 0, 0]> from_iter=5 status=generated->vertex non_reducible
-  (42, 100, 58) <[4, 3, 3, 3, 2, 1]> from_iter=5 status=generated->vertex reducible at i1=0 i1=3 i3=4
+  (42, 100, 58) <[4, 3, 3, 3, 2, 1]> from_iter=5 status=generated->vertex reducible at i1=0 i2=3 i3=4
   (46, 70, 104) <[6, 5, 4, 2, 0, 0]> from_iter=5 status=generated->vertex non_reducible
   (46, 104, 70) <[4, 4, 3, 3, 2, 1]> from_iter=5 status=generated->vertex non_reducible
   (47, 74, 104) <[6, 5, 4, 2, 1, 0]> from_iter=5 status=generated->vertex non_reducible
@@ -420,15 +420,15 @@ POINTS THAT ARE NOT VERTICES
   (15, 10, 30) <[5, 4, 0, 0, 0]> from_iter=4 status=vertex->nonvertex non_reducible
   (15, 30, 10) <[2, 2, 2, 2, 1]> from_iter=4 status=vertex->nonvertex non_reducible
   (16, 12, 30) <[5, 4, 1, 0, 0]> from_iter=4 status=vertex->nonvertex non_reducible
-  (16, 30, 12) <[3, 2, 2, 2, 1]> from_iter=4 status=vertex->nonvertex reducible at i1=0 i1=3 i3=4
+  (16, 30, 12) <[3, 2, 2, 2, 1]> from_iter=4 status=vertex->nonvertex reducible at i1=0 i2=3 i3=4
   (25, 30, 45) <[5, 4, 3, 0, 0]> from_iter=4 status=vertex->nonvertex non_reducible
   (25, 45, 30) <[3, 3, 3, 2, 1]> from_iter=4 status=vertex->nonvertex non_reducible
   (10, 5, 17) <[6, 2, 1, 0, 0, 0]> from_iter=5 status=generated->nonvertex non_reducible
-  (10, 17, 5) <[3, 2, 1, 1, 1, 1]> from_iter=5 status=generated->nonvertex reducible at i1=0 i1=1 i3=5
+  (10, 17, 5) <[3, 2, 1, 1, 1, 1]> from_iter=5 status=generated->nonvertex reducible at i1=0 i2=1 i3=5
   (16, 14, 26) <[6, 3, 2, 0, 0, 0]> from_iter=5 status=generated->nonvertex non_reducible
-  (16, 26, 14) <[3, 3, 2, 1, 1, 1]> from_iter=5 status=generated->nonvertex reducible at i1=1 i1=2 i3=5
+  (16, 26, 14) <[3, 3, 2, 1, 1, 1]> from_iter=5 status=generated->nonvertex reducible at i1=1 i2=2 i3=5
   (17, 17, 26) <[6, 3, 2, 1, 0, 0]> from_iter=5 status=generated->nonvertex non_reducible
-  (17, 26, 17) <[4, 3, 2, 1, 1, 1]> from_iter=5 status=generated->nonvertex reducible at i1=0 i1=2 i3=5
+  (17, 26, 17) <[4, 3, 2, 1, 1, 1]> from_iter=5 status=generated->nonvertex reducible at i1=0 i2=2 i3=5
 VERTEX REPORT ENDS
 ITERATION 5 ENDS time=0s {"vertices": 113, "vertex->vertex": 48, "vertex->nonvertex": 6, "generated->vertex": 53, "generated->nonvertex": 6, "extra->vertex": 12}
 
@@ -646,7 +646,7 @@ VERTICES OF THE CONVEX HULL in iteration=6
   (22, 15, 61) <[7, 5, 0, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (22, 61, 15) <[2, 2, 2, 2, 2, 1, 1]> from_iter=6 status=generated->vertex non_reducible
   (23, 17, 61) <[7, 5, 1, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (23, 61, 17) <[3, 2, 2, 2, 2, 1, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i1=4 i3=6
+  (23, 61, 17) <[3, 2, 2, 2, 2, 1, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i2=4 i3=6
   (26, 23, 64) <[7, 5, 2, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (26, 64, 23) <[3, 3, 2, 2, 2, 1, 1]> from_iter=6 status=generated->vertex non_reducible
   (32, 35, 76) <[7, 5, 3, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
@@ -668,17 +668,17 @@ VERTICES OF THE CONVEX HULL in iteration=6
   (28, 21, 91) <[7, 6, 0, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (28, 91, 21) <[2, 2, 2, 2, 2, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (29, 23, 91) <[7, 6, 1, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (29, 91, 23) <[3, 2, 2, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i1=5 i3=6
+  (29, 91, 23) <[3, 2, 2, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i2=5 i3=6
   (32, 29, 94) <[7, 6, 2, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (32, 94, 29) <[3, 3, 2, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=1 i1=5 i3=6
+  (32, 94, 29) <[3, 3, 2, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=1 i2=5 i3=6
   (38, 41, 106) <[7, 6, 3, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (38, 106, 41) <[3, 3, 3, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=2 i1=5 i3=6
+  (38, 106, 41) <[3, 3, 3, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=2 i2=5 i3=6
   (39, 44, 106) <[7, 6, 3, 1, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (39, 106, 44) <[4, 3, 3, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i1=5 i3=6
+  (39, 106, 44) <[4, 3, 3, 2, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i2=5 i3=6
   (48, 61, 136) <[7, 6, 4, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (48, 136, 61) <[3, 3, 3, 3, 2, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (49, 64, 136) <[7, 6, 4, 1, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (49, 136, 64) <[4, 3, 3, 3, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i1=3 i3=6
+  (49, 136, 64) <[4, 3, 3, 3, 2, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i2=3 i3=6
   (53, 76, 140) <[7, 6, 4, 2, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (53, 140, 76) <[4, 4, 3, 3, 2, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (54, 80, 140) <[7, 6, 4, 2, 1, 0, 0]> from_iter=6 status=generated->vertex non_reducible
@@ -691,22 +691,22 @@ VERTICES OF THE CONVEX HULL in iteration=6
   (70, 165, 135) <[6, 5, 4, 3, 2, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (63, 91, 196) <[7, 6, 5, 0, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (63, 196, 91) <[3, 3, 3, 3, 3, 2, 1]> from_iter=6 status=generated->vertex non_reducible
-  (64, 94, 196) <[7, 6, 5, 1, 0, 0, 0]> from_iter=6 status=generated->vertex reducible at i1=0 i1=2 i3=3
-  (64, 196, 94) <[4, 3, 3, 3, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i1=4 i3=5
+  (64, 94, 196) <[7, 6, 5, 1, 0, 0, 0]> from_iter=6 status=generated->vertex reducible at i1=0 i2=2 i3=3
+  (64, 196, 94) <[4, 3, 3, 3, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i2=4 i3=5
   (68, 106, 200) <[7, 6, 5, 2, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (68, 200, 106) <[4, 4, 3, 3, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=1 i1=4 i3=5
+  (68, 200, 106) <[4, 4, 3, 3, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=1 i2=4 i3=5
   (78, 136, 220) <[7, 6, 5, 3, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (78, 220, 136) <[4, 4, 4, 3, 3, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (79, 140, 220) <[7, 6, 5, 3, 1, 0, 0]> from_iter=6 status=generated->vertex non_reducible
-  (79, 220, 140) <[5, 4, 4, 3, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i1=4 i3=6
+  (79, 220, 140) <[5, 4, 4, 3, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i2=4 i3=6
   (84, 160, 225) <[7, 6, 5, 3, 2, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (84, 225, 160) <[5, 5, 4, 3, 3, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (85, 165, 225) <[7, 6, 5, 3, 2, 1, 0]> from_iter=6 status=generated->vertex non_reducible
   (85, 225, 165) <[6, 5, 4, 3, 3, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (98, 196, 280) <[7, 6, 5, 4, 0, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (98, 280, 196) <[4, 4, 4, 4, 3, 2, 1]> from_iter=6 status=generated->vertex non_reducible
-  (99, 200, 280) <[7, 6, 5, 4, 1, 0, 0]> from_iter=6 status=generated->vertex reducible at i1=0 i1=3 i3=4
-  (99, 280, 200) <[5, 4, 4, 4, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i1=3 i3=4
+  (99, 200, 280) <[7, 6, 5, 4, 1, 0, 0]> from_iter=6 status=generated->vertex reducible at i1=0 i2=3 i3=4
+  (99, 280, 200) <[5, 4, 4, 4, 3, 2, 1]> from_iter=6 status=generated->vertex reducible at i1=0 i2=3 i3=4
   (104, 220, 285) <[7, 6, 5, 4, 2, 0, 0]> from_iter=6 status=generated->vertex non_reducible
   (104, 285, 220) <[5, 5, 4, 4, 3, 2, 1]> from_iter=6 status=generated->vertex non_reducible
   (105, 225, 285) <[7, 6, 5, 4, 2, 1, 0]> from_iter=6 status=generated->vertex non_reducible
@@ -738,37 +738,37 @@ POINTS THAT ARE NOT VERTICES
   (21, 15, 55) <[6, 5, 0, 0, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
   (21, 55, 15) <[2, 2, 2, 2, 2, 1]> from_iter=5 status=vertex->nonvertex non_reducible
   (22, 17, 55) <[6, 5, 1, 0, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
-  (22, 55, 17) <[3, 2, 2, 2, 2, 1]> from_iter=5 status=vertex->nonvertex reducible at i1=0 i1=4 i3=5
+  (22, 55, 17) <[3, 2, 2, 2, 2, 1]> from_iter=5 status=vertex->nonvertex reducible at i1=0 i2=4 i3=5
   (25, 23, 58) <[6, 5, 2, 0, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
-  (25, 58, 23) <[3, 3, 2, 2, 2, 1]> from_iter=5 status=vertex->nonvertex reducible at i1=1 i1=4 i3=5
+  (25, 58, 23) <[3, 3, 2, 2, 2, 1]> from_iter=5 status=vertex->nonvertex reducible at i1=1 i2=4 i3=5
   (31, 35, 70) <[6, 5, 3, 0, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
   (31, 70, 35) <[3, 3, 3, 2, 2, 1]> from_iter=5 status=vertex->nonvertex non_reducible
   (41, 55, 100) <[6, 5, 4, 0, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
   (41, 100, 55) <[3, 3, 3, 3, 2, 1]> from_iter=5 status=vertex->nonvertex non_reducible
   (42, 58, 100) <[6, 5, 4, 1, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
-  (42, 100, 58) <[4, 3, 3, 3, 2, 1]> from_iter=5 status=vertex->nonvertex reducible at i1=0 i1=3 i3=4
+  (42, 100, 58) <[4, 3, 3, 3, 2, 1]> from_iter=5 status=vertex->nonvertex reducible at i1=0 i2=3 i3=4
   (46, 70, 104) <[6, 5, 4, 2, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
   (46, 104, 70) <[4, 4, 3, 3, 2, 1]> from_iter=5 status=vertex->nonvertex non_reducible
   (56, 100, 124) <[6, 5, 4, 3, 0, 0]> from_iter=5 status=vertex->nonvertex non_reducible
   (56, 124, 100) <[4, 4, 4, 3, 2, 1]> from_iter=5 status=vertex->nonvertex non_reducible
   (11, 5, 23) <[7, 2, 1, 0, 0, 0, 0]> from_iter=6 status=generated->nonvertex non_reducible
-  (11, 23, 5) <[3, 2, 1, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=1 i3=6
+  (11, 23, 5) <[3, 2, 1, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=1 i3=6
   (14, 8, 29) <[7, 3, 1, 0, 0, 0, 0]> from_iter=6 status=generated->nonvertex non_reducible
-  (14, 29, 8) <[3, 2, 2, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=2 i3=6
+  (14, 29, 8) <[3, 2, 2, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=2 i3=6
   (17, 14, 32) <[7, 3, 2, 0, 0, 0, 0]> from_iter=6 status=generated->nonvertex non_reducible
-  (17, 32, 14) <[3, 3, 2, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=1 i1=2 i3=6
-  (18, 17, 32) <[7, 3, 2, 1, 0, 0, 0]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (18, 32, 17) <[4, 3, 2, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=1 i3=6
+  (17, 32, 14) <[3, 3, 2, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=1 i2=2 i3=6
+  (18, 17, 32) <[7, 3, 2, 1, 0, 0, 0]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (18, 32, 17) <[4, 3, 2, 1, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=1 i3=6
   (22, 21, 44) <[7, 4, 2, 1, 0, 0, 0]> from_iter=6 status=generated->nonvertex non_reducible
-  (22, 44, 21) <[4, 3, 2, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=1 i3=6
+  (22, 44, 21) <[4, 3, 2, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=1 i3=6
   (28, 33, 56) <[7, 4, 3, 1, 0, 0, 0]> from_iter=6 status=generated->nonvertex non_reducible
-  (28, 56, 33) <[4, 3, 3, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=3 i3=6
+  (28, 56, 33) <[4, 3, 3, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=3 i3=6
   (32, 45, 60) <[7, 4, 3, 2, 0, 0, 0]> from_iter=6 status=generated->nonvertex non_reducible
-  (32, 60, 45) <[4, 4, 3, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=1 i1=3 i3=6
-  (33, 49, 60) <[7, 4, 3, 2, 1, 0, 0]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (33, 60, 49) <[5, 4, 3, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=2 i3=6
+  (32, 60, 45) <[4, 4, 3, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=1 i2=3 i3=6
+  (33, 49, 60) <[7, 4, 3, 2, 1, 0, 0]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (33, 60, 49) <[5, 4, 3, 2, 1, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=2 i3=6
   (38, 54, 80) <[7, 5, 3, 2, 1, 0, 0]> from_iter=6 status=generated->nonvertex non_reducible
-  (38, 80, 54) <[5, 4, 3, 2, 2, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i1=2 i3=6
+  (38, 80, 54) <[5, 4, 3, 2, 2, 1, 1]> from_iter=6 status=generated->nonvertex reducible at i1=0 i2=2 i3=6
 VERTEX REPORT ENDS
 ITERATION 6 ENDS time=0s {"vertices": 186, "vertex->vertex": 83, "vertex->nonvertex": 18, "generated->vertex": 89, "generated->nonvertex": 18, "extra->vertex": 14}
 
@@ -1119,9 +1119,9 @@ VERTICES OF THE CONVEX HULL in iteration=7
   (29, 21, 98) <[8, 6, 0, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (29, 98, 21) <[2, 2, 2, 2, 2, 2, 1, 1]> from_iter=7 status=generated->vertex non_reducible
   (30, 23, 98) <[8, 6, 1, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (30, 98, 23) <[3, 2, 2, 2, 2, 2, 1, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=5 i3=7
+  (30, 98, 23) <[3, 2, 2, 2, 2, 2, 1, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=5 i3=7
   (33, 29, 101) <[8, 6, 2, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (33, 101, 29) <[3, 3, 2, 2, 2, 2, 1, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=5 i3=7
+  (33, 101, 29) <[3, 3, 2, 2, 2, 2, 1, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=5 i3=7
   (39, 41, 113) <[8, 6, 3, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (39, 113, 41) <[3, 3, 3, 2, 2, 2, 1, 1]> from_iter=7 status=generated->vertex non_reducible
   (40, 44, 113) <[8, 6, 3, 1, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
@@ -1151,23 +1151,23 @@ VERTICES OF THE CONVEX HULL in iteration=7
   (36, 28, 140) <[8, 7, 0, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (36, 140, 28) <[2, 2, 2, 2, 2, 2, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (37, 30, 140) <[8, 7, 1, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (37, 140, 30) <[3, 2, 2, 2, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=6 i3=7
+  (37, 140, 30) <[3, 2, 2, 2, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=6 i3=7
   (40, 36, 143) <[8, 7, 2, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (40, 143, 36) <[3, 3, 2, 2, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=6 i3=7
+  (40, 143, 36) <[3, 3, 2, 2, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=6 i3=7
   (46, 48, 155) <[8, 7, 3, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (46, 155, 48) <[3, 3, 3, 2, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=2 i1=6 i3=7
+  (46, 155, 48) <[3, 3, 3, 2, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=2 i2=6 i3=7
   (56, 68, 185) <[8, 7, 4, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (56, 185, 68) <[3, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=3 i1=6 i3=7
+  (56, 185, 68) <[3, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=3 i2=6 i3=7
   (57, 71, 185) <[8, 7, 4, 1, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (57, 185, 71) <[4, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=6 i3=7
+  (57, 185, 71) <[4, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=6 i3=7
   (61, 83, 189) <[8, 7, 4, 2, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (61, 189, 83) <[4, 4, 3, 3, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=6 i3=7
+  (61, 189, 83) <[4, 4, 3, 3, 2, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=6 i3=7
   (71, 98, 245) <[8, 7, 5, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (71, 245, 98) <[3, 3, 3, 3, 3, 2, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (72, 101, 245) <[8, 7, 5, 1, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (72, 245, 101) <[4, 3, 3, 3, 3, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=4 i3=6
+  (72, 245, 101) <[4, 3, 3, 3, 3, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=4 i3=6
   (76, 113, 249) <[8, 7, 5, 2, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (76, 249, 113) <[4, 4, 3, 3, 3, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=4 i3=7
+  (76, 249, 113) <[4, 4, 3, 3, 3, 2, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=4 i3=7
   (86, 143, 269) <[8, 7, 5, 3, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (86, 269, 143) <[4, 4, 4, 3, 3, 2, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (87, 147, 269) <[8, 7, 5, 3, 1, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
@@ -1186,22 +1186,22 @@ VERTICES OF THE CONVEX HULL in iteration=7
   (135, 370, 328) <[7, 6, 5, 4, 3, 2, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (92, 140, 350) <[8, 7, 6, 0, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (92, 350, 140) <[3, 3, 3, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
-  (93, 143, 350) <[8, 7, 6, 1, 0, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i1=2 i3=3
-  (93, 350, 143) <[4, 3, 3, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=5 i3=6
-  (97, 155, 354) <[8, 7, 6, 2, 0, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i1=2 i3=3
-  (97, 354, 155) <[4, 4, 3, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=5 i3=6
+  (93, 143, 350) <[8, 7, 6, 1, 0, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i2=2 i3=3
+  (93, 350, 143) <[4, 3, 3, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=5 i3=6
+  (97, 155, 354) <[8, 7, 6, 2, 0, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i2=2 i3=3
+  (97, 354, 155) <[4, 4, 3, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=5 i3=6
   (107, 185, 374) <[8, 7, 6, 3, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (107, 374, 185) <[4, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=2 i1=5 i3=6
+  (107, 374, 185) <[4, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=2 i2=5 i3=6
   (108, 189, 374) <[8, 7, 6, 3, 1, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (108, 374, 189) <[5, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=5 i3=6
+  (108, 374, 189) <[5, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=5 i3=6
   (127, 245, 434) <[8, 7, 6, 4, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (127, 434, 245) <[4, 4, 4, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (128, 249, 434) <[8, 7, 6, 4, 1, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (128, 434, 249) <[5, 4, 4, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=3 i3=6
+  (128, 434, 249) <[5, 4, 4, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=3 i3=6
   (133, 269, 439) <[8, 7, 6, 4, 2, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (133, 439, 269) <[5, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=5 i3=7
+  (133, 439, 269) <[5, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=5 i3=7
   (134, 274, 439) <[8, 7, 6, 4, 2, 1, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (134, 439, 274) <[6, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=5 i3=7
+  (134, 439, 274) <[6, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=5 i3=7
   (149, 334, 469) <[8, 7, 6, 4, 3, 1, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (149, 469, 334) <[6, 5, 5, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (155, 364, 475) <[8, 7, 6, 4, 3, 2, 0, 0]> from_iter=7 status=generated->vertex non_reducible
@@ -1210,22 +1210,22 @@ VERTICES OF THE CONVEX HULL in iteration=7
   (156, 475, 370) <[7, 6, 5, 4, 3, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (162, 350, 574) <[8, 7, 6, 5, 0, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (162, 574, 350) <[4, 4, 4, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
-  (163, 354, 574) <[8, 7, 6, 5, 1, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i1=3 i3=4
-  (163, 574, 354) <[5, 4, 4, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=4 i3=5
-  (168, 374, 579) <[8, 7, 6, 5, 2, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i1=3 i3=4
-  (168, 579, 374) <[5, 5, 4, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i1=4 i3=5
+  (163, 354, 574) <[8, 7, 6, 5, 1, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i2=3 i3=4
+  (163, 574, 354) <[5, 4, 4, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=4 i3=5
+  (168, 374, 579) <[8, 7, 6, 5, 2, 0, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i2=3 i3=4
+  (168, 579, 374) <[5, 5, 4, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=1 i2=4 i3=5
   (183, 434, 609) <[8, 7, 6, 5, 3, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (183, 609, 434) <[5, 5, 5, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (184, 439, 609) <[8, 7, 6, 5, 3, 1, 0, 0]> from_iter=7 status=generated->vertex non_reducible
-  (184, 609, 439) <[6, 5, 5, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=4 i3=6
+  (184, 609, 439) <[6, 5, 5, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=4 i3=6
   (190, 469, 615) <[8, 7, 6, 5, 3, 2, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (190, 615, 469) <[6, 6, 5, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (191, 475, 615) <[8, 7, 6, 5, 3, 2, 1, 0]> from_iter=7 status=generated->vertex non_reducible
   (191, 615, 475) <[7, 6, 5, 4, 4, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (218, 574, 714) <[8, 7, 6, 5, 4, 0, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (218, 714, 574) <[5, 5, 5, 5, 4, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
-  (219, 579, 714) <[8, 7, 6, 5, 4, 1, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i1=4 i3=5
-  (219, 714, 579) <[6, 5, 5, 5, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i1=3 i3=4
+  (219, 579, 714) <[8, 7, 6, 5, 4, 1, 0, 0]> from_iter=7 status=generated->vertex reducible at i1=0 i2=4 i3=5
+  (219, 714, 579) <[6, 5, 5, 5, 4, 3, 2, 1]> from_iter=7 status=generated->vertex reducible at i1=0 i2=3 i3=4
   (225, 609, 720) <[8, 7, 6, 5, 4, 2, 0, 0]> from_iter=7 status=generated->vertex non_reducible
   (225, 720, 609) <[6, 6, 5, 5, 4, 3, 2, 1]> from_iter=7 status=generated->vertex non_reducible
   (226, 615, 720) <[8, 7, 6, 5, 4, 2, 1, 0]> from_iter=7 status=generated->vertex non_reducible
@@ -1257,75 +1257,75 @@ POINTS THAT ARE NOT VERTICES
   (22, 15, 61) <[7, 5, 0, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (22, 61, 15) <[2, 2, 2, 2, 2, 1, 1]> from_iter=6 status=vertex->nonvertex non_reducible
   (23, 17, 61) <[7, 5, 1, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (23, 61, 17) <[3, 2, 2, 2, 2, 1, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=4 i3=6
+  (23, 61, 17) <[3, 2, 2, 2, 2, 1, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=4 i3=6
   (28, 21, 91) <[7, 6, 0, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (28, 91, 21) <[2, 2, 2, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex non_reducible
   (29, 23, 91) <[7, 6, 1, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (29, 91, 23) <[3, 2, 2, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=5 i3=6
+  (29, 91, 23) <[3, 2, 2, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=5 i3=6
   (32, 29, 94) <[7, 6, 2, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (32, 94, 29) <[3, 3, 2, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=1 i1=5 i3=6
+  (32, 94, 29) <[3, 3, 2, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=1 i2=5 i3=6
   (38, 41, 106) <[7, 6, 3, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (38, 106, 41) <[3, 3, 3, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=2 i1=5 i3=6
+  (38, 106, 41) <[3, 3, 3, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=2 i2=5 i3=6
   (39, 44, 106) <[7, 6, 3, 1, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (39, 106, 44) <[4, 3, 3, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=5 i3=6
+  (39, 106, 44) <[4, 3, 3, 2, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=5 i3=6
   (48, 61, 136) <[7, 6, 4, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (48, 136, 61) <[3, 3, 3, 3, 2, 2, 1]> from_iter=6 status=vertex->nonvertex non_reducible
   (49, 64, 136) <[7, 6, 4, 1, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (49, 136, 64) <[4, 3, 3, 3, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=3 i3=6
+  (49, 136, 64) <[4, 3, 3, 3, 2, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=3 i3=6
   (63, 91, 196) <[7, 6, 5, 0, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (63, 196, 91) <[3, 3, 3, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex non_reducible
-  (64, 94, 196) <[7, 6, 5, 1, 0, 0, 0]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=2 i3=3
-  (64, 196, 94) <[4, 3, 3, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=4 i3=5
+  (64, 94, 196) <[7, 6, 5, 1, 0, 0, 0]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=2 i3=3
+  (64, 196, 94) <[4, 3, 3, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=4 i3=5
   (68, 106, 200) <[7, 6, 5, 2, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (68, 200, 106) <[4, 4, 3, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=1 i1=4 i3=5
+  (68, 200, 106) <[4, 4, 3, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=1 i2=4 i3=5
   (78, 136, 220) <[7, 6, 5, 3, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (78, 220, 136) <[4, 4, 4, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex non_reducible
   (79, 140, 220) <[7, 6, 5, 3, 1, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
-  (79, 220, 140) <[5, 4, 4, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=4 i3=6
+  (79, 220, 140) <[5, 4, 4, 3, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=4 i3=6
   (98, 196, 280) <[7, 6, 5, 4, 0, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (98, 280, 196) <[4, 4, 4, 4, 3, 2, 1]> from_iter=6 status=vertex->nonvertex non_reducible
-  (99, 200, 280) <[7, 6, 5, 4, 1, 0, 0]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=3 i3=4
-  (99, 280, 200) <[5, 4, 4, 4, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i1=3 i3=4
+  (99, 200, 280) <[7, 6, 5, 4, 1, 0, 0]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=3 i3=4
+  (99, 280, 200) <[5, 4, 4, 4, 3, 2, 1]> from_iter=6 status=vertex->nonvertex reducible at i1=0 i2=3 i3=4
   (104, 220, 285) <[7, 6, 5, 4, 2, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (104, 285, 220) <[5, 5, 4, 4, 3, 2, 1]> from_iter=6 status=vertex->nonvertex non_reducible
   (119, 280, 315) <[7, 6, 5, 4, 3, 0, 0]> from_iter=6 status=vertex->nonvertex non_reducible
   (119, 315, 280) <[5, 5, 5, 4, 3, 2, 1]> from_iter=6 status=vertex->nonvertex non_reducible
   (12, 5, 30) <[8, 2, 1, 0, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (12, 30, 5) <[3, 2, 1, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=7
+  (12, 30, 5) <[3, 2, 1, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=7
   (15, 8, 36) <[8, 3, 1, 0, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (15, 36, 8) <[3, 2, 2, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=2 i3=7
+  (15, 36, 8) <[3, 2, 2, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=2 i3=7
   (18, 14, 39) <[8, 3, 2, 0, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (18, 39, 14) <[3, 3, 2, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i1=2 i3=7
-  (19, 17, 39) <[8, 3, 2, 1, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (19, 39, 17) <[4, 3, 2, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=7
+  (18, 39, 14) <[3, 3, 2, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i2=2 i3=7
+  (19, 17, 39) <[8, 3, 2, 1, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (19, 39, 17) <[4, 3, 2, 1, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=7
   (22, 18, 51) <[8, 4, 2, 0, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (22, 51, 18) <[3, 3, 2, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i1=3 i3=7
+  (22, 51, 18) <[3, 3, 2, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i2=3 i3=7
   (23, 21, 51) <[8, 4, 2, 1, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (23, 51, 21) <[4, 3, 2, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=7
+  (23, 51, 21) <[4, 3, 2, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=7
   (29, 33, 63) <[8, 4, 3, 1, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (29, 63, 33) <[4, 3, 3, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=3 i3=7
-  (33, 45, 67) <[8, 4, 3, 2, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (33, 67, 45) <[4, 4, 3, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i1=2 i3=7
-  (34, 49, 67) <[8, 4, 3, 2, 1, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (34, 67, 49) <[5, 4, 3, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=2 i3=7
+  (29, 63, 33) <[4, 3, 3, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=3 i3=7
+  (33, 45, 67) <[8, 4, 3, 2, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (33, 67, 45) <[4, 4, 3, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i2=2 i3=7
+  (34, 49, 67) <[8, 4, 3, 2, 1, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (34, 67, 49) <[5, 4, 3, 2, 1, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=2 i3=7
   (38, 50, 87) <[8, 5, 3, 2, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (38, 87, 50) <[4, 4, 3, 2, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i1=2 i3=7
+  (38, 87, 50) <[4, 4, 3, 2, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i2=2 i3=7
   (39, 54, 87) <[8, 5, 3, 2, 1, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (39, 87, 54) <[5, 4, 3, 2, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=2 i3=7
+  (39, 87, 54) <[5, 4, 3, 2, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=2 i3=7
   (48, 70, 117) <[8, 5, 4, 2, 0, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (48, 117, 70) <[4, 4, 3, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i1=4 i3=7
+  (48, 117, 70) <[4, 4, 3, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i2=4 i3=7
   (49, 74, 117) <[8, 5, 4, 2, 1, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (49, 117, 74) <[5, 4, 3, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=4 i3=7
+  (49, 117, 74) <[5, 4, 3, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=4 i3=7
   (59, 104, 137) <[8, 5, 4, 3, 1, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (59, 137, 104) <[5, 4, 4, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=4 i3=7
-  (64, 124, 142) <[8, 5, 4, 3, 2, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (64, 142, 124) <[5, 5, 4, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i1=3 i3=7
-  (65, 129, 142) <[8, 5, 4, 3, 2, 1, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (65, 142, 129) <[6, 5, 4, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=3 i3=7
+  (59, 137, 104) <[5, 4, 4, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=4 i3=7
+  (64, 124, 142) <[8, 5, 4, 3, 2, 0, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (64, 142, 124) <[5, 5, 4, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i2=3 i3=7
+  (65, 129, 142) <[8, 5, 4, 3, 2, 1, 0, 0]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (65, 142, 129) <[6, 5, 4, 3, 2, 1, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=3 i3=7
   (70, 130, 172) <[8, 6, 4, 3, 2, 0, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (70, 172, 130) <[5, 5, 4, 3, 2, 2, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i1=3 i3=7
+  (70, 172, 130) <[5, 5, 4, 3, 2, 2, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=1 i2=3 i3=7
   (71, 135, 172) <[8, 6, 4, 3, 2, 1, 0, 0]> from_iter=7 status=generated->nonvertex non_reducible
-  (71, 172, 135) <[6, 5, 4, 3, 2, 2, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i1=3 i3=7
+  (71, 172, 135) <[6, 5, 4, 3, 2, 2, 1, 1]> from_iter=7 status=generated->nonvertex reducible at i1=0 i2=3 i3=7
 VERTEX REPORT ENDS
 ITERATION 7 ENDS time=0s {"vertices": 295, "vertex->vertex": 136, "vertex->nonvertex": 36, "generated->vertex": 143, "generated->nonvertex": 36, "extra->vertex": 16}
 
@@ -1853,7 +1853,7 @@ VERTICES OF THE CONVEX HULL in iteration=8
   (30, 21, 106) <[9, 6, 0, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (30, 106, 21) <[2, 2, 2, 2, 2, 2, 1, 1, 1]> from_iter=8 status=generated->vertex non_reducible
   (31, 23, 106) <[9, 6, 1, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (31, 106, 23) <[3, 2, 2, 2, 2, 2, 1, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=5 i3=8
+  (31, 106, 23) <[3, 2, 2, 2, 2, 2, 1, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=5 i3=8
   (34, 29, 109) <[9, 6, 2, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (34, 109, 29) <[3, 3, 2, 2, 2, 2, 1, 1, 1]> from_iter=8 status=generated->vertex non_reducible
   (40, 41, 121) <[9, 6, 3, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
@@ -1867,11 +1867,11 @@ VERTICES OF THE CONVEX HULL in iteration=8
   (37, 28, 148) <[9, 7, 0, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (37, 148, 28) <[2, 2, 2, 2, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex non_reducible
   (38, 30, 148) <[9, 7, 1, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (38, 148, 30) <[3, 2, 2, 2, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=6 i3=8
+  (38, 148, 30) <[3, 2, 2, 2, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=6 i3=8
   (41, 36, 151) <[9, 7, 2, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (41, 151, 36) <[3, 3, 2, 2, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=6 i3=8
+  (41, 151, 36) <[3, 3, 2, 2, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=6 i3=8
   (47, 48, 163) <[9, 7, 3, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (47, 163, 48) <[3, 3, 3, 2, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=6 i3=8
+  (47, 163, 48) <[3, 3, 3, 2, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=6 i3=8
   (57, 68, 193) <[9, 7, 4, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (57, 193, 68) <[3, 3, 3, 3, 2, 2, 2, 1, 1]> from_iter=8 status=generated->vertex non_reducible
   (58, 71, 193) <[9, 7, 4, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
@@ -1913,37 +1913,37 @@ VERTICES OF THE CONVEX HULL in iteration=8
   (45, 36, 204) <[9, 8, 0, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (45, 204, 36) <[2, 2, 2, 2, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (46, 38, 204) <[9, 8, 1, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (46, 204, 38) <[3, 2, 2, 2, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=7 i3=8
+  (46, 204, 38) <[3, 2, 2, 2, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=7 i3=8
   (49, 44, 207) <[9, 8, 2, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (49, 207, 44) <[3, 3, 2, 2, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=7 i3=8
+  (49, 207, 44) <[3, 3, 2, 2, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=7 i3=8
   (55, 56, 219) <[9, 8, 3, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (55, 219, 56) <[3, 3, 3, 2, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=7 i3=8
+  (55, 219, 56) <[3, 3, 3, 2, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=7 i3=8
   (65, 76, 249) <[9, 8, 4, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (65, 249, 76) <[3, 3, 3, 3, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=3 i1=7 i3=8
+  (65, 249, 76) <[3, 3, 3, 3, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=3 i2=7 i3=8
   (66, 79, 249) <[9, 8, 4, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (66, 249, 79) <[4, 3, 3, 3, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=7 i3=8
+  (66, 249, 79) <[4, 3, 3, 3, 2, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=7 i3=8
   (80, 106, 309) <[9, 8, 5, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (80, 309, 106) <[3, 3, 3, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=4 i1=7 i3=8
+  (80, 309, 106) <[3, 3, 3, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=4 i2=7 i3=8
   (81, 109, 309) <[9, 8, 5, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (81, 309, 109) <[4, 3, 3, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=4 i3=8
+  (81, 309, 109) <[4, 3, 3, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=4 i3=8
   (85, 121, 313) <[9, 8, 5, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (85, 313, 121) <[4, 4, 3, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=7 i3=8
+  (85, 313, 121) <[4, 4, 3, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=7 i3=8
   (95, 151, 333) <[9, 8, 5, 3, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (95, 333, 151) <[4, 4, 4, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=7 i3=8
+  (95, 333, 151) <[4, 4, 4, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=7 i3=8
   (96, 155, 333) <[9, 8, 5, 3, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (96, 333, 155) <[5, 4, 4, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=7 i3=8
+  (96, 333, 155) <[5, 4, 4, 3, 3, 2, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=7 i3=8
   (101, 148, 414) <[9, 8, 6, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (101, 414, 148) <[3, 3, 3, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (102, 151, 414) <[9, 8, 6, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (102, 414, 151) <[4, 3, 3, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=5 i3=7
+  (102, 414, 151) <[4, 3, 3, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=5 i3=7
   (106, 163, 418) <[9, 8, 6, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (106, 418, 163) <[4, 4, 3, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=5 i3=7
+  (106, 418, 163) <[4, 4, 3, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=5 i3=7
   (116, 193, 438) <[9, 8, 6, 3, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (116, 438, 193) <[4, 4, 4, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=5 i3=8
+  (116, 438, 193) <[4, 4, 4, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=5 i3=8
   (117, 197, 438) <[9, 8, 6, 3, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (117, 438, 197) <[5, 4, 4, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=5 i3=8
+  (117, 438, 197) <[5, 4, 4, 3, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=5 i3=8
   (137, 257, 498) <[9, 8, 6, 4, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (137, 498, 257) <[5, 4, 4, 4, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=8
+  (137, 498, 257) <[5, 4, 4, 4, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=8
   (142, 277, 503) <[9, 8, 6, 4, 2, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (142, 503, 277) <[5, 5, 4, 4, 3, 3, 2, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (143, 282, 503) <[9, 8, 6, 4, 2, 1, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
@@ -1966,30 +1966,30 @@ VERTICES OF THE CONVEX HULL in iteration=8
   (264, 833, 777) <[8, 7, 6, 5, 4, 3, 2, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (129, 204, 582) <[9, 8, 7, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (129, 582, 204) <[3, 3, 3, 3, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
-  (130, 207, 582) <[9, 8, 7, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=2 i3=3
-  (130, 582, 207) <[4, 3, 3, 3, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=6 i3=7
-  (134, 219, 586) <[9, 8, 7, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=2 i3=3
-  (134, 586, 219) <[4, 4, 3, 3, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=6 i3=7
-  (144, 249, 606) <[9, 8, 7, 3, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=2 i3=3
-  (144, 606, 249) <[4, 4, 4, 3, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=6 i3=7
+  (130, 207, 582) <[9, 8, 7, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=2 i3=3
+  (130, 582, 207) <[4, 3, 3, 3, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=6 i3=7
+  (134, 219, 586) <[9, 8, 7, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=2 i3=3
+  (134, 586, 219) <[4, 4, 3, 3, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=6 i3=7
+  (144, 249, 606) <[9, 8, 7, 3, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=2 i3=3
+  (144, 606, 249) <[4, 4, 4, 3, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=6 i3=7
   (164, 309, 666) <[9, 8, 7, 4, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (164, 666, 309) <[4, 4, 4, 4, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=3 i1=6 i3=7
-  (165, 313, 666) <[9, 8, 7, 4, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=2 i3=4
-  (165, 666, 313) <[5, 4, 4, 4, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=8
+  (164, 666, 309) <[4, 4, 4, 4, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=3 i2=6 i3=7
+  (165, 313, 666) <[9, 8, 7, 4, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=2 i3=4
+  (165, 666, 313) <[5, 4, 4, 4, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=8
   (170, 333, 671) <[9, 8, 7, 4, 2, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (170, 671, 333) <[5, 5, 4, 4, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=6 i3=7
+  (170, 671, 333) <[5, 5, 4, 4, 3, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=6 i3=7
   (199, 414, 806) <[9, 8, 7, 5, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (199, 806, 414) <[4, 4, 4, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
-  (200, 418, 806) <[9, 8, 7, 5, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=2 i3=4
-  (200, 806, 418) <[5, 4, 4, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=4 i3=6
+  (200, 418, 806) <[9, 8, 7, 5, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=2 i3=4
+  (200, 806, 418) <[5, 4, 4, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=4 i3=6
   (205, 438, 811) <[9, 8, 7, 5, 2, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (205, 811, 438) <[5, 5, 4, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=4 i3=7
+  (205, 811, 438) <[5, 5, 4, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=4 i3=7
   (220, 498, 841) <[9, 8, 7, 5, 3, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (220, 841, 498) <[5, 5, 5, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=6 i3=8
+  (220, 841, 498) <[5, 5, 5, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=6 i3=8
   (221, 503, 841) <[9, 8, 7, 5, 3, 1, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (221, 841, 503) <[6, 5, 5, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=6 i3=8
+  (221, 841, 503) <[6, 5, 5, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=6 i3=8
   (227, 533, 847) <[9, 8, 7, 5, 3, 2, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (227, 847, 533) <[6, 6, 5, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=6 i3=8
+  (227, 847, 533) <[6, 6, 5, 4, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=6 i3=8
   (262, 673, 952) <[9, 8, 7, 5, 4, 2, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (262, 952, 673) <[6, 6, 5, 5, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (263, 679, 952) <[9, 8, 7, 5, 4, 2, 1, 0, 0]> from_iter=8 status=generated->vertex non_reducible
@@ -2002,46 +2002,46 @@ VERTICES OF THE CONVEX HULL in iteration=8
   (292, 1001, 833) <[8, 7, 6, 5, 4, 3, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (255, 582, 1086) <[9, 8, 7, 6, 0, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (255, 1086, 582) <[4, 4, 4, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
-  (256, 586, 1086) <[9, 8, 7, 6, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=2 i3=4
-  (256, 1086, 586) <[5, 4, 4, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=5 i3=6
-  (261, 606, 1091) <[9, 8, 7, 6, 2, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=4
-  (261, 1091, 606) <[5, 5, 4, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=5 i3=6
-  (276, 666, 1121) <[9, 8, 7, 6, 3, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=4
-  (276, 1121, 666) <[5, 5, 5, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i1=5 i3=6
-  (277, 671, 1121) <[9, 8, 7, 6, 3, 1, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=4
-  (277, 1121, 671) <[6, 5, 5, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=5 i3=6
+  (256, 586, 1086) <[9, 8, 7, 6, 1, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=2 i3=4
+  (256, 1086, 586) <[5, 4, 4, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=5 i3=6
+  (261, 606, 1091) <[9, 8, 7, 6, 2, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=4
+  (261, 1091, 606) <[5, 5, 4, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=5 i3=6
+  (276, 666, 1121) <[9, 8, 7, 6, 3, 0, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=4
+  (276, 1121, 666) <[5, 5, 5, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=2 i2=5 i3=6
+  (277, 671, 1121) <[9, 8, 7, 6, 3, 1, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=4
+  (277, 1121, 671) <[6, 5, 5, 4, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=5 i3=6
   (311, 806, 1226) <[9, 8, 7, 6, 4, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (311, 1226, 806) <[5, 5, 5, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
-  (312, 811, 1226) <[9, 8, 7, 6, 4, 1, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=5
-  (312, 1226, 811) <[6, 5, 5, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=6
+  (312, 811, 1226) <[9, 8, 7, 6, 4, 1, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=5
+  (312, 1226, 811) <[6, 5, 5, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=6
   (318, 841, 1232) <[9, 8, 7, 6, 4, 2, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (318, 1232, 841) <[6, 6, 5, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=5 i3=7
+  (318, 1232, 841) <[6, 6, 5, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=5 i3=7
   (319, 847, 1232) <[9, 8, 7, 6, 4, 2, 1, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (319, 1232, 847) <[7, 6, 5, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=5 i3=8
+  (319, 1232, 847) <[7, 6, 5, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=5 i3=8
   (340, 952, 1274) <[9, 8, 7, 6, 4, 3, 1, 0, 0]> from_iter=8 status=generated->vertex non_reducible
-  (340, 1274, 952) <[7, 6, 6, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=5 i3=8
+  (340, 1274, 952) <[7, 6, 6, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=5 i3=8
   (347, 994, 1281) <[9, 8, 7, 6, 4, 3, 2, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (347, 1281, 994) <[7, 7, 6, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (348, 1001, 1281) <[9, 8, 7, 6, 4, 3, 2, 1, 0]> from_iter=8 status=generated->vertex non_reducible
   (348, 1281, 1001) <[8, 7, 6, 5, 4, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (381, 1086, 1506) <[9, 8, 7, 6, 5, 0, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (381, 1506, 1086) <[5, 5, 5, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
-  (382, 1091, 1506) <[9, 8, 7, 6, 5, 1, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=5
-  (382, 1506, 1091) <[6, 5, 5, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=4 i3=5
-  (388, 1121, 1512) <[9, 8, 7, 6, 5, 2, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=4 i3=5
-  (388, 1512, 1121) <[6, 6, 5, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i1=4 i3=5
+  (382, 1091, 1506) <[9, 8, 7, 6, 5, 1, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=5
+  (382, 1506, 1091) <[6, 5, 5, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=4 i3=5
+  (388, 1121, 1512) <[9, 8, 7, 6, 5, 2, 0, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=4 i3=5
+  (388, 1512, 1121) <[6, 6, 5, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=1 i2=4 i3=5
   (409, 1226, 1554) <[9, 8, 7, 6, 5, 3, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (409, 1554, 1226) <[6, 6, 6, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
-  (410, 1232, 1554) <[9, 8, 7, 6, 5, 3, 1, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=4 i3=6
-  (410, 1554, 1232) <[7, 6, 6, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=4 i3=6
+  (410, 1232, 1554) <[9, 8, 7, 6, 5, 3, 1, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=4 i3=6
+  (410, 1554, 1232) <[7, 6, 6, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=4 i3=6
   (417, 1274, 1561) <[9, 8, 7, 6, 5, 3, 2, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (417, 1561, 1274) <[7, 7, 6, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (418, 1281, 1561) <[9, 8, 7, 6, 5, 3, 2, 1, 0]> from_iter=8 status=generated->vertex non_reducible
   (418, 1561, 1281) <[8, 7, 6, 5, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (465, 1506, 1722) <[9, 8, 7, 6, 5, 4, 0, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (465, 1722, 1506) <[6, 6, 6, 6, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
-  (466, 1512, 1722) <[9, 8, 7, 6, 5, 4, 1, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i1=4 i3=6
-  (466, 1722, 1512) <[7, 6, 6, 6, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i1=3 i3=4
+  (466, 1512, 1722) <[9, 8, 7, 6, 5, 4, 1, 0, 0]> from_iter=8 status=generated->vertex reducible at i1=0 i2=4 i3=6
+  (466, 1722, 1512) <[7, 6, 6, 6, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex reducible at i1=0 i2=3 i3=4
   (473, 1554, 1729) <[9, 8, 7, 6, 5, 4, 2, 0, 0]> from_iter=8 status=generated->vertex non_reducible
   (473, 1729, 1554) <[7, 7, 6, 6, 5, 4, 3, 2, 1]> from_iter=8 status=generated->vertex non_reducible
   (474, 1561, 1729) <[9, 8, 7, 6, 5, 4, 2, 1, 0]> from_iter=8 status=generated->vertex non_reducible
@@ -2077,137 +2077,137 @@ POINTS THAT ARE NOT VERTICES
   (29, 21, 98) <[8, 6, 0, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (29, 98, 21) <[2, 2, 2, 2, 2, 2, 1, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (30, 23, 98) <[8, 6, 1, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (30, 98, 23) <[3, 2, 2, 2, 2, 2, 1, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=5 i3=7
+  (30, 98, 23) <[3, 2, 2, 2, 2, 2, 1, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=5 i3=7
   (33, 29, 101) <[8, 6, 2, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (33, 101, 29) <[3, 3, 2, 2, 2, 2, 1, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=5 i3=7
+  (33, 101, 29) <[3, 3, 2, 2, 2, 2, 1, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=5 i3=7
   (36, 28, 140) <[8, 7, 0, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (36, 140, 28) <[2, 2, 2, 2, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (37, 30, 140) <[8, 7, 1, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (37, 140, 30) <[3, 2, 2, 2, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=6 i3=7
+  (37, 140, 30) <[3, 2, 2, 2, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=6 i3=7
   (40, 36, 143) <[8, 7, 2, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (40, 143, 36) <[3, 3, 2, 2, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=6 i3=7
+  (40, 143, 36) <[3, 3, 2, 2, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=6 i3=7
   (46, 48, 155) <[8, 7, 3, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (46, 155, 48) <[3, 3, 3, 2, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=2 i1=6 i3=7
+  (46, 155, 48) <[3, 3, 3, 2, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=2 i2=6 i3=7
   (56, 68, 185) <[8, 7, 4, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (56, 185, 68) <[3, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=3 i1=6 i3=7
+  (56, 185, 68) <[3, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=3 i2=6 i3=7
   (57, 71, 185) <[8, 7, 4, 1, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (57, 185, 71) <[4, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=6 i3=7
+  (57, 185, 71) <[4, 3, 3, 3, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=6 i3=7
   (61, 83, 189) <[8, 7, 4, 2, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (61, 189, 83) <[4, 4, 3, 3, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=6 i3=7
+  (61, 189, 83) <[4, 4, 3, 3, 2, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=6 i3=7
   (71, 98, 245) <[8, 7, 5, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (71, 245, 98) <[3, 3, 3, 3, 3, 2, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (72, 101, 245) <[8, 7, 5, 1, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (72, 245, 101) <[4, 3, 3, 3, 3, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=4 i3=6
+  (72, 245, 101) <[4, 3, 3, 3, 3, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=4 i3=6
   (76, 113, 249) <[8, 7, 5, 2, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (76, 249, 113) <[4, 4, 3, 3, 3, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=4 i3=7
+  (76, 249, 113) <[4, 4, 3, 3, 3, 2, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=4 i3=7
   (86, 143, 269) <[8, 7, 5, 3, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (86, 269, 143) <[4, 4, 4, 3, 3, 2, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (92, 140, 350) <[8, 7, 6, 0, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (92, 350, 140) <[3, 3, 3, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
-  (93, 143, 350) <[8, 7, 6, 1, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=2 i3=3
-  (93, 350, 143) <[4, 3, 3, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=5 i3=6
-  (97, 155, 354) <[8, 7, 6, 2, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=2 i3=3
-  (97, 354, 155) <[4, 4, 3, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=5 i3=6
+  (93, 143, 350) <[8, 7, 6, 1, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=2 i3=3
+  (93, 350, 143) <[4, 3, 3, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=5 i3=6
+  (97, 155, 354) <[8, 7, 6, 2, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=2 i3=3
+  (97, 354, 155) <[4, 4, 3, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=5 i3=6
   (107, 185, 374) <[8, 7, 6, 3, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (107, 374, 185) <[4, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=2 i1=5 i3=6
+  (107, 374, 185) <[4, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=2 i2=5 i3=6
   (108, 189, 374) <[8, 7, 6, 3, 1, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (108, 374, 189) <[5, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=5 i3=6
+  (108, 374, 189) <[5, 4, 4, 3, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=5 i3=6
   (127, 245, 434) <[8, 7, 6, 4, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (127, 434, 245) <[4, 4, 4, 4, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (128, 249, 434) <[8, 7, 6, 4, 1, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (128, 434, 249) <[5, 4, 4, 4, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=3 i3=6
+  (128, 434, 249) <[5, 4, 4, 4, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=3 i3=6
   (133, 269, 439) <[8, 7, 6, 4, 2, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (133, 439, 269) <[5, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=5 i3=7
+  (133, 439, 269) <[5, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=5 i3=7
   (134, 274, 439) <[8, 7, 6, 4, 2, 1, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (134, 439, 274) <[6, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=5 i3=7
+  (134, 439, 274) <[6, 5, 4, 4, 3, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=5 i3=7
   (162, 350, 574) <[8, 7, 6, 5, 0, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (162, 574, 350) <[4, 4, 4, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
-  (163, 354, 574) <[8, 7, 6, 5, 1, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=3 i3=4
-  (163, 574, 354) <[5, 4, 4, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=4 i3=5
-  (168, 374, 579) <[8, 7, 6, 5, 2, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=3 i3=4
-  (168, 579, 374) <[5, 5, 4, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i1=4 i3=5
+  (163, 354, 574) <[8, 7, 6, 5, 1, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=3 i3=4
+  (163, 574, 354) <[5, 4, 4, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=4 i3=5
+  (168, 374, 579) <[8, 7, 6, 5, 2, 0, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=3 i3=4
+  (168, 579, 374) <[5, 5, 4, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=1 i2=4 i3=5
   (183, 434, 609) <[8, 7, 6, 5, 3, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (183, 609, 434) <[5, 5, 5, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (184, 439, 609) <[8, 7, 6, 5, 3, 1, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
-  (184, 609, 439) <[6, 5, 5, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=4 i3=6
+  (184, 609, 439) <[6, 5, 5, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=4 i3=6
   (190, 469, 615) <[8, 7, 6, 5, 3, 2, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (190, 615, 469) <[6, 6, 5, 4, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (218, 574, 714) <[8, 7, 6, 5, 4, 0, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (218, 714, 574) <[5, 5, 5, 5, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
-  (219, 579, 714) <[8, 7, 6, 5, 4, 1, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=4 i3=5
-  (219, 714, 579) <[6, 5, 5, 5, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i1=3 i3=4
+  (219, 579, 714) <[8, 7, 6, 5, 4, 1, 0, 0]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=4 i3=5
+  (219, 714, 579) <[6, 5, 5, 5, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex reducible at i1=0 i2=3 i3=4
   (225, 609, 720) <[8, 7, 6, 5, 4, 2, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (225, 720, 609) <[6, 6, 5, 5, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (246, 714, 762) <[8, 7, 6, 5, 4, 3, 0, 0]> from_iter=7 status=vertex->nonvertex non_reducible
   (246, 762, 714) <[6, 6, 6, 5, 4, 3, 2, 1]> from_iter=7 status=vertex->nonvertex non_reducible
   (13, 5, 38) <[9, 2, 1, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (13, 38, 5) <[3, 2, 1, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=8
+  (13, 38, 5) <[3, 2, 1, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=8
   (16, 8, 44) <[9, 3, 1, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (16, 44, 8) <[3, 2, 2, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=2 i3=8
+  (16, 44, 8) <[3, 2, 2, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=2 i3=8
   (19, 14, 47) <[9, 3, 2, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (19, 47, 14) <[3, 3, 2, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=2 i3=8
-  (20, 17, 47) <[9, 3, 2, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (20, 47, 17) <[4, 3, 2, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=8
+  (19, 47, 14) <[3, 3, 2, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=2 i3=8
+  (20, 17, 47) <[9, 3, 2, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (20, 47, 17) <[4, 3, 2, 1, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=8
   (20, 12, 56) <[9, 4, 1, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (20, 56, 12) <[3, 2, 2, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=3 i3=8
+  (20, 56, 12) <[3, 2, 2, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=3 i3=8
   (23, 18, 59) <[9, 4, 2, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (23, 59, 18) <[3, 3, 2, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=3 i3=8
+  (23, 59, 18) <[3, 3, 2, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=3 i3=8
   (24, 21, 59) <[9, 4, 2, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (24, 59, 21) <[4, 3, 2, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=8
+  (24, 59, 21) <[4, 3, 2, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=8
   (30, 33, 71) <[9, 4, 3, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (30, 71, 33) <[4, 3, 3, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=3 i3=8
-  (34, 45, 75) <[9, 4, 3, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (34, 75, 45) <[4, 4, 3, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=2 i3=8
-  (35, 49, 75) <[9, 4, 3, 2, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (35, 75, 49) <[5, 4, 3, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=8
+  (30, 71, 33) <[4, 3, 3, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=3 i3=8
+  (34, 45, 75) <[9, 4, 3, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (34, 75, 45) <[4, 4, 3, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=2 i3=8
+  (35, 49, 75) <[9, 4, 3, 2, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (35, 75, 49) <[5, 4, 3, 2, 1, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=8
   (34, 35, 91) <[9, 5, 3, 0, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (34, 91, 35) <[3, 3, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=2 i1=4 i3=8
+  (34, 91, 35) <[3, 3, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=2 i2=4 i3=8
   (35, 38, 91) <[9, 5, 3, 1, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (35, 91, 38) <[4, 3, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=4 i3=8
+  (35, 91, 38) <[4, 3, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=4 i3=8
   (39, 50, 95) <[9, 5, 3, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (39, 95, 50) <[4, 4, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=2 i3=8
-  (40, 54, 95) <[9, 5, 3, 2, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (40, 95, 54) <[5, 4, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=8
+  (39, 95, 50) <[4, 4, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=2 i3=8
+  (40, 54, 95) <[9, 5, 3, 2, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (40, 95, 54) <[5, 4, 3, 2, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=8
   (49, 70, 125) <[9, 5, 4, 2, 0, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (49, 125, 70) <[4, 4, 3, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=4 i3=8
-  (50, 74, 125) <[9, 5, 4, 2, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (50, 125, 74) <[5, 4, 3, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=8
-  (60, 104, 145) <[9, 5, 4, 3, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (60, 145, 104) <[5, 4, 4, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=3 i3=8
-  (65, 124, 150) <[9, 5, 4, 3, 2, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (65, 150, 124) <[5, 5, 4, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=3 i3=8
-  (66, 129, 150) <[9, 5, 4, 3, 2, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=3
-  (66, 150, 129) <[6, 5, 4, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=2 i3=8
+  (49, 125, 70) <[4, 4, 3, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=4 i3=8
+  (50, 74, 125) <[9, 5, 4, 2, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (50, 125, 74) <[5, 4, 3, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=8
+  (60, 104, 145) <[9, 5, 4, 3, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (60, 145, 104) <[5, 4, 4, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=3 i3=8
+  (65, 124, 150) <[9, 5, 4, 3, 2, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (65, 150, 124) <[5, 5, 4, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=3 i3=8
+  (66, 129, 150) <[9, 5, 4, 3, 2, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=3
+  (66, 150, 129) <[6, 5, 4, 3, 2, 1, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=2 i3=8
   (56, 80, 155) <[9, 6, 4, 2, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (56, 155, 80) <[5, 4, 3, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=8
+  (56, 155, 80) <[5, 4, 3, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=8
   (66, 110, 175) <[9, 6, 4, 3, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (66, 175, 110) <[5, 4, 4, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=3 i3=8
+  (66, 175, 110) <[5, 4, 4, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=3 i3=8
   (71, 130, 180) <[9, 6, 4, 3, 2, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (71, 180, 130) <[5, 5, 4, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=3 i3=8
-  (72, 135, 180) <[9, 6, 4, 3, 2, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=2 i3=5
-  (72, 180, 135) <[6, 5, 4, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=2 i3=8
+  (71, 180, 130) <[5, 5, 4, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=3 i3=8
+  (72, 135, 180) <[9, 6, 4, 3, 2, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=2 i3=5
+  (72, 180, 135) <[6, 5, 4, 3, 2, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=2 i3=8
   (81, 140, 235) <[9, 6, 5, 3, 1, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (81, 235, 140) <[5, 4, 4, 3, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=5 i3=8
+  (81, 235, 140) <[5, 4, 4, 3, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=5 i3=8
   (86, 160, 240) <[9, 6, 5, 3, 2, 0, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (86, 240, 160) <[5, 5, 4, 3, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=5 i3=8
+  (86, 240, 160) <[5, 5, 4, 3, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=5 i3=8
   (87, 165, 240) <[9, 6, 5, 3, 2, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (87, 240, 165) <[6, 5, 4, 3, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=2 i3=8
+  (87, 240, 165) <[6, 5, 4, 3, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=2 i3=8
   (107, 225, 300) <[9, 6, 5, 4, 2, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (107, 300, 225) <[6, 5, 4, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=5 i3=8
-  (122, 285, 330) <[9, 6, 5, 4, 3, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (122, 330, 285) <[6, 5, 5, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=5 i3=8
-  (128, 315, 336) <[9, 6, 5, 4, 3, 2, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (128, 336, 315) <[6, 6, 5, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=4 i3=8
-  (129, 321, 336) <[9, 6, 5, 4, 3, 2, 1, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=1 i3=4
-  (129, 336, 321) <[7, 6, 5, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=3 i3=8
+  (107, 300, 225) <[6, 5, 4, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=5 i3=8
+  (122, 285, 330) <[9, 6, 5, 4, 3, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (122, 330, 285) <[6, 5, 5, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=5 i3=8
+  (128, 315, 336) <[9, 6, 5, 4, 3, 2, 0, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (128, 336, 315) <[6, 6, 5, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=4 i3=8
+  (129, 321, 336) <[9, 6, 5, 4, 3, 2, 1, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=1 i3=4
+  (129, 336, 321) <[7, 6, 5, 4, 3, 2, 1, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=3 i3=8
   (129, 292, 372) <[9, 7, 5, 4, 3, 1, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (129, 372, 292) <[6, 5, 5, 4, 3, 2, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=2 i1=4 i3=8
+  (129, 372, 292) <[6, 5, 5, 4, 3, 2, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=2 i2=4 i3=8
   (135, 322, 378) <[9, 7, 5, 4, 3, 2, 0, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (135, 378, 322) <[6, 6, 5, 4, 3, 2, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i1=4 i3=8
-  (136, 328, 378) <[9, 7, 5, 4, 3, 2, 1, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=2 i3=6
-  (136, 378, 328) <[7, 6, 5, 4, 3, 2, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=3 i3=8
+  (135, 378, 322) <[6, 6, 5, 4, 3, 2, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=1 i2=4 i3=8
+  (136, 328, 378) <[9, 7, 5, 4, 3, 2, 1, 0, 0]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=2 i3=6
+  (136, 378, 328) <[7, 6, 5, 4, 3, 2, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=3 i3=8
   (157, 370, 483) <[9, 7, 6, 4, 3, 2, 1, 0, 0]> from_iter=8 status=generated->nonvertex non_reducible
-  (157, 483, 370) <[7, 6, 5, 4, 3, 3, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i1=3 i3=8
+  (157, 483, 370) <[7, 6, 5, 4, 3, 3, 2, 1, 1]> from_iter=8 status=generated->nonvertex reducible at i1=0 i2=3 i3=8
 VERTEX REPORT ENDS
 ITERATION 8 ENDS time=0s {"vertices": 448, "vertex->vertex": 211, "vertex->nonvertex": 68, "generated->vertex": 219, "generated->nonvertex": 68, "extra->vertex": 18}
 

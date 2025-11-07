@@ -477,7 +477,7 @@ def print_point(*, pi, p, Pobj, status):
         if reducible is None:
             reducible = 'non_reducible'
         else:
-            reducible = f"reducible at i1={reducible[0]} i1={reducible[1]} i3={reducible[2]}"
+            reducible = f"reducible at i1={reducible[0]} i2={reducible[1]} i3={reducible[2]}"
         print(f"  {p} <{infod[1]}> from_iter={infod[0]} status={status}{'(duplicate)' if i>0 else ''} {reducible}")
 
 
