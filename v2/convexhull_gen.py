@@ -214,9 +214,9 @@ def is_reducible(fill):
                 i1, j1 = corners[p1]
                 i2, j2 = corners[p2]
                 i3, j3 = corners[p3]
-                if (i3-i2+1)/(j2-j3) <= (i3-i1)/(j1-j3): return (i1, i2, i3)
-                if (i3-i2-1)/(j2-j3) >= (i3-i1)/(j1-j3): return (i1, i2, i3)
-    return None
+                if (i3-i2+1)/(j2-j3) <= (i3-i1)/(j1-j3): return (i1, i2, i3) # reducible
+                if (i3-i2-1)/(j2-j3) >= (i3-i1)/(j1-j3): return (i1, i2, i3) # reducible
+    return None # non-reducible
 
 
 def get_init_stats():
