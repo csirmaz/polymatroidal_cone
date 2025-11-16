@@ -25,10 +25,10 @@ from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
 LOG_GENERATION = False  # produce logs during point generation
 SKIP_REDUCIBLE_DURING_GENERATION = False
-LIMIT_COORDINATES = 10000000  # limit generated points to have smaller coordinates than this, or None
+LIMIT_COORDINATES = 2*1000*1000  # limit generated points to have smaller coordinates than this, or None
 LIST_NONVERTICES = False
-CREATE_SCAD = True
-SCAD_FILE = 'store/polygen.scad'
+CREATE_SCAD = 'json'  # 'scad' | 'json' | None
+SCAD_FILE = f'store/polym_gen.{CREATE_SCAD}'  # data needed for scad
 
 CACHE_BINOM_TO = 1000
 
@@ -326,21 +326,6 @@ def get_next_pobj(PrevPobj):
     return Pobj
 
 
-def swap(*, array, minix, maxix, steps):
-    for i in range(steps):
-        a = random.randrange(minix, maxix)
-        b = random.randrange(minix, maxix)
-        if a != b:
-            array[a], array[b] = array[b], array[a]
-
-def reorder_points(*, Pobj, PrevPobj):
-    """Reorder Pobj.RawPoints keeping RetainPoints first and ExtraPoints last"""
-    # Doesn't seem to help
-    swap(array=Pobj.RawPoints, minix=0, maxix=len(PrevPobj.RetainPoints), steps=50000)
-    swap(array=Pobj.RawPoints, minix=len(PrevPobj.RetainPoints), maxix=Pobj.ExtraPointsFrom, steps=50000)
-    swap(array=Pobj.RawPoints, minix=Pobj.ExtraPointsFrom, maxix=len(Pobj.RawPoints), steps=50000)
-
-
 def process_points(*, Pobj, PrevPobj):
     """
     (1) Add extra points to create triangles
@@ -361,11 +346,11 @@ def process_points(*, Pobj, PrevPobj):
             print_point(pi=pi, p=p, Pobj=Pobj, status='keep')
         return
     
-    # Add extra points to create triangles
-    max_v = Pobj.max_y * 2.
+    # Add extra points to create triangles or a cube
     
     Pobj.ExtraPointsFrom = len(Pobj.RawPoints)
-    
+
+    max_v = Pobj.max_y * 2.
     # We know for every (x,y,z) point we also have (x,z,y)
     # (x,y,z) -> (x, y, m-y); (x, m-z, z)
     # (x,z,y) -> (x, z, m-z); (x, m-y, y)
@@ -379,20 +364,21 @@ def process_points(*, Pobj, PrevPobj):
         key = (ey, ez)
         if key in seen_yz: continue
         seen_yz.add(key)
-        Pobj.RawPoints.append([ex, ey, max_v-ey])
-        Pobj.RawPoints.append([ex, max_v-ey, ey])
+        if LIMIT_COORDINATES is None:
+            # Make triangles
+            Pobj.RawPoints.append([ex, ey, max_v-ey])
+            Pobj.RawPoints.append([ex, max_v-ey, ey])
+        else:
+            # Make cube
+            Pobj.RawPoints.append([ex, ey, Pobj.max_y])
+            Pobj.RawPoints.append([ex, Pobj.max_y, ey])
+    if LIMIT_COORDINATES is not None:
+        Pobj.RawPoints.append([0, Pobj.max_y, Pobj.max_y])
     del seen_yz
-    
+
     print(f"process_points: {len(Pobj.RawPoints)} points after adding the extra points")
     
-    for tryix in range(3):
-        try:
-            Pobj.Hull = ConvexHull(np.array(Pobj.RawPoints, dtype=np.float64), qhull_options="Qc")
-        except Exception as e:
-            print(f"ConvexHull error: {e}")
-            reorder_points(Pobj=Pobj, PrevPobj=PrevPobj)
-            continue
-        break
+    Pobj.Hull = ConvexHull(np.array(Pobj.RawPoints, dtype=np.float64), qhull_options="Qc")
     # Hull.points shape=<n,3> coordinates of all points
     # Hull.vertices shape=<k> indices of points that are vertices
     # Hull.simplices  triads of indices of points that form faces (triangulated)
@@ -454,7 +440,10 @@ def process_points(*, Pobj, PrevPobj):
             p = pointtuple(Pobj.Hull.points[pi])
             Pobj.RetainPoints.append(p)
 
-    if CREATE_SCAD:
+    if CREATE_SCAD == 'json':
+        Pobj.ScadOfHull = get_scad_data(Pobj.Hull, Pobj.Iteration)
+
+    if CREATE_SCAD == 'scad':
         Pobj.ScadOfHull = get_scad_hull(Pobj.Hull)
 
     del Pobj.Hull
@@ -499,6 +488,18 @@ def get_scad_hull(chull):
     return ohull.render()
 
 
+def get_scad_data(chull, itr):
+    point_reindex = {} # {old_index: new_index (only vertices)
+    for pinew, piold in enumerate(chull.vertices):
+        point_reindex[piold] = pinew
+    new_faces = [
+        [point_reindex[pi] for pi in face]
+        for face in chull.simplices
+    ]
+    ohull = {'iteration': itr, 'points': [chull.points[pi].tolist() for pi in chull.vertices], 'faces': new_faces}
+    return json.dumps(ohull)
+
+
 def main():
     Pobj = get_init_pobj()
     print(f"ITERATION {Pobj.Iteration} STARTS")
@@ -508,11 +509,11 @@ def main():
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
         if CREATE_SCAD and hasattr(Pobj, 'ScadOfHull'):
             with open(SCAD_FILE, 'w') as f:
-                f.write(f"// iter {Pobj.Iteration}\n")
                 f.write(Pobj.ScadOfHull)
         now_time = time.time()
-        print(f"ITERATION {Pobj.Iteration} ENDS time={now_time-prev_time:.0f}s {json.dumps(Pobj.Stats)}\n\n", flush=True)
-        sys.stderr.write(f"ITERATION {Pobj.Iteration} ENDS\n")
+        msg = f"ITERATION {Pobj.Iteration} ENDS time={now_time-prev_time:.0f}s {json.dumps(Pobj.Stats)}\n"
+        print(msg, flush=True)
+        sys.stderr.write(msg)
         sys.stderr.flush()
         prev_time = now_time
         PrevPobj = Pobj
