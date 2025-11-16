@@ -21,13 +21,15 @@ import random
 import json
 
 sys.path.append(os.path.dirname(__file__) + "/../../openscad-py")  # https://codeberg.org/csirmaz/openscad-py
+from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
 
-# from openscad_py import Sphere, Collection, Header, Polyhedron, Point, Cylinder
+LOG_GENERATION = False  # produce logs during point generation
+SKIP_REDUCIBLE_DURING_GENERATION = False
+LIMIT_COORDINATES = 10000000  # limit generated points to have smaller coordinates than this, or None
+LIST_NONVERTICES = False
+CREATE_SCAD = True
 
-LOG_GENERATION = True
-CREATE_SCAD = False
-
-CACHE_BINOM_TO = 200
+CACHE_BINOM_TO = 1000
 
 class PObjectClass:
     pass
@@ -164,18 +166,18 @@ def is_ender(fill):
 
 def generate_next_by_column(fill, length):
     """Given a fill vector, add a full column. Suitable for "beginner"s"""
-    fill = [length] + fill  # clones
+    fill = [length] + fill  # clones fill
     if len(fill) < length:
-        fill += [0] * (length-len(fill))
+        fill += [0] * (length - len(fill))
     return fill
 
 
 def generate_next_by_row(fill, length):
     """Given a fill vector, add a full row. Suitable for "ender"s"""
-    fill = list(fill)
+    fill = list(fill)  # clones fill
     if len(fill) < length:
-        fill += [0] * (length-len(fill))  # warning: modifies fill
-    return [v+1 for v in fill]
+        fill += [0] * (length - len(fill))  # warning: modifies fill
+    return [v + 1 for v in fill]
 
 
 def ungenerate(fill):
@@ -205,13 +207,6 @@ assert get_corner_points([3,2,1]) == [(0,2), (1,1), (2,0)]
 
 def is_reducible(fill):
     corners = get_corner_points(fill)
-    ## HA EZT HOZZAVESZEM, PERSZE TOBB CSUCSRA MONDJA HOGY REDUCIBLE
-    # if len(fill) > 0:
-    #     corners = [(-1, fill[0]+1)] + corners  # addition is list concatenation
-    # else:
-    #     assert len(corners) == 0
-    #     corners = [(-1, 1)]
-
     for p1 in range(0, len(corners)-2):  # for(p1=0; p1<len(corners)-2; p1++)
         for p2 in range(p1+1, len(corners)-1):  # for(p2=p1+1, p2<len(corners)-1; p2++)
             for p3 in range(p2+1, len(corners)):  # for(p3=p2+1, p3<len(corners); p3++)
@@ -225,6 +220,9 @@ def is_reducible(fill):
 
 def get_init_stats():
     return {
+        'generated': 0,
+        'generated_reducible': 0,
+        'generated_cut': 0,
         'vertices': 0,
         'vertex->vertex': 0,
         'vertex->nonvertex': 0,
@@ -265,7 +263,7 @@ def get_next_pobj(PrevPobj):
     for src_coords in PrevPobj.RetainPoints:  # loop through the vertices
         sources = [PrevPobj.Global.PointInfo[src_coords]]
         if src_coords in PrevPobj.Global.DuplicateSets:
-            sources.extend(PrevPobj.Global.DuplicateSets[src_coords])
+            sources.extend(PrevPobj.Global.DuplicateSets[src_coords])  # use all source sets, even the ones that produce duplicate coordinates
         for source in sources:
             src_itr, src_fill = source   # per-column fill
             assert src_itr + 1 == len(src_fill)
@@ -283,16 +281,31 @@ def get_next_pobj(PrevPobj):
 
             prev_coords = None
             for fill in new_fills:        
-                assert check_nc(fill) # TODO Remove to speed up
+                # assert check_nc(fill) # TODO Remove to speed up
             
                 coords = fill2coords(fill)
                 if prev_coords is None:
                     prev_coords = coords
                 elif coords == prev_coords:
                     continue  # We allow a duplicate point from the same source
-                if LOG_GENERATION:
-                    print(f"  {src_coords} = <{src_fill}> generated {coords} = <{fill}>")
                 
+                reducible = None
+                if SKIP_REDUCIBLE_DURING_GENERATION:
+                    reducible = is_reducible(fill)
+                
+                if LOG_GENERATION:
+                    print(f"  {src_coords} = <{src_fill}> generated {coords} = <{fill}> {'reducible' if reducible else ''}")
+                    
+                if SKIP_REDUCIBLE_DURING_GENERATION and reducible:
+                    Pobj.Stats['generated_reducible'] += 1
+                    continue
+                
+                if LIMIT_COORDINATES is not None:
+                    if coords[0] > LIMIT_COORDINATES or coords[1] > LIMIT_COORDINATES or coords[2] > LIMIT_COORDINATES:
+                        Pobj.Stats['generated_cut'] += 1
+                        continue
+
+                Pobj.Stats['generated'] += 1
                 if coords in Pobj.Global.PointInfo:
                     # We have seen this point before from a different S set
                     if coords not in Pobj.Global.DuplicateSets: Pobj.Global.DuplicateSets[coords] = []
@@ -326,6 +339,12 @@ def reorder_points(*, Pobj, PrevPobj):
 
 
 def process_points(*, Pobj, PrevPobj):
+    """
+    (1) Add extra points to create triangles
+    (2) Create the convex hull
+    (3) Report on which points are vertices
+    (4) Collect vertices in RetainPoints
+    """
     
     if PrevPobj:
         assrt(PrevPobj.Iteration + 1 == Pobj.Iteration, "PrePobj iteration")
@@ -376,14 +395,7 @@ def process_points(*, Pobj, PrevPobj):
     # Hull.simplices  triads of indices of points that form faces (triangulated)
     # We have previously checked that Hull.points === input points (indices match)
     del Pobj.RawPoints
-    
-    ## Process faces from the previous iteration
-    ## We have already reindexed the points to match this iteration
-    # if PrevPobj and hasattr(PrevPobj, 'Simplices'):
-    #     print(f"// EDGES OF THE CONVEX HULL iteration={PrevPobj.Iteration}")
-    #     process_faces(Pobj, PrevPobj) # TODO enable later
-    #     print(f"// EDGES REPORT END iteration={PrevPobj.Iteration}")
-    
+
     # Create report
     
     def assess_point(*, pi, p, Pobj, PrevPobj, currently_vertex):
@@ -423,35 +435,21 @@ def process_points(*, Pobj, PrevPobj):
         assrt(p not in seen_pk, "point listed as vertex multiple times")
         seen_pk.add(p)
 
-    print(f"POINTS THAT ARE NOT VERTICES")
-    for pi in range(len(Pobj.Hull.points)):
-        p = pointtuple(Pobj.Hull.points[pi])
-        if p not in seen_pk:
-            assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
+    if LIST_NONVERTICES:
+        print(f"POINTS THAT ARE NOT VERTICES")
+        for pi in range(len(Pobj.Hull.points)):
+            p = pointtuple(Pobj.Hull.points[pi])
+            if p not in seen_pk:
+                assess_point(pi=pi, p=p, Pobj=Pobj, PrevPobj=PrevPobj, currently_vertex=False)
                 
     print(f"VERTEX REPORT ENDS", flush=True)
     
     # Initialize new input from the vertices of this hull
     Pobj.RetainPoints = []
-    old2new_index = {}
     for pi in Pobj.Hull.vertices:
         if pi < Pobj.ExtraPointsFrom:  # not extra point
-            old2new_index[pi] = len(Pobj.RetainPoints)
             p = pointtuple(Pobj.Hull.points[pi])
             Pobj.RetainPoints.append(p)
-        
-    ## Store faces for processing later
-    ## We do it in the next step as that's when we know which vertices stay
-    ## Reindex data to index into RetainPoints
-    # Pobj.Simplices = []
-    # for face in Pobj.Hull.simplices:
-    #     face = [int(v) for v in face]
-    #     if max(face) < Pobj.ExtraPointsFrom:
-    #         Pobj.Simplices.append([
-    #             old2new_index[face[0]],
-    #             old2new_index[face[1]],
-    #             old2new_index[face[2]]
-    #         ])
 
     if CREATE_SCAD:
         Pobj.ScadOfHull = get_scad_hull(Pobj.Hull)
@@ -485,16 +483,34 @@ def print_point(*, pi, p, Pobj, status):
         print(f"  {p} <{infod[1]}> from_iter={infod[0]} status={status}{'(duplicate)' if i>0 else ''} {reducible}")
 
 
+def get_scad_hull(chull):
+    # Convert the Qhull hull into openscad
+    point_reindex = {} # {old_index: new_index (only vertices)
+    for pinew, piold in enumerate(chull.vertices):
+        point_reindex[piold] = pinew
+    new_faces = [
+        [point_reindex[pi] for pi in face]
+        for face in chull.simplices
+    ]
+    ohull = Polyhedron(points=[chull.points[pi] for pi in chull.vertices], faces=new_faces)
+    return ohull.render()
+
 
 def main():
     Pobj = get_init_pobj()
     print(f"ITERATION {Pobj.Iteration} STARTS")
     PrevPobj = None
     prev_time = time.time()
-    for x in range(10):
+    for x in range(1000):
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
+        if CREATE_SCAD and hasattr(Pobj, 'ScadOfHull'):
+            print(f"SCAD STARTS iteration={Pobj.Iteration}")
+            print(Pobj.ScadOfHull)
+            print(f"SCAD ENDS iteration={Pobj.Iteration}")
         now_time = time.time()
         print(f"ITERATION {Pobj.Iteration} ENDS time={now_time-prev_time:.0f}s {json.dumps(Pobj.Stats)}\n\n", flush=True)
+        sys.stderr.write(f"ITERATION {Pobj.Iteration} ENDS\n")
+        sys.stderr.flush()
         prev_time = now_time
         PrevPobj = Pobj
         print(f"ITERATION {PrevPobj.Iteration+1} STARTS")
@@ -515,17 +531,6 @@ exit(0)
 
 CREATE_EDGE_FACE_DATA = False
 
-def get_scad_hull(chull):
-    # Convert the Qhull hull into openscad
-    point_reindex = {} # {old_index: new_index (only vertices)
-    for pinew, piold in enumerate(chull.vertices):
-        point_reindex[piold] = pinew
-    new_faces = [
-        [point_reindex[pi] for pi in face]
-        for face in chull.simplices
-    ]
-    ohull = Polyhedron(points=[chull.points[pi] for pi in chull.vertices], faces=new_faces)
-    return ohull.render()
 
 
 def process_faces(Pobj, PrevPobj):
