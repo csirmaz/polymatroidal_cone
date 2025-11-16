@@ -1,4 +1,23 @@
 
+v2.0
+====
+
+convexhull_gen.py
+    -> store/polym_gen.json
+    
+surface2.py
+    -> store/approximation.json
+
+
+
+
+
+
+
+
+
+v1.0
+====
 
 triads -- generate points from all closed S sets
 
