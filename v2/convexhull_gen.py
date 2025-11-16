@@ -28,6 +28,7 @@ SKIP_REDUCIBLE_DURING_GENERATION = False
 LIMIT_COORDINATES = 10000000  # limit generated points to have smaller coordinates than this, or None
 LIST_NONVERTICES = False
 CREATE_SCAD = True
+SCAD_FILE = 'store/polygen.scad'
 
 CACHE_BINOM_TO = 1000
 
@@ -40,7 +41,9 @@ class GlobalClass:
 
 def assrt(test, msg):
     if not test:
-        print(f"ERROR: {msg}")
+        print(f"ERROR: {msg}", flush=True)
+        sys.stderr.write(f"ERROR: {msg}\n")
+        sys.stderr.flush()
         exit(1)
 
 
@@ -504,20 +507,23 @@ def main():
     for x in range(1000):
         process_points(Pobj=Pobj, PrevPobj=PrevPobj)
         if CREATE_SCAD and hasattr(Pobj, 'ScadOfHull'):
-            print(f"SCAD STARTS iteration={Pobj.Iteration}")
-            print(Pobj.ScadOfHull)
-            print(f"SCAD ENDS iteration={Pobj.Iteration}")
+            with open(SCAD_FILE, 'w') as f:
+                f.write(f"// iter {Pobj.Iteration}\n")
+                f.write(Pobj.ScadOfHull)
         now_time = time.time()
         print(f"ITERATION {Pobj.Iteration} ENDS time={now_time-prev_time:.0f}s {json.dumps(Pobj.Stats)}\n\n", flush=True)
         sys.stderr.write(f"ITERATION {Pobj.Iteration} ENDS\n")
         sys.stderr.flush()
         prev_time = now_time
         PrevPobj = Pobj
-        print(f"ITERATION {PrevPobj.Iteration+1} STARTS")
+        print(f"ITERATION {PrevPobj.Iteration+1} STARTS", flush=True)
         Pobj = get_next_pobj(PrevPobj)
 
 
-main()    
+main()
+print("Exiting", flush=True)
+sys.stderr.write(f"Exiting\n")
+sys.stderr.flush()
 exit(0)
 
 
